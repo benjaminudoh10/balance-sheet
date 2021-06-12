@@ -1,15 +1,15 @@
+import 'package:balance_sheet/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(child: Text('Home'),),
-      ),
+      body: MainView(),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Color(0xffC77DFF),
-        unselectedItemColor: Color(0xffECCAFF),
+        backgroundColor: Color(0xffE6E2F4),
+        selectedItemColor: Color(0xFFC77DFF),
+        unselectedItemColor: Color(0xFFECCAFF),
         type: BottomNavigationBarType.fixed,
         currentIndex: 0,
         onTap: (index) {},
