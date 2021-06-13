@@ -142,24 +142,20 @@ class MainView extends StatelessWidget {
   }
 }
 
-void showNewIncomeModal(TransactionType type) {
+void showNewTransactionModal(TransactionType type) {
   BuildContext context = Get.context;
   showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
-    builder: (context) => Wrap(
-      children: [
-        IncomeForm(type: type),
-      ],
-    ),
+    builder: (context) => IncomeForm(type: type),
   );
 }
 
 Widget _buildButton(TransactionType type) {
   return GestureDetector(
-    onTap: () => showNewIncomeModal(type),
+    onTap: () => showNewTransactionModal(type),
     child: Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7.0),

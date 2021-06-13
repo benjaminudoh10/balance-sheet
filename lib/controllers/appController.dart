@@ -9,6 +9,6 @@ class AppController extends GetxController {
   }
 
   _setInitialScreen() {
-    Future.delayed(const Duration(milliseconds: 3000), () => Get.offAll(Home()));
+    Future.delayed(const Duration(milliseconds: 2000), () => Get.offAll(Home()));
   }
 }
