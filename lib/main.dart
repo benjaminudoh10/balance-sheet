@@ -6,6 +6,11 @@ import 'package:get/get.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(AppController());
+  Get.config(
+    // enableLog: true,
+    // defaultPopGesture: true,
+    defaultTransition: Transition.downToUp,
+  );
   runApp(MyApp());
 }
 
