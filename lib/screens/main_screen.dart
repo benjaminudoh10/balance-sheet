@@ -1,3 +1,5 @@
+import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -89,8 +91,8 @@ class MainView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildButton("New Expense", Icons.remove, Color(0xaaff0000)),
-                      _buildButton("New Sale", Icons.add, Color(0xdd5DAC7F)),
+                      _buildButton(TransactionType.expenditure),
+                      _buildButton(TransactionType.income),
                     ],
                   ),
                   Container(
@@ -186,7 +188,7 @@ class MainView extends StatelessWidget {
                               ),
                               SizedBox(height: 15.0),
                               Text(
-                                'Click "New Expense" or "New Sale" above.'
+                                'Click "Income" or "Expenditure" above.'
                               ),
                             ],
                           ),
@@ -289,35 +291,53 @@ Widget _roundedIcon({IconData icon, Color iconColor, double iconSize, Color cont
   );
 }
 
-Widget _buildButton(String text, IconData icon, Color color) {
-  return Container(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(7.0),
-      color: color,
-    ),
-    padding: EdgeInsets.symmetric(
-      vertical: 10.0,
-      horizontal: 20.0,
-    ),
-    width: Get.width * .5 - APP_WIDTH - 5,
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+void showNewIncomeModal(TransactionType type) {
+  BuildContext context = Get.context;
+  showModalBottomSheet<void>(
+    backgroundColor: Colors.transparent,
+    barrierColor: Color(0x22AF47FF),
+    isScrollControlled: true,
+    context: context,
+    builder: (context) => Wrap(
       children: [
-        _roundedIcon(
-          icon: icon,
-          containerColor: Color(0x22ffffff),
-          iconColor: Colors.white,
-        ),
-        SizedBox(width: 15.0),
-        Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        IncomeForm(type: type),
       ],
+    ),
+  );
+}
+
+Widget _buildButton(TransactionType type) {
+  return GestureDetector(
+    onTap: () => showNewIncomeModal(type),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(7.0),
+        color: type == TransactionType.income ? Color(0xdd5DAC7F) : Color(0xaaff0000),
+      ),
+      padding: EdgeInsets.symmetric(
+        vertical: 10.0,
+        horizontal: 20.0,
+      ),
+      width: Get.width * .5 - APP_WIDTH - 5,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _roundedIcon(
+            icon: type == TransactionType.income ? Icons.add : Icons.remove,
+            containerColor: Color(0x22ffffff),
+            iconColor: Colors.white,
+          ),
+          SizedBox(width: 15.0),
+          Text(
+            type == TransactionType.income ? "Income" : "Expenditure",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
