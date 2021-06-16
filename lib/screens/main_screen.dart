@@ -104,10 +104,7 @@ class MainView extends StatelessWidget {
                       _buildButton(TransactionType.income),
                     ],
                   ),
-                  totalDayTransaction(
-                    formatAmount(_transactionController.todaysIncome.value),
-                    formatAmount(_transactionController.todaysExpense.value),
-                  ),
+                  Obx(() => totalDayTransaction()),
                   Expanded(
                     child: _transactionController.transactions.length == 0
                       ? Container(
@@ -131,11 +128,12 @@ class MainView extends StatelessWidget {
                             ],
                           ),
                         )
-                      : ListView(
+                      : Obx(() => ListView(
+                          padding: EdgeInsets.only(top: 0.0),
                           children: _transactionController.transactions.map(
                             (transaction) => singleTransactionContainer(transaction)
                           ).toList(),
-                        )
+                        )),
                   ),
                 ],
               ),

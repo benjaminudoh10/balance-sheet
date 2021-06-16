@@ -6,14 +6,18 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 class IncomeForm extends StatelessWidget {
-  IncomeForm({this.type});
+  IncomeForm({this.type, this.transaction});
 
   final TransactionType type;
+  final Transaction transaction;
   final TransactionController _transactionController = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    _transactionController.description.value = this.transaction?.description;
+    _transactionController.amount.value = this.transaction != null ? this.transaction.amount / 100 : null;
+
+    return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
       height: Get.height * 0.4,
       decoration: new BoxDecoration(
@@ -28,7 +32,7 @@ class IncomeForm extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 15.0),
             child: Text(
-              this.type == TransactionType.income ? "Add Income" : "Add Expenditure",
+              "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16.0,
@@ -59,23 +63,41 @@ class IncomeForm extends StatelessWidget {
                 ),
                 _buildTextField(
                   placeholder: "0.00",
+                  defaultValue: "${_transactionController.amount.value ?? ''}",
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   type: "amount",
                 ),
                 GestureDetector(
                   onTap: () async {
+                    if (!validInput()) {
+                      Get.snackbar(
+                        "Error",
+                        "All fields are required",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.white,
+                      );
+                      return;
+                    }
+
                     Transaction transaction = Transaction(
                       description: _transactionController.description.value,
                       type: this.type,
                       amount: (_transactionController.amount.value * 100).toInt(),
                       date: DateTime.now(),
                     );
-                    await _transactionController.addTransaction(transaction);
+                    if (this.transaction != null) {
+                      await _transactionController.updateTransaction(
+                        transaction,
+                        this.transaction,
+                      );
+                    } else {
+                      await _transactionController.addTransaction(transaction);
+                    }
                   },
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10.0),
-                      color: Color(0xaa5DAC7F),
+                      color: validInput() ? Color(0xaa5DAC7F) : Color(0xaaAF47FF),
                       boxShadow: [
                         BoxShadow()
                       ]
@@ -92,7 +114,7 @@ class IncomeForm extends StatelessWidget {
                             size: 20.0,
                           )
                         : Text(
-                            this.type == TransactionType.income ? "Add Income" : "Add Expenditure",
+                            "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18.0,
@@ -106,7 +128,11 @@ class IncomeForm extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
+  }
+
+  bool validInput() {
+    return _transactionController.description.value != "" && _transactionController.amount.value != null && _transactionController.amount.value > 0;
   }
 
   Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, bool autofocus = false, String type}) {
@@ -142,7 +168,11 @@ class IncomeForm extends StatelessWidget {
           if (type == 'description') {
             _transactionController.description.value = value;
           } else {
-            _transactionController.amount.value = double.parse(value);
+            if (value != "") {
+              _transactionController.amount.value = double.parse(value);
+            } else {
+              _transactionController.amount.value = 0.00;
+            }
           }
         },
       ),

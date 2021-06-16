@@ -3,7 +3,7 @@ import 'package:balance_sheet/screens/enums.dart';
 class Transaction {
   Transaction({this.id, this.description, this.type, this.amount, this.date});
 
-  final int id;
+  int id;
   final String description;
   final TransactionType type;
   final int amount;
@@ -11,6 +11,7 @@ class Transaction {
 
   Map<String, dynamic> toJson() {
     return {
+      "id": this.id,
       "description": this.description,
       "type": this.type == TransactionType.income ? "income" : "expenditure",
       "amount": this.amount,

@@ -9,6 +9,30 @@ Future addTransaction(Transaction transaction) async {
   return res;
 }
 
+Future deleteTransaction(Transaction transaction) async {
+  final dbClient = await AppDb().db;
+  int res = await dbClient.delete(
+    "transactions",
+    where: "id = ?",
+    whereArgs: [transaction.id],
+  );
+
+  return res;
+}
+
+
+Future updateTransaction(Transaction transaction) async {
+  final dbClient = await AppDb().db;
+  int res = await dbClient.update(
+    "transactions",
+    transaction.toJson(),
+    where: "id = ?",
+    whereArgs: [transaction.id],
+  );
+
+  return res;
+}
+
 Future<List<Transaction>> getAllTransactions(int startTime, int endTime) async {
   var dbClient = await AppDb().db;
   final transactions = await dbClient.rawQuery("SELECT * FROM transactions WHERE date >= $startTime AND date <= $endTime");

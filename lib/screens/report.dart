@@ -311,7 +311,7 @@ void _showTransactions() {
                     ),
                   ],
                 ),
-                totalDayTransaction('N0.00', 'N0.00'),
+                totalDayTransaction(),
                 // singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00", "type": "income"}),
                 // singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00", "type": "expenditure"}),
                 // singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00", "type": "expenditure"}),

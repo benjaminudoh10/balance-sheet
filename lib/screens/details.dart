@@ -1,12 +1,20 @@
+import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
+import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 const double APP_WIDTH = 20.0;
 
 class TransactionDetails extends StatelessWidget {
+  final Transaction transaction;
+
+  TransactionDetails({@required this.transaction});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +37,8 @@ class TransactionDetails extends StatelessWidget {
                     flex: 9,
                     child: Center(
                       child: Text(
-                        "New stock",
+                        transaction.description,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18.0,
@@ -70,7 +79,7 @@ class TransactionDetails extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Money in",
+                          transaction.type == TransactionType.income ? "Cash inflow" : "Cash outflow",
                           style: TextStyle(
                             fontSize: 12.0,
                           ),
@@ -86,17 +95,16 @@ class TransactionDetails extends StatelessWidget {
                     SizedBox(height: 5.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          "₦81,000.00",
+                          formatAmount(transaction.amount),
                           style: TextStyle(
                             fontSize: 28.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          "1:21 PM",
+                          "${DateFormat.jm().format(transaction.date)}",
                           style: TextStyle(
                             fontSize: 18.0,
                             fontWeight: FontWeight.bold,
@@ -105,22 +113,26 @@ class TransactionDetails extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 10.0),
-                    Text(
-                      "New stock",
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Wrap(
+                      children: [
+                        Text(
+                          transaction.description,
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ]
                     ),
                     roundedButton(
                       text: "Edit",
                       color: Color(0xFFAF47FF),
-                      action: () => showEditModal(TransactionType.income),
+                      action: () => showEditModal(this.transaction),
                     ),
                     roundedButton(
                       text: "Delete",
                       color: Color(0xaaff0000),
-                      action: showDeleteModal,
+                      action: () => showDeleteModal(transaction),
                     ),
                   ],
                 ),
@@ -133,19 +145,24 @@ class TransactionDetails extends StatelessWidget {
   }
 }
 
-void showEditModal(TransactionType type) {
+void showEditModal(Transaction transaction) {
   BuildContext context = Get.context;
   showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
-    builder: (context) => IncomeForm(type: type),
+    builder: (context) => IncomeForm(
+      type: transaction.type,
+      transaction: transaction,
+    ),
   );
 }
 
-void showDeleteModal() {
+void showDeleteModal(Transaction transaction) {
   BuildContext context = Get.context;
+  TransactionController _transactionController = Get.find();
+
   showModalBottomSheet(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
@@ -173,16 +190,7 @@ void showDeleteModal() {
           roundedButton(
             text: "YES",
             color: Color(0xFFAF47FF),
-            action: () {
-              Get.back();
-              Get.back();
-              Get.snackbar(
-                "Successful",
-                "Transaction deleted successfully",
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Color(0x22AF47FF),
-              );
-            }
+            action: () => _transactionController.deleteTransaction(transaction),
           ),
           roundedButton(
             text: "NO",

@@ -1,3 +1,4 @@
+import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/details.dart';
 import 'package:balance_sheet/screens/enums.dart';
@@ -20,7 +21,8 @@ Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color conta
   );
 }
 
-Widget totalDayTransaction(String income, String expense) {
+Widget totalDayTransaction() {
+  TransactionController _transactionController = Get.find();
   DateTime currentDate = DateTime.now();
 
   return Container(
@@ -28,9 +30,7 @@ Widget totalDayTransaction(String income, String expense) {
       border: Border.all(color: Color(0x11000000)),
       borderRadius: BorderRadius.circular(7.0)
     ),
-    margin: EdgeInsets.symmetric(
-      vertical: 15.0,
-    ),
+    margin: EdgeInsets.symmetric(vertical: 15.0),
     padding: EdgeInsets.all(10.0),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -67,7 +67,7 @@ Widget totalDayTransaction(String income, String expense) {
               ),
             ),
             Text(
-              expense,
+              '${formatAmount(_transactionController.todaysExpense.value)}',
               style: TextStyle(
                 color: Color(0xaaff0000)
               ),
@@ -87,7 +87,7 @@ Widget totalDayTransaction(String income, String expense) {
               ),
             ),
             Text(
-              income,
+              '${formatAmount(_transactionController.todaysIncome.value)}',
               style: TextStyle(
                 color: Color(0xdd5DAC7F)
               ),
@@ -127,7 +127,7 @@ Widget roundedButton({String text, Color textColor, Color color, Function action
 Widget singleTransactionContainer(Transaction transaction) {
   return GestureDetector(
     onTap: () => Get.to(
-      TransactionDetails(),
+      TransactionDetails(transaction: transaction),
       preventDuplicates: false,
     ),
     child: Row(
@@ -151,7 +151,8 @@ Widget singleTransactionContainer(Transaction transaction) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${transaction.description}",
+                  transaction.description,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
