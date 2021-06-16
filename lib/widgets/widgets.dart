@@ -1,4 +1,7 @@
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/details.dart';
+import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -17,7 +20,9 @@ Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color conta
   );
 }
 
-Widget totalDayTransaction() {
+Widget totalDayTransaction(String income, String expense) {
+  DateTime currentDate = DateTime.now();
+
   return Container(
     decoration: BoxDecoration(
       border: Border.all(color: Color(0x11000000)),
@@ -43,7 +48,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '12 Jun (21)',
+              '${currentDate.day} ${getMonth(currentDate.month)}, ${currentDate.year}',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -62,7 +67,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '₦0.00',
+              expense,
               style: TextStyle(
                 color: Color(0xaaff0000)
               ),
@@ -82,7 +87,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '₦0.00',
+              income,
               style: TextStyle(
                 color: Color(0xdd5DAC7F)
               ),
@@ -119,7 +124,7 @@ Widget roundedButton({String text, Color textColor, Color color, Function action
   );
 }
 
-Widget singleTransactionContainer(Map<String, String> details) {
+Widget singleTransactionContainer(Transaction transaction) {
   return GestureDetector(
     onTap: () => Get.to(
       TransactionDetails(),
@@ -146,14 +151,14 @@ Widget singleTransactionContainer(Map<String, String> details) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${details['title']}",
+                  "${transaction.description}",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 5.0),
                 Text(
-                  "${details['time']}",
+                  "${transaction.date}",
                   style: TextStyle(
                     color: Color(0xaa000000),
                     fontSize: 10.0,
@@ -170,7 +175,7 @@ Widget singleTransactionContainer(Map<String, String> details) {
             margin: EdgeInsets.only(top: 10.0),
             padding: EdgeInsets.all(15.0),
             decoration: BoxDecoration(
-              color: details['type'] == 'income' ? Color(0x335DAC7F) : Color(0x11ff0000),
+              color: transaction.type == TransactionType.income ? Color(0x335DAC7F) : Color(0x11ff0000),
               borderRadius: BorderRadius.only(
                 topRight: Radius.circular(7.0),
                 bottomRight: Radius.circular(7.0)
@@ -178,9 +183,9 @@ Widget singleTransactionContainer(Map<String, String> details) {
             ),
             child: Center(
               child: Text(
-                '₦${details['amount']}',
+                '${formatAmount(transaction.amount)}',
                 style: TextStyle(
-                  color: details['type'] == 'income' ? Color(0xff5DAC7F) : Color(0xffff0000),
+                  color: transaction.type == TransactionType.income ? Color(0xff5DAC7F) : Color(0xffff0000),
                 ),
               ),
             ),

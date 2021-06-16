@@ -1,11 +1,15 @@
+import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/enums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 class IncomeForm extends StatelessWidget {
   IncomeForm({this.type});
 
   final TransactionType type;
+  final TransactionController _transactionController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -44,21 +48,29 @@ class IncomeForm extends StatelessWidget {
                 ),
                 _buildTextField(
                   placeholder: "e.g. Tomatoes",
-                  // autofocus: true,
+                  defaultValue: _transactionController.description.value,
+                  type: "description",
                 ),
                 Text(
-                  "Price (₦)",
+                  "Amount (₦)",
                   style: TextStyle(
                     color: Colors.white,
                   ),
                 ),
                 _buildTextField(
-                  defaultValue: "0.00",
+                  placeholder: "0.00",
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  type: "amount",
                 ),
                 GestureDetector(
-                  onTap: () {
-                    print('here');
+                  onTap: () async {
+                    Transaction transaction = Transaction(
+                      description: _transactionController.description.value,
+                      type: this.type,
+                      amount: (_transactionController.amount.value * 100).toInt(),
+                      date: DateTime.now(),
+                    );
+                    await _transactionController.addTransaction(transaction);
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -74,13 +86,18 @@ class IncomeForm extends StatelessWidget {
                       horizontal: 20.0
                     ),
                     child: Center(
-                      child: Text(
-                        this.type == TransactionType.income ? "Add Income" : "Add Expenditure",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                        ),
-                      ),
+                      child: _transactionController.addingTransaction.value
+                        ? const SpinKitThreeBounce(
+                            color: Colors.white,
+                            size: 20.0,
+                          )
+                        : Text(
+                            this.type == TransactionType.income ? "Add Income" : "Add Expenditure",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.0,
+                            ),
+                          ),
                     ),
                   ),
                 ),
@@ -92,7 +109,7 @@ class IncomeForm extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, bool autofocus = false}) {
+  Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, bool autofocus = false, String type}) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white),
@@ -121,6 +138,13 @@ class IncomeForm extends StatelessWidget {
         enableSuggestions: true,
         initialValue: defaultValue,
         keyboardType: keyboardType,
+        onChanged: (value) {
+          if (type == 'description') {
+            _transactionController.description.value = value;
+          } else {
+            _transactionController.amount.value = double.parse(value);
+          }
+        },
       ),
     );
   }

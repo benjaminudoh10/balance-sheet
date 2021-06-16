@@ -1,6 +1,8 @@
+import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
+import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +10,8 @@ import 'package:get/get.dart';
 const double APP_WIDTH = 20.0;
 
 class MainView extends StatelessWidget {
+  final TransactionController _transactionController = Get.find();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -100,11 +104,13 @@ class MainView extends StatelessWidget {
                       _buildButton(TransactionType.income),
                     ],
                   ),
-                  totalDayTransaction(),
+                  totalDayTransaction(
+                    formatAmount(_transactionController.todaysIncome.value),
+                    formatAmount(_transactionController.todaysExpense.value),
+                  ),
                   Expanded(
-                    child: ListView(
-                      children: [
-                        Container(
+                    child: _transactionController.transactions.length == 0
+                      ? Container(
                           child: Column(
                             children: [
                               roundedIcon(
@@ -124,13 +130,12 @@ class MainView extends StatelessWidget {
                               ),
                             ],
                           ),
-                        ),
-                        singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00", "type": "income"}),
-                        singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00"}),
-                        singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00"}),
-                        singleTransactionContainer({"title": "Newest", "time": "11:07 PM", "amount": "5000.00"}),
-                      ],
-                    ),
+                        )
+                      : ListView(
+                          children: _transactionController.transactions.map(
+                            (transaction) => singleTransactionContainer(transaction)
+                          ).toList(),
+                        )
                   ),
                 ],
               ),
@@ -190,9 +195,11 @@ Widget _buildButton(TransactionType type) {
 }
 
 class TotalContainer extends StatelessWidget {
+  final TransactionController _transactionController = Get.find();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Obx(() => Container(
       margin: EdgeInsets.only(top: 10.0),
       width: 500,
       decoration: BoxDecoration(
@@ -202,14 +209,24 @@ class TotalContainer extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildBalanceSection('Total Balance', 0.00, Colors.white, true),
-          _buildBalanceSection("Today's Balance", 0.00, Color(0xffdedeff), false),
+          _buildBalanceSection(
+            'Total Balance',
+            _transactionController.total.value,
+            Colors.white,
+            true,
+          ),
+          _buildBalanceSection(
+            "Today's Balance",
+            _transactionController.todaysIncome.value - _transactionController.todaysExpense.value,
+            Color(0xffdedeff),
+            false,
+          ),
         ],
       ),
-    );
+    ));
   }
 
-  Widget _buildBalanceSection(String text, double amount, Color color, bool leftPosition) {
+  Widget _buildBalanceSection(String text, int amount, Color color, bool leftPosition) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.only(
@@ -235,7 +252,7 @@ class TotalContainer extends StatelessWidget {
                 bottom: 5.0,
               ),
             ),
-            Text('₦$amount', style: TextStyle(fontSize: 16.0)),
+            Text('${formatAmount(amount)}', style: TextStyle(fontSize: 16.0)),
           ],
         ),
       ),
