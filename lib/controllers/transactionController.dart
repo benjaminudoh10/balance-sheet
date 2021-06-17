@@ -1,6 +1,6 @@
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/models/transaction.dart';
-import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

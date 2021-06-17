@@ -1,7 +1,7 @@
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/details.dart';
-import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

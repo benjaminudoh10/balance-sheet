@@ -1,6 +1,6 @@
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
-import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';

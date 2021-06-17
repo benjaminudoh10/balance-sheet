@@ -1,6 +1,6 @@
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
-import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';

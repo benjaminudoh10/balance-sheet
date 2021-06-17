@@ -1,4 +1,4 @@
-import 'package:balance_sheet/screens/enums.dart';
+import 'package:balance_sheet/enums.dart';
 
 class Transaction {
   Transaction({this.id, this.description, this.type, this.amount, this.date});
