@@ -2,6 +2,7 @@ import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/enums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
@@ -64,7 +65,8 @@ class IncomeForm extends StatelessWidget {
                 _buildTextField(
                   placeholder: "0.00",
                   defaultValue: "${_transactionController.amount.value ?? ''}",
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  // keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  formatters: [FilteringTextInputFormatter.allow(RegExp("[0-9.]"))],
                   type: "amount",
                 ),
                 GestureDetector(
@@ -132,10 +134,13 @@ class IncomeForm extends StatelessWidget {
   }
 
   bool validInput() {
-    return _transactionController.description.value != "" && _transactionController.amount.value != null && _transactionController.amount.value > 0;
+    return _transactionController.description.value != null &&
+        _transactionController.description.value != "" &&
+        _transactionController.amount.value != null &&
+        _transactionController.amount.value > 0;
   }
 
-  Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, bool autofocus = false, String type}) {
+  Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, var formatters, String type}) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white),
@@ -160,10 +165,11 @@ class IncomeForm extends StatelessWidget {
           color: Colors.white,
         ),
         cursorColor: Colors.white,
-        autofocus: autofocus,
+        // autofocus: autofocus,
         enableSuggestions: true,
         initialValue: defaultValue,
-        keyboardType: keyboardType,
+        keyboardType: TextInputType.text,
+        inputFormatters: formatters,
         onChanged: (value) {
           if (type == 'description') {
             _transactionController.description.value = value;
