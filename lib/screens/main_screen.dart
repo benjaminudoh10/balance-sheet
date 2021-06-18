@@ -6,6 +6,7 @@ import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 const double APP_WIDTH = 20.0;
 
@@ -14,6 +15,8 @@ class MainView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String formattedDate = DateFormat.yMMMd().format(DateTime.now());
+
     return Container(
       child: Column(
         children: [
@@ -104,7 +107,11 @@ class MainView extends StatelessWidget {
                       _buildButton(TransactionType.income),
                     ],
                   ),
-                  Obx(() => totalDayTransaction()),
+                  Obx(() => totalDayTransaction(
+                    formattedDate,
+                    _transactionController.todaysIncome.value,
+                    _transactionController.todaysExpense.value
+                  )),
                   Expanded(
                     child: _transactionController.transactions.length == 0
                       ? Container(

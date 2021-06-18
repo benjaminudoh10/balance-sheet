@@ -104,7 +104,7 @@ class TransactionDetails extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "${DateFormat.jm().format(transaction.date)}",
+                          DateFormat.jm().format(transaction.date),
                           style: TextStyle(
                             fontSize: 18.0,
                             fontWeight: FontWeight.bold,

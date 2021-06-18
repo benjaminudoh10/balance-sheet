@@ -21,10 +21,7 @@ Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color conta
   );
 }
 
-Widget totalDayTransaction() {
-  TransactionController _transactionController = Get.find();
-  DateTime currentDate = DateTime.now();
-
+Widget totalDayTransaction(String date, int income, int expense) {
   return Container(
     decoration: BoxDecoration(
       border: Border.all(color: Color(0x11000000)),
@@ -48,7 +45,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '${currentDate.day} ${getMonth(currentDate.month)}, ${currentDate.year}',
+              date,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -67,7 +64,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '${formatAmount(_transactionController.todaysExpense.value)}',
+              '${formatAmount(expense)}',
               style: TextStyle(
                 color: Color(0xaaff0000)
               ),
@@ -87,7 +84,7 @@ Widget totalDayTransaction() {
               ),
             ),
             Text(
-              '${formatAmount(_transactionController.todaysIncome.value)}',
+              '${formatAmount(income)}',
               style: TextStyle(
                 color: Color(0xdd5DAC7F)
               ),

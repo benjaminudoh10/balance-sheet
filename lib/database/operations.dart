@@ -59,3 +59,14 @@ Future<Map<String, int>> getTodayBalances() async {
     'income': totalIncome[0]['total'],
   };
 }
+
+Future<Map<String, int>> getExpenseForTimePeriod(int start, int end) async {
+  var dbClient = await AppDb().db;
+  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'expenditure' AND date >= $start AND date <= $end");
+  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'income' AND date >= $start AND date <= $end");
+
+  return {
+    'expenses': totalExpenses[0]['total'],
+    'income': totalIncome[0]['total'],
+  };
+}
