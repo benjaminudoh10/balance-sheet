@@ -187,8 +187,8 @@ class ReportController extends GetxController {
     return await showDateRangePicker(
       context: Get.context,
       initialDateRange: dateTimeRange,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2045),
+      firstDate: DateTime(2021, 6),
+      lastDate: DateTime.now(),
     );
   }
 }
