@@ -1,6 +1,8 @@
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class ReportController extends GetxController {
   RxBool fetchingTransaction = false.obs;
@@ -13,6 +15,11 @@ class ReportController extends GetxController {
 
   var transactions = [];
   var splitTransactions = {}.obs;
+  DateTime singleDate = DateTime.now();
+  DateTimeRange dateTimeRange = DateTimeRange(
+    start: DateTime.now(),
+    end: DateTime.now()
+  );
 
   List<int> timeFrames = [0, 0];
 
@@ -26,8 +33,7 @@ class ReportController extends GetxController {
     getTransactionTotal();
   }
 
-  changeType(ReportType reportType) {
-    type.value = reportType;
+  changeType(ReportType reportType) async {
     if (reportType == ReportType.today) {
       label.value = "Today's entries";
     } else if (reportType == ReportType.month) {
@@ -37,10 +43,26 @@ class ReportController extends GetxController {
     } else if (reportType == ReportType.lastMonth) {
       label.value = "Last month";
     } else if (reportType == ReportType.singleDay) {
-      label.value = "Single day";
+      singleDate = await selectDate();
+      if (singleDate == null) {
+        singleDate = DateTime.now();
+        Get.back();
+        return;
+      }
+      label.value = DateFormat.yMMMMd().format(singleDate);
     } else if (reportType == ReportType.dateRange) {
-      label.value = "Date range...";
+      dateTimeRange = await selectDateRange();
+      if (dateTimeRange == null) {
+        dateTimeRange = DateTimeRange(
+          start: DateTime.now(),
+          end: DateTime.now()
+        );
+        Get.back();
+        return;
+      }
+      label.value = '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
     }
+    type.value = reportType;
   
     Get.back();
     timeFrames = getTimeFrame();
@@ -65,7 +87,15 @@ class ReportController extends GetxController {
       DateTime lastWeekStart = now.subtract(Duration(days: now.weekday));
       lastWeekStart = DateTime(lastWeekStart.year, lastWeekStart.month, lastWeekStart.day);
       DateTime lastWeekEnd = now.add(Duration(days: DateTime.daysPerWeek - now.weekday - 1));
-      lastWeekEnd = DateTime(lastWeekEnd.year, lastWeekEnd.month, lastWeekEnd.day, 23, 59, 59, 999);
+      lastWeekEnd = DateTime(
+        lastWeekEnd.year,
+        lastWeekEnd.month,
+        lastWeekEnd.day,
+        23,
+        59,
+        59,
+        999
+      );
       // fix: this represents the current week
 
       return [lastWeekStart.millisecondsSinceEpoch, lastWeekEnd.millisecondsSinceEpoch];
@@ -75,9 +105,35 @@ class ReportController extends GetxController {
 
       return [firstDayOfMonth.millisecondsSinceEpoch, lastDayOfMonth.millisecondsSinceEpoch];
     } else if (type.value == ReportType.singleDay) {
-      
+      DateTime beginningOfDate = DateTime(singleDate.year, singleDate.month, singleDate.day);
+      DateTime endOfDate = DateTime(
+        singleDate.year,
+        singleDate.month,
+        singleDate.day,
+        23,
+        59,
+        59,
+        999
+      );
+
+      return [beginningOfDate.millisecondsSinceEpoch, endOfDate.millisecondsSinceEpoch];
     } else if (type.value == ReportType.dateRange) {
-      
+      DateTime beginningOfDate = DateTime(
+        dateTimeRange.start.year,
+        dateTimeRange.start.month,
+        dateTimeRange.start.day
+      );
+      DateTime endOfDate = DateTime(
+        dateTimeRange.end.year,
+        dateTimeRange.end.month,
+        dateTimeRange.end.day,
+        23,
+        59,
+        59,
+        999
+      );
+
+      return [beginningOfDate.millisecondsSinceEpoch, endOfDate.millisecondsSinceEpoch];
     }
 
     return [0, 0];
@@ -115,5 +171,24 @@ class ReportController extends GetxController {
     );
     expense.value = transactionData['expenses'] ?? 0;
     income.value = transactionData['income'] ?? 0;
+  }
+
+  Future<DateTime> selectDate() async {
+    return await showDatePicker(
+      context: Get.context,
+      initialDate: singleDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2045),
+      selectableDayPredicate: (day) => day.isBefore(DateTime.now())
+    );
+  }
+
+  Future<DateTimeRange> selectDateRange() async {
+    return await showDateRangePicker(
+      context: Get.context,
+      initialDateRange: dateTimeRange,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2045),
+    );
   }
 }
