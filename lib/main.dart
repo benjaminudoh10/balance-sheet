@@ -1,6 +1,5 @@
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/bottomNavController.dart';
-import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/splash.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ void main() {
   Get.put(AppController());
   Get.put(BottomNavController());
   Get.put(TransactionController());
-  Get.put(ReportController());
   Get.config(
     // enableLog: true,
     // defaultPopGesture: true,

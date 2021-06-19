@@ -11,19 +11,21 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 const double APP_WIDTH = 20.0;
 
 class ReportView extends StatelessWidget {
-  final ReportController _reportController = Get.find();
-
   @override
   Widget build(BuildContext context) {
+    ReportController _reportController = Get.put(ReportController());
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text("Report"),
-            SizedBox(width: 20.0),
-            Icon(Icons.bar_chart)
-          ],
-        ),
+        title: Text("Report"),
+        // actions: [
+        //   IconButton(
+        //     icon: Icon(Icons.bar_chart),
+        //     onPressed: () => _showCharts(23, 158),
+        //     tooltip: "View chart",
+        //   ),
+        //   SizedBox(width: 10.0),
+        // ],
       ),
       body: Obx(() => Container(
         child: Column(
@@ -38,7 +40,7 @@ class ReportView extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Row(
+                  Obx(() => Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Column(
@@ -86,7 +88,7 @@ class ReportView extends StatelessWidget {
                         ],
                       ),
                     ],
-                  ),
+                  )),
                   GestureDetector(
                     onTap: () => Get.dialog(
                       Dialog(
@@ -100,7 +102,7 @@ class ReportView extends StatelessWidget {
                           child: Column(
                             children: [
                               _buildDialogItem(
-                                "Today's entries",
+                                "Today",
                                 () => _reportController.changeType(ReportType.today),
                                 _reportController.type.value == ReportType.today,
                               ),
@@ -110,7 +112,7 @@ class ReportView extends StatelessWidget {
                                 _reportController.type.value == ReportType.month,
                               ),
                               _buildDialogItem(
-                                "Last week",
+                                "This week",
                                 () => _reportController.changeType(ReportType.lastWeek),
                                 _reportController.type.value == ReportType.lastWeek,
                               ),
@@ -172,7 +174,7 @@ class ReportView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Color(0x22AF47FF),
                 ),
-                child: SingleChildScrollView(
+                child: Obx(() => SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -220,10 +222,15 @@ class ReportView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      ..._buildTransactionContainer(_reportController.splitTransactions.value),
+                      if (_reportController.transactions.length != 0)
+                        ..._buildTransactionContainer(_reportController.splitTransactions),
+                      if (_reportController.transactions.length == 0) noTransaction(
+                        "No transaction were recorded in this time period",
+                        "Select a different time period",
+                      ),
                     ],
                   ),
-                ),
+                )),
               ),
             ),
           ],
@@ -259,20 +266,21 @@ class ReportView extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildTransactionContainer(Map<int, List> splitData) {
+  List<Widget> _buildTransactionContainer(Map<int, List<Transaction>> splitData) {
     return splitData.keys.toList().map((date) {
-      String formattedDate = DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(date));
+      String formattedDate = DateFormat.yMMMd().format(
+        DateTime.fromMillisecondsSinceEpoch(date)
+      );
       List<Transaction> transactions = splitData[date];
+      if (transactions.length == 0) {
+        return SizedBox();
+      }
 
-      List<Transaction> expenseTxns = transactions.where(
-        (transaction) => transaction.type == TransactionType.expenditure
-      ).toList();
-      List<Transaction> incomeTxns = transactions.where(
-        (transaction) => transaction.type == TransactionType.income
-      ).toList();
-
-      int expense = expenseTxns.fold(0, (value, element) => value + element.amount);
-      int income = incomeTxns.fold(0, (value, element) => value + element.amount);
+      int expense = 0, income = 0;
+      transactions.forEach((transaction) {
+        if (transaction.type == TransactionType.income) income += transaction.amount;
+        else expense += transaction.amount;
+      });
 
       return GestureDetector(
         onTap: () => _showTransactions(formattedDate, transactions, income, expense),
@@ -331,9 +339,8 @@ class ReportView extends StatelessWidget {
 }
 
 void _showTransactions(String date, List<Transaction> transactions, int income, int expense) {
-  BuildContext context = Get.context;
   showCupertinoModalBottomSheet(
-    context: context,
+    context: Get.context,
     expand: true,
     builder: (context) => Scaffold(
       body: SafeArea(
@@ -367,7 +374,13 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                   ],
                 ),
                 totalDayTransaction(date, income, expense),
-                ...transactions.map((transaction) => singleTransactionContainer(transaction)),
+                if (transactions.length != 0)
+                  ...transactions.map((transaction) => singleTransactionContainer(transaction)),
+                if (transactions.length == 0)
+                  noTransaction(
+                    "No transaction were recorded on this day",
+                    "Select a different day"
+                  ),
               ],
             ),
           ),
@@ -376,3 +389,21 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
     ),
   );
 }
+
+// void _showCharts(int income, int expense) {
+//   BuildContext context = Get.context;
+//   showCupertinoModalBottomSheet(
+//     context: context,
+//     expand: true,
+//     builder: (context) => Scaffold(
+//       body: SafeArea(
+//         child: SingleChildScrollView(
+//           child: Container(
+//             color: Colors.white,
+//             padding: EdgeInsets.all(20.0),
+//           ),
+//         ),
+//       ),
+//     ),
+//   );
+// }

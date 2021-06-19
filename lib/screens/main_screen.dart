@@ -112,36 +112,19 @@ class MainView extends StatelessWidget {
                     _transactionController.todaysIncome.value,
                     _transactionController.todaysExpense.value
                   )),
-                  Expanded(
+                  Obx(() => Expanded(
                     child: _transactionController.transactions.length == 0
-                      ? Container(
-                          child: Column(
-                            children: [
-                              roundedIcon(
-                                icon: Icons.money,
-                                iconColor: Color(0xbbAF47FF),
-                                iconSize: 48.0,
-                                containerColor: Color(0x11000000),
-                                padding: EdgeInsets.all(25.0)
-                              ),
-                              SizedBox(height: 15.0),
-                              Text(
-                                'Add your first transaction today.'
-                              ),
-                              SizedBox(height: 15.0),
-                              Text(
-                                'Click "Income" or "Expenditure" above.'
-                              ),
-                            ],
-                          ),
+                      ? noTransaction(
+                          'Add your first transaction today.',
+                          'Click "Income" or "Expenditure" above.',
                         )
-                      : Obx(() => ListView(
+                      : ListView(
                           padding: EdgeInsets.only(top: 0.0),
                           children: _transactionController.transactions.map(
                             (transaction) => singleTransactionContainer(transaction)
                           ).toList(),
-                        )),
-                  ),
+                        ),
+                  )),
                 ],
               ),
             ),

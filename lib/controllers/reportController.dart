@@ -1,5 +1,6 @@
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -7,14 +8,15 @@ import 'package:intl/intl.dart';
 class ReportController extends GetxController {
   RxBool fetchingTransaction = false.obs;
   var type = ReportType.today.obs;
-  RxString label = "Today's entries".obs;
+  RxString label = "Today".obs;
   RxDouble amount = 0.0.obs;
 
   RxInt income = 0.obs;
   RxInt expense = 0.obs;
 
-  var transactions = [];
-  var splitTransactions = {}.obs;
+  RxList<Transaction> transactions = <Transaction>[].obs;
+  RxMap<int, List<Transaction>> splitTransactions = <int, List<Transaction>>{}.obs;
+
   DateTime singleDate = DateTime.now();
   DateTimeRange dateTimeRange = DateTimeRange(
     start: DateTime.now(),
@@ -31,15 +33,19 @@ class ReportController extends GetxController {
 
     getTransactions();
     getTransactionTotal();
+
+    transactions.listen((txns) {
+      splitTransactions.value = splitTransactionsIntoDays(txns);
+    });
   }
 
   changeType(ReportType reportType) async {
     if (reportType == ReportType.today) {
-      label.value = "Today's entries";
+      label.value = "Today";
     } else if (reportType == ReportType.month) {
       label.value = "This month";
     } else if (reportType == ReportType.lastWeek) {
-      label.value = "Last week";
+      label.value = "This week";
     } else if (reportType == ReportType.lastMonth) {
       label.value = "Last month";
     } else if (reportType == ReportType.singleDay) {
@@ -140,17 +146,17 @@ class ReportController extends GetxController {
   }
 
   getTransactions() async {
-    transactions = await db.getAllTransactions(
+    transactions.value = await db.getAllTransactions(
       timeFrames[0],
       timeFrames[1],
     );
     splitTransactions.value = splitTransactionsIntoDays(transactions);
   }
 
-  splitTransactionsIntoDays(List transactions) {
+  Map<int, List<Transaction>> splitTransactionsIntoDays(List<Transaction> transactions) {
     int startTime = timeFrames[0];
     int oneDay = 86400000;
-    Map<int, List> splitData = {};
+    Map<int, List<Transaction>> splitData = {};
     while (startTime < timeFrames[1]) {
       splitData[startTime] = transactions.where(
         (transaction) {
@@ -177,8 +183,8 @@ class ReportController extends GetxController {
     return await showDatePicker(
       context: Get.context,
       initialDate: singleDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2045),
+      firstDate: DateTime(2021, 6),
+      lastDate: DateTime.now(),
       selectableDayPredicate: (day) => day.isBefore(DateTime.now())
     );
   }

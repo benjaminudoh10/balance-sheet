@@ -1,3 +1,4 @@
+import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
@@ -89,14 +90,14 @@ class TransactionController extends GetxController {
       Get.snackbar(
         "Successful",
         "Transaction deleted successfully",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Color(0x22AF47FF),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Color(0xdd5DAC7F),
       );
     } else {
       Get.snackbar(
         "Not deleted",
-        "Error occured while deleting transaction",
-        snackPosition: SnackPosition.BOTTOM,
+        "This transaction has already been deleted. Close modal and reopen to get rid of it.",
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Color(0x22FF0000),
       );
     }
@@ -136,6 +137,21 @@ class TransactionController extends GetxController {
     } else {
       todaysIncome.value -= transaction.amount;
       total.value -= transaction.amount;
+    }
+
+    try {
+      ReportController _reportController = Get.find();
+
+      _reportController.transactions.value = _reportController.transactions.where(
+        (txn) => transaction.id != txn.id
+      ).toList();
+      if (transaction.type == TransactionType.expenditure) {
+        _reportController.expense.value -= transaction.amount;
+      } else {
+        _reportController.income.value -= transaction.amount;
+      }
+    } catch (error) {
+      print('$error');
     }
   }
 

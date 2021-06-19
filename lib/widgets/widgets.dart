@@ -1,4 +1,3 @@
-import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/details.dart';
 import 'package:balance_sheet/enums.dart';
@@ -190,6 +189,28 @@ Widget singleTransactionContainer(Transaction transaction) {
           ),
         ),
       ],
+    ),
+  );
+}
+
+Widget noTransaction(String primaryText, String secondaryText) {
+  return Center(
+    child: Container(
+      child: Column(
+        children: [
+          roundedIcon(
+            icon: Icons.money,
+            iconColor: Color(0xbbAF47FF),
+            iconSize: 48.0,
+            containerColor: Color(0x11000000),
+            padding: EdgeInsets.all(25.0)
+          ),
+          SizedBox(height: 15.0),
+          Text(primaryText),
+          SizedBox(height: 15.0),
+          Text(secondaryText),
+        ],
+      ),
     ),
   );
 }
