@@ -235,7 +235,13 @@ class TotalContainer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              child: Text(text, style: TextStyle(fontSize: 12.0)),
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               padding: EdgeInsets.only(
                 bottom: 5.0,
               ),

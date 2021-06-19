@@ -47,6 +47,7 @@ class TransactionDetails extends StatelessWidget {
                       ),
                     ),
                   ),
+                  SizedBox(width: 10.0),
                   Expanded(
                     flex: 1,
                     child: GestureDetector(
@@ -78,16 +79,29 @@ class TransactionDetails extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          transaction.type == TransactionType.income ? "Cash inflow" : "Cash outflow",
-                          style: TextStyle(
-                            fontSize: 12.0,
+                        Container(
+                          decoration: BoxDecoration(
+                            color: transaction.type == TransactionType.income ? Color(0x555DAC7F) : Color(0x44ff0000),
+                            borderRadius: BorderRadius.circular(20.0),
+                            border: Border.all(color: Colors.white)
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 5.0,
+                            horizontal: 10.0,
+                          ),
+                          child: Text(
+                            transaction.type == TransactionType.income ? "Cash inflow" : "Cash outflow",
+                            style: TextStyle(
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         Text(
                           "Time",
                           style: TextStyle(
-                            fontSize: 12.0,
+                            fontSize: 14.0,
                           ),
                         ),
                       ],

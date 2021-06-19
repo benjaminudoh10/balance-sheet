@@ -4,6 +4,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color containerColor, EdgeInsets padding}) {
   return Container(
@@ -151,14 +152,15 @@ Widget singleTransactionContainer(Transaction transaction) {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
                   ),
                 ),
-                SizedBox(height: 5.0),
+                SizedBox(height: 2.0),
                 Text(
-                  "${transaction.date}",
+                  "${DateFormat.yMMMMd().add_Hm().format(transaction.date)}",
                   style: TextStyle(
                     color: Color(0xaa000000),
-                    fontSize: 10.0,
+                    fontSize: 13.0,
                   ),
                 ),
               ],
@@ -183,6 +185,7 @@ Widget singleTransactionContainer(Transaction transaction) {
                 '${formatAmount(transaction.amount)}',
                 style: TextStyle(
                   color: transaction.type == TransactionType.income ? Color(0xff5DAC7F) : Color(0xffff0000),
+                  fontSize: 16.0,
                 ),
               ),
             ),

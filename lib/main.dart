@@ -4,6 +4,7 @@ import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,9 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        textTheme: GoogleFonts.latoTextTheme(
+          Theme.of(context).textTheme,
+        ),
         primarySwatch: Colors.purple,
       ),
       home: Splash(),

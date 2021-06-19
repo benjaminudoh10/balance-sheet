@@ -49,7 +49,7 @@ class ReportView extends StatelessWidget {
                             "INCOME",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12.0,
+                              fontSize: 14.0,
                               letterSpacing: 2.0,
                               fontWeight: FontWeight.bold,
                             ),
@@ -71,7 +71,7 @@ class ReportView extends StatelessWidget {
                             "EXPENSES",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12.0,
+                              fontSize: 14.0,
                               letterSpacing: 2.0,
                               fontWeight: FontWeight.bold,
                             ),
@@ -204,19 +204,22 @@ class ReportView extends StatelessWidget {
                             Text(
                               "DATE",
                               style: TextStyle(
-                                fontSize: 10.0,
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               "(₦) OUT",
                               style: TextStyle(
-                                fontSize: 10.0,
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               "(₦) IN",
                               style: TextStyle(
-                                fontSize: 10.0,
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -247,7 +250,7 @@ class ReportView extends StatelessWidget {
         child: Center(
           child: Container(
             decoration: BoxDecoration(
-              color: highlight ? Color(0x33000000) : null,
+              color: highlight ? Color(0x33AF47FF) : null,
               borderRadius: BorderRadius.circular(15.0),
             ),
             padding: EdgeInsets.symmetric(
@@ -288,6 +291,7 @@ class ReportView extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(7.0),
             border: Border.all(color: Color(0x11000000)),
+            color: Colors.white,
           ),
           padding: EdgeInsets.all(12.0),
           margin: EdgeInsets.only(bottom: 10.0),
@@ -299,14 +303,14 @@ class ReportView extends StatelessWidget {
                 formattedDate,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12.0,
+                  fontSize: 14.0,
                 ),
               ),
               Text(
                 formatAmount(expense),
                 style: TextStyle(
                   color: Colors.redAccent,
-                  fontSize: 12.0,
+                  fontSize: 14.0,
                 ),
               ),
               Column(
@@ -316,7 +320,7 @@ class ReportView extends StatelessWidget {
                     formatAmount(income),
                     style: TextStyle(
                       color: Colors.green,
-                      fontSize: 12.0,
+                      fontSize: 14.0,
                     ),
                   ),
                   SizedBox(height: 8.0),
