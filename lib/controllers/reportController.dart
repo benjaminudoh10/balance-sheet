@@ -44,7 +44,7 @@ class ReportController extends GetxController {
       label.value = "Today";
     } else if (reportType == ReportType.month) {
       label.value = "This month";
-    } else if (reportType == ReportType.lastWeek) {
+    } else if (reportType == ReportType.thisWeek) {
       label.value = "This week";
     } else if (reportType == ReportType.lastMonth) {
       label.value = "Last month";
@@ -89,22 +89,21 @@ class ReportController extends GetxController {
       DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
 
       return [firstDayOfMonth.millisecondsSinceEpoch, lastDayOfMonth.millisecondsSinceEpoch];
-    } else if (type.value == ReportType.lastWeek) {
-      DateTime lastWeekStart = now.subtract(Duration(days: now.weekday));
-      lastWeekStart = DateTime(lastWeekStart.year, lastWeekStart.month, lastWeekStart.day);
-      DateTime lastWeekEnd = now.add(Duration(days: DateTime.daysPerWeek - now.weekday - 1));
-      lastWeekEnd = DateTime(
-        lastWeekEnd.year,
-        lastWeekEnd.month,
-        lastWeekEnd.day,
+    } else if (type.value == ReportType.thisWeek) {
+      DateTime weekStart = now.subtract(Duration(days: now.weekday % 7));
+      weekStart = DateTime(weekStart.year, weekStart.month, weekStart.day);
+      DateTime weekEnd = now.add(Duration(days: DateTime.daysPerWeek - now.weekday % 7 - 1));
+      weekEnd = DateTime(
+        weekEnd.year,
+        weekEnd.month,
+        weekEnd.day,
         23,
         59,
         59,
         999
       );
-      // fix: this represents the current week
 
-      return [lastWeekStart.millisecondsSinceEpoch, lastWeekEnd.millisecondsSinceEpoch];
+      return [weekStart.millisecondsSinceEpoch, weekEnd.millisecondsSinceEpoch];
     } else if (type.value == ReportType.lastMonth) {
       DateTime firstDayOfMonth = DateTime(now.year, now.month - 1, 1);
       DateTime lastDayOfMonth = DateTime(now.year, now.month, 0, 23, 59, 59, 999);

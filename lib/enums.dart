@@ -6,7 +6,7 @@ enum TransactionType {
 enum ReportType {
   today,
   month,
-  lastWeek,
+  thisWeek,
   lastMonth,
   singleDay,
   dateRange,

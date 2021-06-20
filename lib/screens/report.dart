@@ -113,8 +113,8 @@ class ReportView extends StatelessWidget {
                               ),
                               _buildDialogItem(
                                 "This week",
-                                () => _reportController.changeType(ReportType.lastWeek),
-                                _reportController.type.value == ReportType.lastWeek,
+                                () => _reportController.changeType(ReportType.thisWeek),
+                                _reportController.type.value == ReportType.thisWeek,
                               ),
                               _buildDialogItem(
                                 "Last month",
