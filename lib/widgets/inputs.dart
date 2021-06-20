@@ -52,7 +52,6 @@ class DecimalTextInputFormatter extends TextInputFormatter {
     // this gives some form of accuracy
     // 0.045 becomes 0.45 not 0.49999999999...
     String num = (double.parse(newValue) * 1000 / 100).toStringAsFixed(2);
-    print('num without padding $num');
     return num;
   }
 }

@@ -124,7 +124,7 @@ class TransactionController extends GetxController {
   }
 
   updateControllerData(Transaction transaction) {
-    setFieldValues();
+    resetFieldValues();
     if (transaction.type == TransactionType.expenditure) {
       todaysExpense.value += transaction.amount;
       total.value -= transaction.amount;
@@ -135,11 +135,21 @@ class TransactionController extends GetxController {
   }
 
   updateControllerDataAfterDeletion(Transaction transaction) {
+    DateTime now = DateTime.now();
+    DateTime beginningOfDay = DateTime(now.year, now.month, now.day);
     if (transaction.type == TransactionType.expenditure) {
-      todaysExpense.value -= transaction.amount;
+      if (transaction.date.year == beginningOfDay.year &&
+        transaction.date.month == beginningOfDay.month &&
+        transaction.date.day == beginningOfDay.day) {
+        todaysExpense.value -= transaction.amount;
+      }
       total.value += transaction.amount;
     } else {
-      todaysIncome.value -= transaction.amount;
+      if (transaction.date.year == beginningOfDay.year &&
+        transaction.date.month == beginningOfDay.month &&
+        transaction.date.day == beginningOfDay.day) {
+        todaysIncome.value -= transaction.amount;
+      }
       total.value -= transaction.amount;
     }
 
@@ -160,27 +170,53 @@ class TransactionController extends GetxController {
   }
 
   updateControllerDataAfterUpdate(Transaction transaction, Transaction previousTransaction) {
+    DateTime now = DateTime.now();
+    DateTime beginningOfDay = DateTime(now.year, now.month, now.day);
+    
     int index = transactions.indexWhere((txn) => txn.id == previousTransaction.id);
-    transactions[index] = transaction;
+    if (index != -1) transactions[index] = transaction;
 
-    setFieldValues();
+    resetFieldValues();
     if (transaction.type == TransactionType.expenditure) {
-      // delete previous data and add new transaction data
-      todaysExpense.value -= previousTransaction.amount;
-      todaysExpense.value += transaction.amount;
+      if (transaction.date.year == beginningOfDay.year &&
+        transaction.date.month == beginningOfDay.month &&
+        transaction.date.day == beginningOfDay.day) {
+        todaysExpense.value -= previousTransaction.amount;
+        todaysExpense.value += transaction.amount;
+      }
 
       total.value += previousTransaction.amount;
       total.value -= transaction.amount;
     } else {
-      todaysIncome.value -= previousTransaction.amount;
-      todaysIncome.value += transaction.amount;
+      if (transaction.date.year == beginningOfDay.year &&
+        transaction.date.month == beginningOfDay.month &&
+        transaction.date.day == beginningOfDay.day) {
+        todaysIncome.value -= previousTransaction.amount;
+        todaysIncome.value += transaction.amount;
+      }
 
       total.value -= previousTransaction.amount;
       total.value += transaction.amount;
     }
+
+    try {
+      ReportController _reportController = Get.find();
+
+      int index = _reportController.transactions.indexWhere(
+        (txn) => txn.id == transaction.id
+      );
+      _reportController.transactions[index] = transaction;
+      if (transaction.type == TransactionType.expenditure) {
+        _reportController.expense.value += (transaction.amount - previousTransaction.amount);
+      } else {
+        _reportController.income.value += (transaction.amount - previousTransaction.amount);
+      }
+    } catch (error) {
+      print('$error');
+    }
   }
 
-  setFieldValues() {
+  resetFieldValues() {
     description.value = "";
     descController.value.text = "";
     amount.value = 0;
