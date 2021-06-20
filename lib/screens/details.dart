@@ -160,6 +160,12 @@ class TransactionDetails extends StatelessWidget {
 }
 
 void showEditModal(Transaction transaction) {
+  TransactionController _transactionController = Get.find();
+  _transactionController.description.value = transaction.description;
+  _transactionController.descController.value.text = transaction.description;
+  _transactionController.amount.value = transaction.amount;
+  _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
+
   BuildContext context = Get.context;
   showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,

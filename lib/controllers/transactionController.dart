@@ -8,7 +8,10 @@ import 'package:get/get.dart';
 class TransactionController extends GetxController {
   RxBool addingTransaction = false.obs;
   RxString description = "".obs;
-  RxDouble amount = 0.0.obs;
+  var descController = TextEditingController().obs;
+
+  RxInt amount = 0.obs;
+  var amountController = TextEditingController(text: "0.00").obs;
 
   RxInt total = 0.obs;
   RxInt todaysExpense = 0.obs;
@@ -73,7 +76,7 @@ class TransactionController extends GetxController {
       "Successful",
       "Transaction updated successfully",
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0x22AF47FF),
+      backgroundColor: Color(0xdd5DAC7F),
     );
   }
 
@@ -121,6 +124,7 @@ class TransactionController extends GetxController {
   }
 
   updateControllerData(Transaction transaction) {
+    setFieldValues();
     if (transaction.type == TransactionType.expenditure) {
       todaysExpense.value += transaction.amount;
       total.value -= transaction.amount;
@@ -158,6 +162,8 @@ class TransactionController extends GetxController {
   updateControllerDataAfterUpdate(Transaction transaction, Transaction previousTransaction) {
     int index = transactions.indexWhere((txn) => txn.id == previousTransaction.id);
     transactions[index] = transaction;
+
+    setFieldValues();
     if (transaction.type == TransactionType.expenditure) {
       // delete previous data and add new transaction data
       todaysExpense.value -= previousTransaction.amount;
@@ -172,5 +178,12 @@ class TransactionController extends GetxController {
       total.value -= previousTransaction.amount;
       total.value += transaction.amount;
     }
+  }
+
+  setFieldValues() {
+    description.value = "";
+    descController.value.text = "";
+    amount.value = 0;
+    amountController.value.text = "0.00";
   }
 }

@@ -1,8 +1,8 @@
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
@@ -15,9 +15,6 @@ class IncomeForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _transactionController.description.value = this.transaction?.description;
-    _transactionController.amount.value = this.transaction != null ? this.transaction.amount / 100 : null;
-
     return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
       height: Get.height * 0.4,
@@ -51,24 +48,14 @@ class IncomeForm extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                _buildTextField(
-                  placeholder: "e.g. Tomatoes",
-                  defaultValue: _transactionController.description.value,
-                  type: "description",
-                ),
+                DescriptionInput(),
                 Text(
                   "Amount (₦)",
                   style: TextStyle(
                     color: Colors.white,
                   ),
                 ),
-                _buildTextField(
-                  placeholder: "0.00",
-                  defaultValue: "${_transactionController.amount.value ?? ''}",
-                  // keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  formatters: [FilteringTextInputFormatter.allow(RegExp("[0-9.]"))],
-                  type: "amount",
-                ),
+                AmountInput(),
                 GestureDetector(
                   onTap: () async {
                     if (!validInput()) {
@@ -84,7 +71,7 @@ class IncomeForm extends StatelessWidget {
                     Transaction transaction = Transaction(
                       description: _transactionController.description.value,
                       type: this.type,
-                      amount: (_transactionController.amount.value * 100).toInt(),
+                      amount: _transactionController.amount.value,
                       date: DateTime.now(),
                     );
                     if (this.transaction != null) {
@@ -100,9 +87,7 @@ class IncomeForm extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10.0),
                       color: validInput() ? Color(0xaa5DAC7F) : Color(0xaaAF47FF),
-                      boxShadow: [
-                        BoxShadow()
-                      ]
+                      boxShadow: [BoxShadow()]
                     ),
                     margin: EdgeInsets.symmetric(vertical: 10.0),
                     padding: EdgeInsets.symmetric(
@@ -138,50 +123,5 @@ class IncomeForm extends StatelessWidget {
         _transactionController.description.value != "" &&
         _transactionController.amount.value != null &&
         _transactionController.amount.value > 0;
-  }
-
-  Widget _buildTextField({String placeholder, String defaultValue, TextInputType keyboardType, var formatters, String type}) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
-        borderRadius: BorderRadius.circular(10.0),
-        color: Color(0x33ffffff),
-      ),
-      margin: EdgeInsets.symmetric(
-        vertical: 10.0,
-      ),
-      child: TextFormField(
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.all(10.0),
-          hintText: placeholder,
-          hintStyle: TextStyle(
-            fontSize: 14.0,
-            color: Color(0x88ffffff),
-          ),
-          border: InputBorder.none,
-        ),
-        textCapitalization: TextCapitalization.sentences,
-        style: TextStyle(
-          color: Colors.white,
-        ),
-        cursorColor: Colors.white,
-        // autofocus: autofocus,
-        enableSuggestions: true,
-        initialValue: defaultValue,
-        keyboardType: TextInputType.text,
-        inputFormatters: formatters,
-        onChanged: (value) {
-          if (type == 'description') {
-            _transactionController.description.value = value;
-          } else {
-            if (value != "") {
-              _transactionController.amount.value = double.parse(value);
-            } else {
-              _transactionController.amount.value = 0.00;
-            }
-          }
-        },
-      ),
-    );
   }
 }

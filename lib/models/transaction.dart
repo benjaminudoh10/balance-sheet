@@ -3,6 +3,11 @@ import 'package:balance_sheet/enums.dart';
 class Transaction {
   Transaction({this.id, this.description, this.type, this.amount, this.date});
 
+  @override
+  String toString() {
+    return "${this.toJson()}";
+  }
+
   int id;
   final String description;
   final TransactionType type;
