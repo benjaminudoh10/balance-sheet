@@ -18,7 +18,7 @@ class IncomeForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
-      height: Get.height * 0.438,
+      height: Get.height * 0.45,
       decoration: new BoxDecoration(
         color: Color(0xFFAF47FF),
         borderRadius: new BorderRadius.only(
