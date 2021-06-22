@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
@@ -17,6 +18,9 @@ class TransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color categoryColor = Constants.CATEGORIES.where(
+      (category) => category["key"] == transaction.category
+    ).toList()[0]["color"];
     return Scaffold(
       body: Container(
         child: Column(
@@ -79,24 +83,47 @@ class TransactionDetails extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: transaction.type == TransactionType.income ? Color(0x555DAC7F) : Color(0x44ff0000),
-                            borderRadius: BorderRadius.circular(20.0),
-                            border: Border.all(color: Colors.white)
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: 5.0,
-                            horizontal: 10.0,
-                          ),
-                          child: Text(
-                            transaction.type == TransactionType.income ? "Cash inflow" : "Cash outflow",
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: transaction.type == TransactionType.income ? Color(0x555DAC7F) : Color(0x44ff0000),
+                                borderRadius: BorderRadius.circular(20.0),
+                                border: Border.all(color: Colors.white)
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                vertical: 5.0,
+                                horizontal: 10.0,
+                              ),
+                              child: Text(
+                                transaction.type == TransactionType.income ? "Cash inflow" : "Cash outflow",
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: categoryColor,
+                                borderRadius: BorderRadius.circular(20.0),
+                                border: Border.all(color: Colors.white)
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                vertical: 5.0,
+                                horizontal: 10.0,
+                              ),
+                              child: Text(
+                                transaction.category,
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         Text(
                           "Time",
@@ -164,6 +191,7 @@ void showEditModal(Transaction transaction) {
   _transactionController.description.value = transaction.description;
   _transactionController.descController.value.text = transaction.description;
   _transactionController.amount.value = transaction.amount;
+  _transactionController.category.value = transaction.category;
   _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
 
   BuildContext context = Get.context;

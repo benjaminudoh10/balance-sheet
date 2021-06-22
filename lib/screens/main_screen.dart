@@ -114,15 +114,20 @@ class MainView extends StatelessWidget {
                   )),
                   Obx(() => Expanded(
                     child: _transactionController.transactions.length == 0
-                      ? noTransaction(
-                          'Add your first transaction today.',
-                          'Click "Income" or "Expenditure" above.',
+                      ? ListView(
+                          children: [
+                            noTransaction(
+                              'Add your first transaction today.',
+                              'Click "Income" or "Expenditure" above.',
+                            )
+                          ],
                         )
-                      : ListView(
+                      : ListView.builder(
                           padding: EdgeInsets.only(top: 0.0),
-                          children: _transactionController.transactions.map(
-                            (transaction) => singleTransactionContainer(transaction)
-                          ).toList(),
+                          itemCount: _transactionController.transactions.length,
+                          itemBuilder: (context, index) {
+                            return singleTransactionContainer(_transactionController.transactions[index]);
+                          },
                         ),
                   )),
                 ],

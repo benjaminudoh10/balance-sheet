@@ -1,7 +1,7 @@
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/models/transaction.dart';
 
-Future addTransaction(Transaction transaction) async {
+Future<int> addTransaction(Transaction transaction) async {
   Map<String, dynamic> data = transaction.toJson();
 
   final dbClient = await AppDb().db;
@@ -9,7 +9,7 @@ Future addTransaction(Transaction transaction) async {
   return res;
 }
 
-Future deleteTransaction(Transaction transaction) async {
+Future<int> deleteTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.delete(
     "transactions",
@@ -20,8 +20,7 @@ Future deleteTransaction(Transaction transaction) async {
   return res;
 }
 
-
-Future updateTransaction(Transaction transaction) async {
+Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.update(
     "transactions",

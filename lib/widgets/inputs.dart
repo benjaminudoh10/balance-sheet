@@ -95,6 +95,36 @@ class AmountInput extends StatelessWidget {
   }
 }
 
+class CategoryInput extends StatelessWidget {
+  final TransactionController _transactionController = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(10.0),
+        color: Color(0x33ffffff),
+      ),
+      width: Get.width,
+      padding: EdgeInsets.symmetric(
+        vertical: 15.0,
+        horizontal: 8.0,
+      ),
+      margin: EdgeInsets.symmetric(
+        vertical: 10.0,
+      ),
+      child: Text(
+        _transactionController.category.value,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16.0,
+        ),
+      ),
+    );
+  }
+}
+
 class DescriptionInput extends StatelessWidget {
   final TransactionController _transactionController = Get.find();
 

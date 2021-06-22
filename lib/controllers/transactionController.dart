@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 class TransactionController extends GetxController {
   RxBool addingTransaction = false.obs;
+  RxString category = "Savings".obs;
   RxString description = "".obs;
   var descController = TextEditingController().obs;
 
@@ -49,9 +50,22 @@ class TransactionController extends GetxController {
 
   addTransaction(Transaction transaction) async {
     addingTransaction.value = true;
-    int id = await db.addTransaction(transaction);
+    int id;
+    try {
+      id = await db.addTransaction(transaction);
+      addingTransaction.value = false;
+    } catch (error) {
+      print(error);
+      addingTransaction.value = false;
+      Get.snackbar(
+        "Error",
+        "Error occured while adding transaction",
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Color(0x55FF0000),
+      );
+      return;
+    }
     transaction.id = id;
-    addingTransaction.value = false;
     Get.back();
 
     // update data in controller
@@ -64,6 +78,7 @@ class TransactionController extends GetxController {
       "id": previousTransaction.id,
       "type": previousTransaction.type == TransactionType.expenditure ? 'expenditure' : 'income',
       "amount": transaction.amount,
+      "category": transaction.category,
       "date": previousTransaction.date.millisecondsSinceEpoch,
       "description": transaction.description,
     });
@@ -75,7 +90,7 @@ class TransactionController extends GetxController {
     Get.snackbar(
       "Successful",
       "Transaction updated successfully",
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: Color(0xdd5DAC7F),
     );
   }
