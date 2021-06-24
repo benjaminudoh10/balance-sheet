@@ -84,7 +84,6 @@ class ContactController extends GetxController {
     await db.deleteContact(contact);
     // remove txn from UI
     contacts.value = contacts.where((_contact) => contact.id != _contact.id).toList();
-    updateControllerDataAfterDeletion(contact);
 
     Get.snackbar(
       "Successful",
@@ -99,10 +98,6 @@ class ContactController extends GetxController {
   }
 
   getContact(int id) async {
-    contact.value = await db.getContact(id);
-  }
-
-  updateControllerDataAfterDeletion(Contact contact) {
-    
+    if (id != null) contact.value = await db.getContact(id);
   }
 }

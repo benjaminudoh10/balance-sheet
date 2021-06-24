@@ -16,13 +16,13 @@ class Home extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xffE6E2F4),
         selectedItemColor: Color(0xFFC77DFF),
-        unselectedItemColor: Color(0xFFECCAFF),
+        unselectedItemColor: Color(0x66C77DFF),
         type: BottomNavigationBarType.fixed,
         currentIndex: _appController.index.value,
         onTap: _appController.setIndex,
         items: [
-          _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Base"),
-          _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "People"),
+          _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Transactions"),
+          _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "Contacts"),
         ],
       ),
     ));
