@@ -8,7 +8,7 @@ class ContactController extends GetxController {
   RxString name = "".obs;
 
   var nameController = TextEditingController().obs;
-  var contacts = [].obs;
+  RxList<Contact> contacts = <Contact>[].obs;
 
   @override
   void onReady() {

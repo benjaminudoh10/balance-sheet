@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ContactView extends StatelessWidget {
-  final ContactController _contactController = Get.put(ContactController());
+  final ContactController _contactController = Get.find();
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
+import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -56,17 +57,59 @@ class IncomeForm extends StatelessWidget {
                 ),
               ),
               AmountInput(),
-              Text(
-                "Category",
-                style: TextStyle(
-                  color: Colors.white,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Category",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  _transactionController.contact.value.name != "" ? Row(
+                    children: [
+                      Icon(
+                        Icons.contacts,
+                        color: Colors.white,
+                        size: 12.0,
+                      ),
+                      SizedBox(width: 5.0),
+                      Text(
+                        _transactionController.contact.value.name,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ],
+                  ) : SizedBox(),
+                ],
               ),
-              GestureDetector(
-                onTap: () => Get.dialog(
-                  CategoryDialog()
-                ),
-                child: CategoryInput(),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.dialog(
+                        CategoryDialog()
+                      ),
+                      child: CategoryInput(),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 15.0),
+                    child: GestureDetector(
+                      onTap: () => Get.dialog(
+                        ContactDialog()
+                      ),
+                      child: Icon(
+                        Icons.contacts,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                ],
               ),
               GestureDetector(
                 onTap: () async {

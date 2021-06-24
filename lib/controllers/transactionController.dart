@@ -1,5 +1,6 @@
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class TransactionController extends GetxController {
   RxInt todaysIncome = 0.obs;
 
   var transactions = [].obs;
+  Rx<Contact> contact = Contact(name: '').obs;
 
   @override
   void onReady() {

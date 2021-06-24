@@ -1,4 +1,5 @@
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/splash.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(AppController());
   Get.put(TransactionController());
+  Get.put(ContactController());
   Get.config(
     // enableLog: true,
     // defaultPopGesture: true,
