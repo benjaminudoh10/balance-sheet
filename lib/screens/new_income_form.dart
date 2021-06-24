@@ -92,7 +92,9 @@ class IncomeForm extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => Get.dialog(
-                        CategoryDialog()
+                        CategoryDialog(
+                          controller: _transactionController,
+                        ),
                       ),
                       child: CategoryInput(),
                     ),
@@ -101,7 +103,9 @@ class IncomeForm extends StatelessWidget {
                     padding: EdgeInsets.only(left: 15.0),
                     child: GestureDetector(
                       onTap: () => Get.dialog(
-                        ContactDialog()
+                        ContactDialog(
+                          controller: _transactionController,
+                        ),
                       ),
                       child: Icon(
                         Icons.contacts,

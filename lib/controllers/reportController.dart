@@ -1,5 +1,6 @@
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,6 +24,9 @@ class ReportController extends GetxController {
     end: DateTime.now()
   );
 
+  RxString category = 'Category'.obs;
+  Rx<Contact> contact = Contact(name: 'Contact').obs;
+
   List<int> timeFrames = [0, 0];
 
   @override
@@ -36,6 +40,16 @@ class ReportController extends GetxController {
 
     transactions.listen((txns) {
       splitTransactions.value = splitTransactionsIntoDays(txns);
+    });
+
+    category.listen((_) {
+      getTransactions();
+      getTransactionTotal();
+    });
+
+    contact.listen((_) {
+      getTransactions();
+      getTransactionTotal();
     });
   }
 
@@ -148,6 +162,8 @@ class ReportController extends GetxController {
     transactions.value = await db.getAllTransactions(
       timeFrames[0],
       timeFrames[1],
+      category: category.value,
+      contactId: contact.value.id,
     );
     splitTransactions.value = splitTransactionsIntoDays(transactions);
   }
@@ -173,6 +189,8 @@ class ReportController extends GetxController {
     Map<String, dynamic> transactionData = await db.getExpenseForTimePeriod(
       timeFrames[0],
       timeFrames[1],
+      category: category.value,
+      contactId: contact.value.id,
     );
     expense.value = transactionData['expenses'] ?? 0;
     income.value = transactionData['income'] ?? 0;

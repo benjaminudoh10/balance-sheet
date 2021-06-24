@@ -33,9 +33,17 @@ Future<int> updateTransaction(Transaction transaction) async {
   return res;
 }
 
-Future<List<Transaction>> getAllTransactions(int startTime, int endTime) async {
+Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String category, int contactId}) async {
   var dbClient = await AppDb().db;
-  final transactions = await dbClient.rawQuery("SELECT * FROM transactions WHERE date >= $startTime AND date <= $endTime");
+  String query = "SELECT * FROM transactions WHERE date >= $startTime AND date <= $endTime ";
+  if (category != "Category" && category != null) {
+    query = "$query AND category = '$category' ";
+  }
+  if (contactId != null) {
+    query = "$query AND contactId = $contactId ";
+  }
+
+  final transactions = await dbClient.rawQuery(query.trim());
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
 }
@@ -60,10 +68,20 @@ Future<Map<String, int>> getTodayBalances() async {
   };
 }
 
-Future<Map<String, int>> getExpenseForTimePeriod(int start, int end) async {
+Future<Map<String, int>> getExpenseForTimePeriod(int start, int end, {String category, int contactId}) async {
   var dbClient = await AppDb().db;
-  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'expenditure' AND date >= $start AND date <= $end");
-  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'income' AND date >= $start AND date <= $end");
+  String expenseQuery = "SELECT SUM(amount) as total FROM transactions WHERE type = 'expenditure' AND date >= $start AND date <= $end ";
+  String incomeQuery = "SELECT SUM(amount) as total FROM transactions WHERE type = 'income' AND date >= $start AND date <= $end ";
+  if (category != "Category" && category != null) {
+    expenseQuery = "$expenseQuery AND category = '$category' ";
+    incomeQuery = "$incomeQuery AND category = '$category' ";
+  }
+  if (contactId != null) {
+    expenseQuery = "$expenseQuery AND contactId = $contactId ";
+    incomeQuery = "$incomeQuery AND contactId = $contactId ";
+  }
+  final totalExpenses = await dbClient.rawQuery(expenseQuery.trim());
+  final totalIncome = await dbClient.rawQuery(incomeQuery.trim());
 
   return {
     'expenses': totalExpenses[0]['total'],

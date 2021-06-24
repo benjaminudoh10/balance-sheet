@@ -1,6 +1,9 @@
 import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/dialogs/category.dart';
+import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/dialogs/reportType.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
@@ -119,6 +122,74 @@ class ReportView extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        'Add Filter:',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                      Flexible(
+                        child: GestureDetector(
+                          onTap: () => Get.dialog(
+                            CategoryDialog(
+                              controller: _reportController,
+                            ),
+                          ),
+                          child: Chip(
+                            label: Obx(() => Text(
+                              _reportController.category.value,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            )),
+                            backgroundColor: Color(0xdd000000),
+                            deleteIcon: Icon(
+                              Icons.clear,
+                              size: 14.0,
+                              color: Colors.white,
+                            ),
+                            onDeleted: () {
+                              _reportController.category.value = 'Category';
+                            },
+                          ),
+                        ),
+                      ),
+                      Flexible(
+                        child: GestureDetector(
+                          onTap: () => Get.dialog(
+                            ContactDialog(
+                              controller: _reportController,
+                            ),
+                          ),
+                          child: Chip(
+                            label: Obx(() => Text(
+                              _reportController.contact.value.name,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.0,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            )),
+                            backgroundColor: Color(0xdd000000),
+                            deleteIcon: Icon(
+                              Icons.clear,
+                              size: 14.0,
+                              color: Colors.white,
+                            ),
+                            onDeleted: () {
+                              _reportController.contact.value = Contact(name: 'Contact');
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

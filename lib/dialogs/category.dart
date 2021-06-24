@@ -1,11 +1,13 @@
 import 'package:balance_sheet/constants.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CategoryDialog extends StatelessWidget {
-  final TransactionController _transactionController = Get.find();
   final List<Map<String, Object>> categories = Constants.CATEGORIES;
+
+  final dynamic controller;
+
+  CategoryDialog({@required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class CategoryDialog extends StatelessWidget {
             return _buildDialogItem(
               this.categories[index]["key"],
               index,
-              _transactionController.category.value == this.categories[index]["key"]
+              this.controller.category.value == this.categories[index]["key"]
             );
           },
         ),
@@ -35,7 +37,7 @@ class CategoryDialog extends StatelessWidget {
   Widget _buildDialogItem(String text, int index, bool highlight) {
     return GestureDetector(
       onTap: () {
-        _transactionController.category.value = this.categories[index]["key"];
+        this.controller.category.value = this.categories[index]["key"];
         Get.back();
       },
       child: Padding(

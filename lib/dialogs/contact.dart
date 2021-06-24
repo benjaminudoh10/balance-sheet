@@ -1,11 +1,13 @@
 import 'package:balance_sheet/controllers/contactController.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ContactDialog extends StatelessWidget {
   final ContactController _contactController = Get.find();
-  final TransactionController _transactionController = Get.find();
+
+  final dynamic controller;
+
+  ContactDialog({@required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -18,28 +20,28 @@ class ContactDialog extends StatelessWidget {
         ),
         padding: EdgeInsets.all(10.0),
         height: 250.0,
-        child: Column(
-          children: [
-            Text(
-              "Attach contact to transaction",
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            ListView.builder(
+        // child: Column(
+        //   children: [
+        //     Text(
+        //       "Attach contact to transaction",
+        //       style: TextStyle(
+        //         fontSize: 16.0,
+        //         fontWeight: FontWeight.bold,
+        //       ),
+        //     ),
+            child: ListView.builder(
               shrinkWrap: true,
               itemCount: _contactController.contacts.length,
               itemBuilder: (context, index) {
                 return _buildDialogItem(
                   _contactController.contacts[index].name,
                   index,
-                  _transactionController.contact.value?.id == _contactController.contacts[index].id
+                  this.controller.contact.value.id == _contactController.contacts[index].id
                 );
               },
             ),
-          ],
-        ),
+          // ],
+        // ),
       ),
     );
   }
@@ -47,7 +49,7 @@ class ContactDialog extends StatelessWidget {
   Widget _buildDialogItem(String text, int index, bool highlight) {
     return GestureDetector(
       onTap: () {
-        _transactionController.contact.value = _contactController.contacts[index];
+        this.controller.contact.value = _contactController.contacts[index];
         Get.back();
       },
       child: Padding(
@@ -66,7 +68,8 @@ class ContactDialog extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 14.0,
+                fontSize: 16.0,
+                color: Colors.white,
               ),
             ),
           ),
