@@ -9,6 +9,7 @@ class ContactController extends GetxController {
 
   var nameController = TextEditingController().obs;
   RxList<Contact> contacts = <Contact>[].obs;
+  Rx<Contact> contact = Contact(name: '').obs;
 
   @override
   void onReady() {
@@ -95,6 +96,10 @@ class ContactController extends GetxController {
 
   getContacts() async {
     contacts.value = await db.getContacts();
+  }
+
+  getContact(int id) async {
+    contact.value = await db.getContact(id);
   }
 
   updateControllerDataAfterDeletion(Contact contact) {

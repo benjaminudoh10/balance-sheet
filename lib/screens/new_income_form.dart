@@ -128,6 +128,7 @@ class IncomeForm extends StatelessWidget {
                     type: this.type,
                     amount: _transactionController.amount.value,
                     category: _transactionController.category.value,
+                    contactId: _transactionController.contact.value.id,
                     date: DateTime.now(),
                   );
                   if (this.transaction != null) {

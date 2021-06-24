@@ -81,6 +81,7 @@ class TransactionController extends GetxController {
       "type": previousTransaction.type == TransactionType.expenditure ? 'expenditure' : 'income',
       "amount": transaction.amount,
       "category": transaction.category,
+      "contactId": transaction.contactId,
       "date": previousTransaction.date.millisecondsSinceEpoch,
       "description": transaction.description,
     });
@@ -238,5 +239,6 @@ class TransactionController extends GetxController {
     descController.value.text = "";
     amount.value = 0;
     amountController.value.text = "0.00";
+    contact.value = Contact(name: "");
   }
 }

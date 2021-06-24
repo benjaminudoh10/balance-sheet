@@ -34,7 +34,9 @@ class AppDb {
             type TEXT NOT NULL,
             amount INTEGER NOT NULL,
             date INTEGER NOT NULL,
-            category TEXT NOT NULL
+            category TEXT NOT NULL,
+            contactId INTEGER,
+            FOREIGN KEY(contactId) REFERENCES contacts(id)
           )"""
         );
         await db.execute("""

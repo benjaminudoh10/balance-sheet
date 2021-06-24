@@ -108,3 +108,18 @@ Future<List<Contact>> getContacts() async {
 
   return contacts.map((contact) => Contact.fromJson(contact)).toList();
 }
+
+Future<Contact> getContact(int id) async {
+  var dbClient = await AppDb().db;
+  final contact = await dbClient.query(
+    'contacts',
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+
+  if (contact.length == 0) {
+    return Contact(name: '');
+  } else {
+    return Contact.fromJson(contact[0]);
+  }
+}

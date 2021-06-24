@@ -8,6 +8,7 @@ class Transaction {
     this.amount,
     this.date,
     this.category,
+    this.contactId,
   });
 
   @override
@@ -21,6 +22,7 @@ class Transaction {
   final int amount;
   final DateTime date;
   final String category;
+  final int contactId;
 
   Map<String, dynamic> toJson() {
     return {
@@ -30,6 +32,7 @@ class Transaction {
       "amount": this.amount,
       "date": this.date.millisecondsSinceEpoch,
       "category": this.category,
+      "contactId": this.contactId,
     };
   }
 
@@ -41,6 +44,7 @@ class Transaction {
       type: data['type'] == "income" ? TransactionType.income : TransactionType.expenditure,
       date: DateTime.fromMillisecondsSinceEpoch(data['date']),
       category: data['category'],
+      contactId: data['contactId'],
     );
   }
 }

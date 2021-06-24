@@ -1,5 +1,7 @@
 import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
@@ -13,6 +15,7 @@ const double APP_WIDTH = 20.0;
 
 class TransactionDetails extends StatelessWidget {
   final Transaction transaction;
+  final ContactController _contactController = Get.find();
 
   TransactionDetails({@required this.transaction});
 
@@ -21,6 +24,7 @@ class TransactionDetails extends StatelessWidget {
     Color categoryColor = Constants.CATEGORIES.where(
       (category) => category["key"] == transaction.category
     ).toList()[0]["color"];
+    _contactController.getContact(this.transaction.contactId);
     return Scaffold(
       body: Container(
         child: Column(
@@ -154,21 +158,37 @@ class TransactionDetails extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 10.0),
-                    Wrap(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          transaction.description,
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Wrap(
+                          children: [
+                            Text(
+                              transaction.description,
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ]
                         ),
-                      ]
+                        Obx(() => Text(
+                          '${_contactController.contact.value.name}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFAF47FF),
+                            fontSize: 16.0
+                          ),
+                        )),
+                      ],
                     ),
                     roundedButton(
                       text: "Edit",
                       color: Color(0xFFAF47FF),
-                      action: () => showEditModal(this.transaction),
+                      action: () => showEditModal(
+                        this.transaction,
+                        _contactController.contact.value.name
+                      ),
                     ),
                     roundedButton(
                       text: "Delete",
@@ -186,12 +206,13 @@ class TransactionDetails extends StatelessWidget {
   }
 }
 
-void showEditModal(Transaction transaction) {
+void showEditModal(Transaction transaction, String contactName) {
   TransactionController _transactionController = Get.find();
   _transactionController.description.value = transaction.description;
   _transactionController.descController.value.text = transaction.description;
   _transactionController.amount.value = transaction.amount;
   _transactionController.category.value = transaction.category;
+  _transactionController.contact.value = Contact(name: contactName);
   _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
 
   BuildContext context = Get.context;
