@@ -21,12 +21,25 @@ class ContactView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Contacts',
-              style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Color(0x55000000),
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                padding: EdgeInsets.symmetric(
+                  vertical: 10.0,
+                  horizontal: 55.0,
+                ),
+                margin: EdgeInsets.only(bottom: 25.0),
+                child: Text(
+                  'Contacts',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -39,8 +52,12 @@ class ContactView extends StatelessWidget {
                   return Dismissible(
                     key: Key('${contact.id}'),
                     background: Container(
+                      margin: EdgeInsets.only(
+                        top: 5.0,
+                        bottom: 5.0,
+                      ),
                       padding: EdgeInsets.only(left: 15.0),
-                      color: Colors.red,
+                      color: Color(0x55ff0000),
                       alignment: Alignment.centerLeft,
                       child: Icon(
                         Icons.delete,
@@ -49,51 +66,65 @@ class ContactView extends StatelessWidget {
                       ),
                     ),
                     secondaryBackground: Container(
-                      padding: EdgeInsets.only(right: 15.0),
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      child: Icon(
-                        Icons.delete,
-                        size: 24.0,
-                        color: Colors.white,
+                      margin: EdgeInsets.only(
+                        top: 5.0,
+                        bottom: 5.0,
                       ),
+                      padding: EdgeInsets.only(right: 15.0),
+                      color: Color(0xdd5DAC7F),
                     ),
                     onDismissed: (direction) {
-                      _contactController.deleteContact(contact);
+                      if (direction == DismissDirection.startToEnd) {
+                        _contactController.deleteContact(contact);
+                      } else {
+                        _contactController.readd(contact);
+                      }
                     },
-                    child: ListTile(
-                      leading: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.green,
-                        ),
-                        width: 40.0,
-                        height: 40.0,
-                        child: Center(
-                          child: Text(
-                            '${contact.name.substring(0, 1)}',
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: Ink(
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25.0)
+                          ),
+                          contentPadding: EdgeInsets.all(5.0),
+                          tileColor: Color(0x66000000),
+                          leading: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xdd5DAC7F),
+                            ),
+                            width: 40.0,
+                            height: 40.0,
+                            margin: EdgeInsets.only(left: 10.0),
+                            child: Center(
+                              child: Text(
+                                '${contact.name.substring(0, 1)}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            "${contact.name}",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0,
                             ),
                           ),
                         ),
                       ),
-                      title: Text(
-                        "${contact.name}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                      contentPadding: EdgeInsets.all(5.0),
                     ),
                   );
                 },
-              ) : noTransaction(
-                "No contact added",
-                "Use the text field below to add a contact"
+              ) : Center(
+                child: noTransaction(
+                  "No contact added",
+                  "Use the text field below to add a contact"
+                ),
               ),
             ),
             Row(
@@ -115,7 +146,7 @@ class ContactView extends StatelessWidget {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: contactDataInvalid() ? Color(0x44000000) : Colors.green,
+                      color: contactDataInvalid() ? Color(0x44000000) : Color(0xff5DAC7F),
                       shape: BoxShape.circle,
                     ),
                     margin: EdgeInsets.only(left: 10.0),

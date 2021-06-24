@@ -9,6 +9,7 @@ class ReportTypeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),

@@ -14,21 +14,49 @@ class CategoryDialog extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          color: Color(0xffAF47FF),
+          color: Colors.white,
         ),
         padding: EdgeInsets.all(10.0),
-        height: 450.0,
+        height: 250.0,
         child: ListView.builder(
           itemCount: this.categories.length,
           itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(this.categories[index]["key"]),
-              onTap: () {
-                _transactionController.category.value = this.categories[index]["key"];
-                Get.back();
-              },
+            return _buildDialogItem(
+              this.categories[index]["key"],
+              index,
+              _transactionController.category.value == this.categories[index]["key"]
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogItem(String text, int index, bool highlight) {
+    return GestureDetector(
+      onTap: () {
+        _transactionController.category.value = this.categories[index]["key"];
+        Get.back();
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: highlight ? Color(0x33AF47FF) : null,
+              borderRadius: BorderRadius.circular(15.0),
+            ),
+            padding: EdgeInsets.symmetric(
+              vertical: 5.0,
+              horizontal: 20.0,
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14.0,
+              ),
+            ),
+          ),
         ),
       ),
     );
