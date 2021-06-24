@@ -1,4 +1,5 @@
 import 'package:balance_sheet/database/db.dart';
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 
 Future<int> addTransaction(Transaction transaction) async {
@@ -43,7 +44,7 @@ Future<int> getBalances() async {
   var dbClient = await AppDb().db;
   final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'expenditure'");
   final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE type = 'income'");
-  return (totalIncome[0]['total'] - totalExpenses[0]['total']);
+  return ((totalIncome[0]['total'] ?? 0) - (totalExpenses[0]['total'] ?? 0));
 }
 
 Future<Map<String, int>> getTodayBalances() async {
@@ -68,4 +69,42 @@ Future<Map<String, int>> getExpenseForTimePeriod(int start, int end) async {
     'expenses': totalExpenses[0]['total'],
     'income': totalIncome[0]['total'],
   };
+}
+
+Future<int> addContact(Contact contact) async {
+  Map<String, dynamic> data = contact.toJson();
+
+  final dbClient = await AppDb().db;
+  int res = await dbClient.insert("contacts", data);
+  return res;
+}
+
+Future<int> deleteContact(Contact contact) async {
+  final dbClient = await AppDb().db;
+  int res = await dbClient.delete(
+    "contacts",
+    where: "id = ?",
+    whereArgs: [contact.id],
+  );
+
+  return res;
+}
+
+Future<int> updateContact(Contact contact) async {
+  final dbClient = await AppDb().db;
+  int res = await dbClient.update(
+    "contacts",
+    contact.toJson(),
+    where: "id = ?",
+    whereArgs: [contact.id],
+  );
+
+  return res;
+}
+
+Future<List<Contact>> getContacts() async {
+  var dbClient = await AppDb().db;
+  final contacts = await dbClient.rawQuery("SELECT * FROM contacts ORDER BY name ASC");
+
+  return contacts.map((contact) => Contact.fromJson(contact)).toList();
 }

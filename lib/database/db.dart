@@ -37,11 +37,21 @@ class AppDb {
             category TEXT NOT NULL
           )"""
         );
+        await db.execute("""
+          CREATE TABLE contacts(
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL
+          )"""
+        );
       },
       // onUpgrade: (Database db, int oldVersion, int newVersion) async {
       //   if (newVersion > oldVersion) {
-      //     print('executed');
-      //     await db.execute("ALTER TABLE transactions ADD COLUMN category TEXT");
+      //     await db.execute("""
+      //       CREATE TABLE contacts(
+      //         id INTEGER PRIMARY KEY,
+      //         name TEXT NOT NULL
+      //       )"""
+      //     );
       //   }
       // }
     );

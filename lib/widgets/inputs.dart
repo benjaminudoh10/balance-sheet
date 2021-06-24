@@ -1,3 +1,4 @@
+import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -159,6 +160,45 @@ class DescriptionInput extends StatelessWidget {
         autofocus: true,
         onChanged: (value) {
           _transactionController.description.value = value.trim();
+        },
+      ),
+    );
+  }
+}
+
+class ContactInput extends StatelessWidget {
+  final ContactController _contactController = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(10.0),
+        color: Color(0x33ffffff),
+      ),
+      margin: EdgeInsets.symmetric(
+        vertical: 10.0,
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.all(10.0),
+          hintText: "e.g. Jane Doe",
+          hintStyle: TextStyle(
+            fontSize: 14.0,
+            color: Color(0x88ffffff),
+          ),
+          border: InputBorder.none,
+        ),
+        style: TextStyle(
+          color: Colors.white,
+        ),
+        cursorColor: Colors.white,
+        controller: _contactController.nameController.value,
+        keyboardType: TextInputType.text,
+        textCapitalization: TextCapitalization.words,
+        onChanged: (value) {
+          _contactController.name.value = value.trim();
         },
       ),
     );

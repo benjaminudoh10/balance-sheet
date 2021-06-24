@@ -1,24 +1,25 @@
-import 'package:balance_sheet/controllers/bottomNavController.dart';
+import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Home extends StatelessWidget {
-  final BottomNavController _bottomNavController = Get.find();
+  final AppController _appController = Get.find();
 
   @override
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
-      body: _bottomNavController.index.value == 0
+      body: _appController.index.value == 0
         ? MainView()
-        : Container(color: Colors.green,),
+        : ContactView(),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xffE6E2F4),
         selectedItemColor: Color(0xFFC77DFF),
         unselectedItemColor: Color(0xFFECCAFF),
         type: BottomNavigationBarType.fixed,
-        currentIndex: _bottomNavController.index.value,
-        onTap: _bottomNavController.setIndex,
+        currentIndex: _appController.index.value,
+        onTap: _appController.setIndex,
         items: [
           _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Base"),
           _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "People"),
