@@ -108,6 +108,7 @@ class TransactionDetails extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            SizedBox(width: 5.0),
                             Container(
                               decoration: BoxDecoration(
                                 color: categoryColor,
@@ -172,12 +173,16 @@ class TransactionDetails extends StatelessWidget {
                             ),
                           ]
                         ),
-                        Obx(() => Text(
-                          '${_contactController.contact.value.name}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFAF47FF),
-                            fontSize: 16.0
+                        SizedBox(width: 15.0),
+                        Obx(() => Flexible(
+                          child: Text(
+                            '${_contactController.contact.value.name}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFAF47FF),
+                              fontSize: 16.0
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         )),
                       ],

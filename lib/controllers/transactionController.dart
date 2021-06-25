@@ -50,6 +50,10 @@ class TransactionController extends GetxController {
     getTodaysBalance();
   }
 
+  resetContact() {
+    contact.value = Contact(name: "");
+  }
+
   addTransaction(Transaction transaction) async {
     addingTransaction.value = true;
     int id;

@@ -4,6 +4,7 @@ import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
+import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
@@ -29,8 +30,15 @@ class IncomeForm extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 15.0),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: 10.0,
+              horizontal: 30.0,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.0),
+              color: Color(0x33000000),
+            ),
             child: Text(
               "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
               style: TextStyle(
@@ -67,23 +75,41 @@ class IncomeForm extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  _transactionController.contact.value.name != "" ? Row(
-                    children: [
-                      Icon(
-                        Icons.contacts,
-                        color: Colors.white,
-                        size: 12.0,
-                      ),
-                      SizedBox(width: 5.0),
-                      Text(
-                        _transactionController.contact.value.name,
-                        style: TextStyle(
+                  SizedBox(width: 15.0),
+                  _transactionController.contact.value.name != "" ? Flexible(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          Icons.contacts,
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.0,
+                          size: 12.0,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 5.0),
+                        Flexible(
+                          child: Text(
+                            _transactionController.contact.value.name,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(width: 5.0),
+                        GestureDetector(
+                          onTap: () => _transactionController.resetContact(),
+                          child: roundedIcon(
+                            icon: Icons.close,
+                            iconColor: Colors.white,
+                            iconSize: 14.0,
+                            containerColor: Color(0x44ffffff),
+                            padding: EdgeInsets.all(3.0),
+                          ),
+                        ),
+                      ],
+                    ),
                   ) : SizedBox(),
                 ],
               ),
