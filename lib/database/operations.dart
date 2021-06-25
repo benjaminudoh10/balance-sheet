@@ -97,6 +97,15 @@ Future<int> addContact(Contact contact) async {
   return res;
 }
 
+Future<List<Map<String, dynamic>>> getContactWithName(String name) async {
+  final dbClient = await AppDb().db;
+  return dbClient.query(
+    "contacts",
+    where: "LOWER(name) = ?",
+    whereArgs: [name.toLowerCase()]
+  );
+}
+
 Future<int> deleteContact(Contact contact) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.delete(

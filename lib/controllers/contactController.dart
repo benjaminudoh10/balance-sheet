@@ -22,6 +22,17 @@ class ContactController extends GetxController {
     addingContact.value = true;
     int id;
     try {
+      List<Map<String, dynamic>> exists = await db.getContactWithName(contact.name);
+      if (exists.length > 0) {
+        Get.snackbar(
+          "Error",
+          "Contact with given name already exist.",
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Color(0x55FF0000),
+        );
+        return;
+      }
+
       id = await db.addContact(contact);
       addingContact.value = false;
       name.value = "";
