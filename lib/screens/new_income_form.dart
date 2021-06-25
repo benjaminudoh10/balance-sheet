@@ -35,6 +35,7 @@ class IncomeForm extends StatelessWidget {
               vertical: 10.0,
               horizontal: 30.0,
             ),
+            margin: EdgeInsets.only(bottom: 7.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.0),
               color: Color(0x33000000),
