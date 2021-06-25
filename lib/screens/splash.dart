@@ -16,20 +16,32 @@ class Splash extends StatelessWidget {
           children: [
             Expanded(
               flex: 9,
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.menu_book,
-                    size: 36.0,
-                    color: Color(0xfffdfdfd),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.menu_book,
+                        size: 36.0,
+                        color: Color(0xfffdfdfd),
+                      ),
+                      const SizedBox(width: 15.0,),
+                      Text(
+                        "Balanced",
+                        style: TextStyle(
+                          color: Color(0xfffdfdfd),
+                          fontSize: 36.0
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 15.0,),
                   Text(
-                    "Balanced",
+                    "...know where your money goes",
                     style: TextStyle(
                       color: Color(0xfffdfdfd),
-                      fontSize: 36.0
+                      fontSize: 20.0
                     ),
                   ),
                 ],
