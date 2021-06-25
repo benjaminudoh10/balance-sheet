@@ -1,5 +1,5 @@
 # Things to improve
-- Properly set the category list (using an object) with a key that'll remain static for the lifetime of the app while the name changes.
+- [x] Properly set the category list (using an object) with a key that'll remain static for the lifetime of the app while the name changes.
 - Make conntact name in db unique.
 - Swipe down to close for details page.
 - Innteractiveness of the modal list of transactions (after deleting and updating).

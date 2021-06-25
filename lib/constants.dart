@@ -1,26 +1,39 @@
-import 'package:flutter/material.dart';
+// NOTE: Don't change the keys after it has been released to the public
+// Labels can change though
 
 class Constants {
   static const CATEGORIES = [
     {
-      "key": "Food",
-      "color": Color(0xffEEC584)
+      "key": "food",
+      "label": "Food",
     },
     {
-      "key": "Transport",
-      "color": Color(0xffFA824C)
+      "key": "transport",
+      "label": "Transport",
     },
     {
-      "key": "Investment",
-      "color": Color(0xff083D77)
+      "key": "investment",
+      "label": "Investment",
     },
     {
-      "key": "Savings",
-      "color": Color(0xffC33149)
+      "key": "savings",
+      "label": "Savings",
     },
     {
-      "key": "Charity",
-      "color": Color(0xffFB4B4E)
+      "key": "charity",
+      "label": "Charity",
+    },
+    {
+      "key": "rent",
+      "label": "Rent",
+    },
+    {
+      "key": "utilities",
+      "label": "Utilities (e.g. Subscription, etc)",
+    },
+    {
+      "key": "misc",
+      "label": "Miscellaneous",
     },
   ];
 

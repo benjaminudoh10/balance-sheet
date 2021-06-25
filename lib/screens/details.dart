@@ -21,9 +21,10 @@ class TransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color categoryColor = Constants.CATEGORIES.where(
+    List<Map<String, Object>> category = Constants.CATEGORIES.where(
       (category) => category["key"] == transaction.category
-    ).toList()[0]["color"];
+    ).toList();
+    String categoryLabel = category[0]['label'];
     _contactController.getContact(this.transaction.contactId);
     return Scaffold(
       body: Container(
@@ -111,7 +112,7 @@ class TransactionDetails extends StatelessWidget {
                             SizedBox(width: 5.0),
                             Container(
                               decoration: BoxDecoration(
-                                color: categoryColor,
+                                color: Color(0xffFA824C),
                                 borderRadius: BorderRadius.circular(20.0),
                                 border: Border.all(color: Colors.white)
                               ),
@@ -120,7 +121,7 @@ class TransactionDetails extends StatelessWidget {
                                 horizontal: 10.0,
                               ),
                               child: Text(
-                                transaction.category,
+                                categoryLabel,
                                 style: TextStyle(
                                   fontSize: 12.0,
                                   fontWeight: FontWeight.bold,

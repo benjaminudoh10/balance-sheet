@@ -24,7 +24,7 @@ class CategoryDialog extends StatelessWidget {
           itemCount: this.categories.length,
           itemBuilder: (context, index) {
             return _buildDialogItem(
-              this.categories[index]["key"],
+              this.categories[index]["label"],
               index,
               this.controller.category.value == this.categories[index]["key"]
             );
