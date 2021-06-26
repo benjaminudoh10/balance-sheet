@@ -1,4 +1,4 @@
-package com.example.balance_sheet
+package com.example.balanced
 
 import io.flutter.embedding.android.FlutterActivity
 

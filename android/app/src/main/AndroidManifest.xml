@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.balance_sheet">
+    package="com.example.balanced">
    <application
-        android:label="balance_sheet"
+        android:label="Balanced"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
