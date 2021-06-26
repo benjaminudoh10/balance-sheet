@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 class TransactionController extends GetxController {
   RxBool addingTransaction = false.obs;
-  RxString category = "Savings".obs;
+  RxString category = "savings".obs;
   RxString description = "".obs;
   var descController = TextEditingController().obs;
 
