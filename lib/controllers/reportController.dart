@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants.dart' as constants;
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -25,6 +26,7 @@ class ReportController extends GetxController {
   );
 
   RxString category = 'Category'.obs;
+  RxString categoryLabel = 'Category'.obs;
   Rx<Contact> contact = Contact(name: 'Contact').obs;
 
   List<int> timeFrames = [0, 0];
@@ -45,6 +47,11 @@ class ReportController extends GetxController {
     category.listen((_) {
       getTransactions();
       getTransactionTotal();
+
+      List<Map<String, Object>> category = constants.Constants.CATEGORIES.where(
+        (category) => category["key"] == this.category.value
+      ).toList();
+      categoryLabel.value = category.length != 0 ?  category[0]['label']: 'Category';
     });
 
     contact.listen((_) {

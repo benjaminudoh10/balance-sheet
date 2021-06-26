@@ -16,6 +16,10 @@ class Constants {
       "label": "Investment",
     },
     {
+      "key": "salary",
+      "label": "Salary",
+    },
+    {
       "key": "savings",
       "label": "Savings",
     },

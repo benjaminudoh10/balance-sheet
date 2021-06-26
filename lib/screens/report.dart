@@ -142,7 +142,7 @@ class ReportView extends StatelessWidget {
                           ),
                           child: Chip(
                             label: Obx(() => Text(
-                              _reportController.category.value,
+                              _reportController.categoryLabel.value,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14.0,
