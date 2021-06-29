@@ -35,6 +35,7 @@ dependencies:
   path_provider: ^2.0.0
   intl: any
   google_fonts: ^2.1.0
+  # flutter_native_splash: ^1.2.0
   # flutter_launcher_icons: ^0.9.0
   # charts_flutter: ^0.10.0
 
@@ -42,12 +43,22 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+# flutter pub run flutter_launcher_icons:main (run this to generate app icon)
 flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "lib/assets/logo.png"
   adaptive_icon_background: "#C77DFF"
   remove_alpha_ios: true
+
+# flutter pub run flutter_native_splash:create (run this to generate splash screen)
+flutter_native_splash:
+  color: "#944BE7"
+  image: "lib/assets/logo.png"
+  color_dark: "#944BE7"
+  image_dark: "lib/assets/logo.png"
+  android: true
+  ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
