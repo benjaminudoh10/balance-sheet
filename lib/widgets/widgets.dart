@@ -196,24 +196,34 @@ Widget singleTransactionContainer(Transaction transaction) {
   );
 }
 
-Widget noTransaction(String primaryText, String secondaryText) {
-  return Center(
-    child: Container(
-      child: Column(
-        children: [
-          roundedIcon(
-            icon: Icons.money,
-            iconColor: Color(0xbbAF47FF),
-            iconSize: 48.0,
-            containerColor: Color(0x11000000),
-            padding: EdgeInsets.all(25.0)
-          ),
-          SizedBox(height: 15.0),
-          Text(primaryText),
-          SizedBox(height: 15.0),
-          Text(secondaryText),
-        ],
+class EmptyState extends StatelessWidget {
+  final Icon icon;
+  final Text primaryText;
+  final Text secondaryText;
+
+  EmptyState({this.icon, this.primaryText, this.secondaryText});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        child: Column(
+          children: [
+            roundedIcon(
+              icon: icon.icon,
+              iconColor: icon.color,
+              iconSize: 48.0,
+              containerColor: Color(0x11000000),
+              padding: EdgeInsets.all(25.0)
+            ),
+            SizedBox(height: 15.0),
+            primaryText,
+            SizedBox(height: 15.0),
+            secondaryText,
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
+

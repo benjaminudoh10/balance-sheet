@@ -131,10 +131,21 @@ class MainView extends StatelessWidget {
                     child: _transactionController.transactions.length == 0
                       ? ListView(
                           children: [
-                            noTransaction(
-                              'Add your first transaction today.',
-                              'Click "Income" or "Expenditure" above.',
-                            )
+                            EmptyState(
+                              icon: Icon(
+                                Icons.money,
+                                color: Color(0xFFAF47FF),
+                              ),
+                              primaryText: Text(
+                                'Add your first transaction today',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              secondaryText: Text(
+                                'Click "Income" or "Expenditure" above.',
+                              ),
+                            ),
                           ],
                         )
                       : ListView.builder(
@@ -155,15 +166,17 @@ class MainView extends StatelessWidget {
   }
 }
 
-void showNewTransactionModal(TransactionType type) {
+void showNewTransactionModal(TransactionType type) async {
+  final TransactionController _transactionController = Get.find();
+
   BuildContext context = Get.context;
-  showModalBottomSheet<void>(
+  await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
     builder: (context) => IncomeForm(type: type),
-  );
+  ).whenComplete(() => _transactionController.resetFieldValues());
 }
 
 Widget _buildButton(TransactionType type) {

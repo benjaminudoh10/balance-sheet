@@ -256,9 +256,20 @@ class ReportView extends StatelessWidget {
                       ),
                       if (_reportController.transactions.length != 0)
                         ..._buildTransactionContainer(_reportController.splitTransactions),
-                      if (_reportController.transactions.length == 0) noTransaction(
-                        "No transaction were recorded in this time period",
-                        "Select a different time period",
+                      if (_reportController.transactions.length == 0) EmptyState(
+                        icon: Icon(
+                          Icons.money,
+                          color: Color(0xFFAF47FF),
+                        ),
+                        primaryText: Text(
+                          'No transaction was recorded in this time period',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        secondaryText: Text(
+                          'Select a different time period',
+                        ),
                       ),
                     ],
                   ),
@@ -383,9 +394,20 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                 if (transactions.length != 0)
                   ...transactions.map((transaction) => singleTransactionContainer(transaction)),
                 if (transactions.length == 0)
-                  noTransaction(
-                    "No transaction were recorded on this day",
-                    "Select a different day"
+                  EmptyState(
+                    icon: Icon(
+                      Icons.money,
+                      color: Color(0xFFAF47FF),
+                    ),
+                    primaryText: Text(
+                      'No transaction was recorded in this time period',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    secondaryText: Text(
+                      'Select a different day',
+                    ),
                   ),
               ],
             ),

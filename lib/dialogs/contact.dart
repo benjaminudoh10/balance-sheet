@@ -1,9 +1,13 @@
+import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/screens/home.dart';
+import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ContactDialog extends StatelessWidget {
   final ContactController _contactController = Get.find();
+  final AppController _appController = Get.find();
 
   final dynamic controller;
 
@@ -20,28 +24,44 @@ class ContactDialog extends StatelessWidget {
         ),
         padding: EdgeInsets.all(10.0),
         height: 250.0,
-        // child: Column(
-        //   children: [
-        //     Text(
-        //       "Attach contact to transaction",
-        //       style: TextStyle(
-        //         fontSize: 16.0,
-        //         fontWeight: FontWeight.bold,
-        //       ),
-        //     ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: _contactController.contacts.length,
-              itemBuilder: (context, index) {
-                return _buildDialogItem(
-                  _contactController.contacts[index].name,
-                  index,
-                  this.controller.contact.value.id == _contactController.contacts[index].id
-                );
-              },
+        child: _contactController.contacts.length != 0 ? ListView.builder(
+          shrinkWrap: true,
+          itemCount: _contactController.contacts.length,
+          itemBuilder: (context, index) {
+            return _buildDialogItem(
+              _contactController.contacts[index].name,
+              index,
+              this.controller.contact.value.id == _contactController.contacts[index].id
+            );
+          },
+        ) : Column(
+          children: [
+            EmptyState(
+              icon: Icon(
+                Icons.person_outline,
+                color: Color(0xFFAF47FF),
+              ),
+              primaryText: Text(
+                'No contact has been added',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              secondaryText: Text(
+                'Click the button below to add a contact',
+              ),
             ),
-          // ],
-        // ),
+            TextButton(
+              onPressed: () {
+                Get.back();
+                Get.back();
+                Get.to(Home());
+                _appController.setIndex(1);
+              },
+              child: Text('Add contact'),
+            )
+          ],
+        ),
       ),
     );
   }
