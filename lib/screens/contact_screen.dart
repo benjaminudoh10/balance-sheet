@@ -121,9 +121,20 @@ class ContactView extends StatelessWidget {
                   );
                 },
               ) : Center(
-                child: noTransaction(
-                  "No contact added",
-                  "Use the text field below to add a contact"
+                child: EmptyState(
+                  icon: Icon(
+                    Icons.person_outline,
+                    color: Colors.white,
+                  ),
+                  primaryText: Text(
+                    'No contact added',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  secondaryText: Text(
+                    'Use the text field below to add a contact',
+                  ),
                 ),
               ),
             ),
@@ -136,6 +147,7 @@ class ContactView extends StatelessWidget {
                       Get.snackbar(
                         "Error",
                         "Name is required",
+                        colorText: Colors.white,
                         snackPosition: SnackPosition.TOP,
                         backgroundColor: Color(0x55FF0000),
                       );

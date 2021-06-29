@@ -66,6 +66,7 @@ class TransactionController extends GetxController {
       Get.snackbar(
         "Error",
         "Error occured while adding transaction",
+        colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Color(0x55FF0000),
       );
@@ -97,6 +98,7 @@ class TransactionController extends GetxController {
     Get.snackbar(
       "Successful",
       "Transaction updated successfully",
+      colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
       backgroundColor: Color(0xdd5DAC7F),
     );
@@ -115,6 +117,7 @@ class TransactionController extends GetxController {
       Get.snackbar(
         "Successful",
         "Transaction deleted successfully",
+        colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Color(0xdd5DAC7F),
       );
@@ -122,6 +125,7 @@ class TransactionController extends GetxController {
       Get.snackbar(
         "Not deleted",
         "This transaction has already been deleted. Close modal and reopen to get rid of it.",
+        colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Color(0x22FF0000),
       );
@@ -243,6 +247,6 @@ class TransactionController extends GetxController {
     descController.value.text = "";
     amount.value = 0;
     amountController.value.text = "0.00";
-    contact.value = Contact(name: "");
+    resetContact();
   }
 }

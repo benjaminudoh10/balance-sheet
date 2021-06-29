@@ -148,6 +148,7 @@ class IncomeForm extends StatelessWidget {
                     Get.snackbar(
                       "Error",
                       "All fields are required",
+                      colorText: Colors.white,
                       snackPosition: SnackPosition.TOP,
                       backgroundColor: Color(0x55FF0000),
                     );

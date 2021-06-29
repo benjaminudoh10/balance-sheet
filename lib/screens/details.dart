@@ -212,7 +212,7 @@ class TransactionDetails extends StatelessWidget {
   }
 }
 
-void showEditModal(Transaction transaction, String contactName) {
+void showEditModal(Transaction transaction, String contactName) async {
   TransactionController _transactionController = Get.find();
   _transactionController.description.value = transaction.description;
   _transactionController.descController.value.text = transaction.description;
@@ -222,7 +222,7 @@ void showEditModal(Transaction transaction, String contactName) {
   _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
 
   BuildContext context = Get.context;
-  showModalBottomSheet<void>(
+  await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
@@ -231,7 +231,7 @@ void showEditModal(Transaction transaction, String contactName) {
       type: transaction.type,
       transaction: transaction,
     ),
-  );
+  ).whenComplete(() => _transactionController.resetFieldValues());
 }
 
 void showDeleteModal(Transaction transaction) {

@@ -27,6 +27,7 @@ class ContactController extends GetxController {
         Get.snackbar(
           "Error",
           "Contact with given name already exist.",
+          colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
           backgroundColor: Color(0x55FF0000),
         );
@@ -43,6 +44,7 @@ class ContactController extends GetxController {
       Get.snackbar(
         "Error",
         "Error occured while adding contact",
+        colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Color(0x55FF0000),
       );
@@ -56,6 +58,7 @@ class ContactController extends GetxController {
     Get.snackbar(
       "Successful",
       "Contact added successfully",
+      colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
       backgroundColor: Color(0xdd5DAC7F),
     );
@@ -99,6 +102,7 @@ class ContactController extends GetxController {
     Get.snackbar(
       "Successful",
       "Contact deleted successfully",
+      colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
       backgroundColor: Color(0xdd5DAC7F),
     );
