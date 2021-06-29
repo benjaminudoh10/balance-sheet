@@ -36,6 +36,16 @@ class Transaction {
     };
   }
 
+  List<String> toListString() {
+    return [
+      this.description,
+      "${this.type == TransactionType.income ? "income" : "expenditure"}",
+      "${this.amount}",
+      "${this.date.millisecondsSinceEpoch}",
+      "${this.contactId}",
+    ];
+  }
+
   factory Transaction.fromJson(Map<String, dynamic> data) {
     return Transaction(
       id: data['id'],

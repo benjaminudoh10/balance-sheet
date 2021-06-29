@@ -1,8 +1,11 @@
+import 'package:balance_sheet/constants.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
+import 'package:balance_sheet/file_handler.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -244,5 +247,51 @@ class TransactionController extends GetxController {
     amount.value = 0;
     amountController.value.text = "0.00";
     contact.value = Contact(name: "");
+  }
+
+  getTransactionsByPage(int page) async {
+    List<Transaction> transactions = await db.getTransactionsByPage(page);
+    return transactions;
+  }
+
+  exportTransactions() async {
+    int totalTransactions = await db.getTotalTransactions();
+    int page = 0;
+    String filename = "Balanced_${DateTime.now()}";
+
+    while (page * Constants.PER_PAGE < totalTransactions) {
+      List<Transaction> transactions = await getTransactionsByPage(page);
+      List<List<String>> csvRows = transactions.map(
+        (transaction) => transaction.toListString()
+      ).toList();
+
+      if (page == 0) {
+        csvRows.insert(0, ["Description", "Type", "Amount", "Time", "Contact"]);
+      }
+      String csv = ListToCsvConverter().convert(csvRows);
+      print('Page ${page + 1}');
+      print(csv);
+      print('\n\n');
+      page++;
+
+      try {
+        await FileHandler.createCsv(filename, "$csv\n");
+        Get.snackbar(
+          'Export successful',
+          'Transactions has been exported successfully',
+          colorText: Colors.white,
+          backgroundColor: Color(0xdd5DAC7F),
+        );
+      } catch (error) {
+        Get.snackbar(
+          'Export error',
+          'An error occurred while exporting transactions',
+          colorText: Colors.white,
+          backgroundColor: Color(0x22FF0000),
+        );
+      }
+    }
+print('whoops!!');
+    return true;
   }
 }

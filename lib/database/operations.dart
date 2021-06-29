@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants.dart';
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -44,6 +45,22 @@ Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String
   }
 
   final transactions = await dbClient.rawQuery(query.trim());
+
+  return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
+}
+
+Future<int> getTotalTransactions() async {
+  var dbClient = await AppDb().db;
+  String query = "SELECT COUNT(*) as total FROM transactions";
+  final total = await dbClient.rawQuery(query);
+
+  return total[0]['total'];
+}
+
+Future<List<Transaction>> getTransactionsByPage(int page) async {
+  var dbClient = await AppDb().db;
+  String query = "SELECT * FROM transactions LIMIT ${Constants.PER_PAGE} OFFSET ${page * Constants.PER_PAGE}";
+  final transactions = await dbClient.rawQuery(query);
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
 }

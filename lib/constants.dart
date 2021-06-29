@@ -42,4 +42,5 @@ class Constants {
   ];
 
   static const int DB_VERSION = 1;
+  static const int PER_PAGE = 50;
 }

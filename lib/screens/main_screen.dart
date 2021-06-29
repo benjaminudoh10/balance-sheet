@@ -2,6 +2,7 @@ import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
+import 'package:balance_sheet/screens/settings_screen.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -33,13 +34,27 @@ class MainView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Balance Sheet',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Balance Sheet',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Get.to(Settings()),
+                      child: roundedIcon(
+                        icon: Icons.settings,
+                        iconColor: Colors.white,iconSize: 22.0,
+                        containerColor: Color(0x44ffffff),
+                        padding: EdgeInsets.all(7.0),
+                      ),
+                    ),
+                  ],
                 ),
                 TotalContainer(),
                 GestureDetector(
