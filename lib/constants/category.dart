@@ -1,7 +1,7 @@
-// NOTE: Don't change the keys after it has been released to the public
-// Labels can change though
+class Categories {
+  // NOTE: Don't change the keys after it has been released to the public
+  // Labels can change though
 
-class Constants {
   static const CATEGORIES = [
     {
       "key": "food",
@@ -40,7 +40,4 @@ class Constants {
       "label": "Miscellaneous",
     },
   ];
-
-  static const int DB_VERSION = 1;
-  static const int PER_PAGE = 50;
 }

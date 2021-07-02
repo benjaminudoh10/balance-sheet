@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -17,14 +18,14 @@ class ContactView extends StatelessWidget {
           right: 20.0,
           top: 70.0
         ),
-        color: Color(0xFFC77DFF),
+        color: AppColors.PRIMARY,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0x55000000),
+                  color: AppColors.LIGHT_5_GREY,
                   borderRadius: BorderRadius.circular(20.0),
                 ),
                 padding: EdgeInsets.symmetric(
@@ -57,7 +58,7 @@ class ContactView extends StatelessWidget {
                         bottom: 5.0,
                       ),
                       padding: EdgeInsets.only(left: 15.0),
-                      color: Color(0x55ff0000),
+                      color: AppColors.SNACKBAR_RED,
                       alignment: Alignment.centerLeft,
                       child: Icon(
                         Icons.delete,
@@ -71,7 +72,7 @@ class ContactView extends StatelessWidget {
                         bottom: 5.0,
                       ),
                       padding: EdgeInsets.only(right: 15.0),
-                      color: Color(0xdd5DAC7F),
+                      color: AppColors.GREEN,
                     ),
                     onDismissed: (direction) {
                       if (direction == DismissDirection.startToEnd) {
@@ -88,11 +89,11 @@ class ContactView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(25.0)
                           ),
                           contentPadding: EdgeInsets.all(5.0),
-                          tileColor: Color(0x66000000),
+                          tileColor: AppColors.LIGHT_6_GREY,
                           leading: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color(0xdd5DAC7F),
+                              color: AppColors.GREEN,
                             ),
                             width: 40.0,
                             height: 40.0,
@@ -149,7 +150,7 @@ class ContactView extends StatelessWidget {
                         "Name is required",
                         colorText: Colors.white,
                         snackPosition: SnackPosition.TOP,
-                        backgroundColor: Color(0x55FF0000),
+                        backgroundColor: AppColors.SNACKBAR_RED,
                       );
                       return;
                     }
@@ -158,7 +159,7 @@ class ContactView extends StatelessWidget {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: contactDataInvalid() ? Color(0x44000000) : Color(0xff5DAC7F),
+                      color: contactDataInvalid() ? AppColors.LIGHT_5_GREY : AppColors.GREEN,
                       shape: BoxShape.circle,
                     ),
                     margin: EdgeInsets.only(left: 10.0),

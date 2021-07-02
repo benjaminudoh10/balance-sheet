@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/file_handler.dart';
@@ -71,7 +71,7 @@ class TransactionController extends GetxController {
         "Error occured while adding transaction",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
-        backgroundColor: Color(0x55FF0000),
+        backgroundColor: AppColors.SNACKBAR_RED,
       );
       return;
     }
@@ -103,7 +103,7 @@ class TransactionController extends GetxController {
       "Transaction updated successfully",
       colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Color(0xdd5DAC7F),
+      backgroundColor: AppColors.GREEN,
     );
   }
 
@@ -122,7 +122,7 @@ class TransactionController extends GetxController {
         "Transaction deleted successfully",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
-        backgroundColor: Color(0xdd5DAC7F),
+        backgroundColor: AppColors.GREEN,
       );
     } else {
       Get.snackbar(
@@ -130,7 +130,7 @@ class TransactionController extends GetxController {
         "This transaction has already been deleted. Close modal and reopen to get rid of it.",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
-        backgroundColor: Color(0x22FF0000),
+        backgroundColor: AppColors.SNACKBAR_RED,
       );
     }
   }

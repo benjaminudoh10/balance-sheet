@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -22,7 +23,7 @@ class IncomeForm extends StatelessWidget {
       padding: EdgeInsets.all(20.0),
       height: Get.height * 0.5,
       decoration: new BoxDecoration(
-        color: Color(0xFFAF47FF),
+        color: AppColors.PRIMARY,
         borderRadius: new BorderRadius.only(
           topLeft: const Radius.circular(25.0),
           topRight: const Radius.circular(25.0),
@@ -38,7 +39,7 @@ class IncomeForm extends StatelessWidget {
             margin: EdgeInsets.only(bottom: 7.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.0),
-              color: Color(0x33000000),
+              color: AppColors.LIGHT_3_GREY,
             ),
             child: Text(
               "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
@@ -150,7 +151,7 @@ class IncomeForm extends StatelessWidget {
                       "All fields are required",
                       colorText: Colors.white,
                       snackPosition: SnackPosition.TOP,
-                      backgroundColor: Color(0x55FF0000),
+                      backgroundColor: AppColors.SNACKBAR_RED,
                     );
                     return;
                   }
@@ -175,7 +176,7 @@ class IncomeForm extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10.0),
-                    color: validInput() ? Color(0xaa5DAC7F) : Color(0xaaAF47FF),
+                    color: validInput() ? AppColors.GREEN : Color(0xAAAF47FF),
                     boxShadow: [BoxShadow()]
                   ),
                   margin: EdgeInsets.symmetric(vertical: 10.0),

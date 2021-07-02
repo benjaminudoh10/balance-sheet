@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +102,7 @@ class CategoryInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, Object>> category = Constants.CATEGORIES.where(
+    List<Map<String, Object>> category = Categories.CATEGORIES.where(
       (category) => category["key"] == _transactionController.category.value
     ).toList();
     String categoryLabel = category[0]['label'];

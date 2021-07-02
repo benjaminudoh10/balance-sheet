@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/details.dart';
 import 'package:balance_sheet/enums.dart';
@@ -24,7 +25,7 @@ Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color conta
 Widget totalDayTransaction(String date, int income, int expense) {
   return Container(
     decoration: BoxDecoration(
-      border: Border.all(color: Color(0x11000000)),
+      border: Border.all(color: AppColors.LIGHT_1_GREY),
       borderRadius: BorderRadius.circular(7.0)
     ),
     margin: EdgeInsets.symmetric(vertical: 15.0),
@@ -40,7 +41,7 @@ Widget totalDayTransaction(String date, int income, int expense) {
               child: Text(
                 'Date',
                 style: TextStyle(
-                  color: Color(0x55000000)
+                  color: AppColors.LIGHT_5_GREY,
                 ),
               ),
             ),
@@ -59,14 +60,14 @@ Widget totalDayTransaction(String date, int income, int expense) {
               child: Text(
                 'Cash out',
                 style: TextStyle(
-                  color: Color(0x55000000)
+                  color: AppColors.LIGHT_5_GREY,
                 ),
               ),
             ),
             Text(
               '${formatAmount(expense)}',
               style: TextStyle(
-                color: Color(0xaaff0000)
+                color: AppColors.RED,
               ),
             ),
           ],
@@ -79,14 +80,14 @@ Widget totalDayTransaction(String date, int income, int expense) {
               child: Text(
                 'Cash in',
                 style: TextStyle(
-                  color: Color(0x55000000)
+                  color: AppColors.LIGHT_5_GREY,
                 ),
               ),
             ),
             Text(
               '${formatAmount(income)}',
               style: TextStyle(
-                color: Color(0xdd5DAC7F)
+                color: AppColors.GREEN,
               ),
             ),
           ],
@@ -142,7 +143,7 @@ Widget singleTransactionContainer(Transaction transaction) {
                 topLeft: Radius.circular(7.0),
                 bottomLeft: Radius.circular(7.0)
               ),
-              border: Border.all(color: Color(0x22000000))
+              border: Border.all(color: AppColors.LIGHT_2_GREY)
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +160,7 @@ Widget singleTransactionContainer(Transaction transaction) {
                 Text(
                   "${DateFormat.yMMMMd().add_Hm().format(transaction.date)}",
                   style: TextStyle(
-                    color: Color(0xaa000000),
+                    color: AppColors.TEXT_GREY,
                     fontSize: 13.0,
                   ),
                 ),
@@ -174,7 +175,7 @@ Widget singleTransactionContainer(Transaction transaction) {
             margin: EdgeInsets.only(top: 10.0),
             padding: EdgeInsets.all(15.0),
             decoration: BoxDecoration(
-              color: transaction.type == TransactionType.income ? Color(0x335DAC7F) : Color(0x11ff0000),
+              color: transaction.type == TransactionType.income ? AppColors.LIGHT_GREEN : AppColors.LIGHT_RED,
               borderRadius: BorderRadius.only(
                 topRight: Radius.circular(7.0),
                 bottomRight: Radius.circular(7.0)
@@ -184,7 +185,7 @@ Widget singleTransactionContainer(Transaction transaction) {
               child: Text(
                 '${formatAmount(transaction.amount)}',
                 style: TextStyle(
-                  color: transaction.type == TransactionType.income ? Color(0xff5DAC7F) : Color(0xffff0000),
+                  color: transaction.type == TransactionType.income ? AppColors.GREEN : AppColors.RED,
                   fontSize: 16.0,
                 ),
               ),
@@ -213,7 +214,7 @@ class EmptyState extends StatelessWidget {
               icon: icon.icon,
               iconColor: icon.color,
               iconSize: 48.0,
-              containerColor: Color(0x11000000),
+              containerColor: AppColors.LIGHT_1_GREY,
               padding: EdgeInsets.all(25.0)
             ),
             SizedBox(height: 15.0),

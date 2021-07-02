@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -9,7 +10,7 @@ class Splash extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
-          color: Color(0xff9448d5),
+          color: AppColors.PRIMARY,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -25,13 +26,13 @@ class Splash extends StatelessWidget {
                       Icon(
                         Icons.menu_book,
                         size: 36.0,
-                        color: Color(0xfffdfdfd),
+                        color: Colors.white,
                       ),
                       const SizedBox(width: 15.0,),
                       Text(
                         "Balanced",
                         style: TextStyle(
-                          color: Color(0xfffdfdfd),
+                          color: Colors.white,
                           fontSize: 36.0
                         ),
                       ),
@@ -40,7 +41,7 @@ class Splash extends StatelessWidget {
                   Text(
                     "...know where your money goes",
                     style: TextStyle(
-                      color: Color(0xfffdfdfd),
+                      color: Colors.white,
                       fontSize: 20.0
                     ),
                   ),

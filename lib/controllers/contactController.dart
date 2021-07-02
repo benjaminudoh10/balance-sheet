@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/models/contact.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class ContactController extends GetxController {
           "Contact with given name already exist.",
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
-          backgroundColor: Color(0x55FF0000),
+          backgroundColor: AppColors.SNACKBAR_RED,
         );
         return;
       }
@@ -46,7 +47,7 @@ class ContactController extends GetxController {
         "Error occured while adding contact",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
-        backgroundColor: Color(0x55FF0000),
+        backgroundColor: AppColors.SNACKBAR_RED,
       );
       return;
     }
@@ -60,7 +61,7 @@ class ContactController extends GetxController {
       "Contact added successfully",
       colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Color(0xdd5DAC7F),
+      backgroundColor: AppColors.GREEN,
     );
   }
 
@@ -90,7 +91,7 @@ class ContactController extends GetxController {
     //   "Successful",
     //   "Transaction updated successfully",
     //   snackPosition: SnackPosition.TOP,
-    //   backgroundColor: Color(0xdd5DAC7F),
+    //   backgroundColor: AppColors.GREEN,
     // );
   }
 
@@ -104,7 +105,7 @@ class ContactController extends GetxController {
       "Contact deleted successfully",
       colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Color(0xdd5DAC7F),
+      backgroundColor: AppColors.GREEN,
     );
   }
 

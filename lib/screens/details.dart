@@ -1,4 +1,5 @@
-import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -21,7 +22,7 @@ class TransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, Object>> category = Constants.CATEGORIES.where(
+    List<Map<String, Object>> category = Categories.CATEGORIES.where(
       (category) => category["key"] == transaction.category
     ).toList();
     String categoryLabel = category[0]['label'];
@@ -38,7 +39,7 @@ class TransactionDetails extends StatelessWidget {
                 bottom: 20.0,
               ),
               decoration: BoxDecoration(
-                color: Color(0xFFAF47FF),
+                color: AppColors.PRIMARY,
               ),
               child: Row(
                 children: [
@@ -112,7 +113,7 @@ class TransactionDetails extends StatelessWidget {
                             SizedBox(width: 5.0),
                             Container(
                               decoration: BoxDecoration(
-                                color: Color(0xffFA824C),
+                                color: AppColors.CATEGORY,
                                 borderRadius: BorderRadius.circular(20.0),
                                 border: Border.all(color: Colors.white)
                               ),
@@ -180,7 +181,7 @@ class TransactionDetails extends StatelessWidget {
                             '${_contactController.contact.value.name}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFAF47FF),
+                              color: AppColors.PRIMARY,
                               fontSize: 16.0
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -190,7 +191,7 @@ class TransactionDetails extends StatelessWidget {
                     ),
                     roundedButton(
                       text: "Edit",
-                      color: Color(0xFFAF47FF),
+                      color: AppColors.PRIMARY,
                       action: () => showEditModal(
                         this.transaction,
                         _contactController.contact.value.name
@@ -198,7 +199,7 @@ class TransactionDetails extends StatelessWidget {
                     ),
                     roundedButton(
                       text: "Delete",
-                      color: Color(0xaaff0000),
+                      color: AppColors.RED,
                       action: () => showDeleteModal(transaction),
                     ),
                   ],
@@ -264,13 +265,13 @@ void showDeleteModal(Transaction transaction) {
           ),
           roundedButton(
             text: "YES",
-            color: Color(0xFFAF47FF),
+            color: AppColors.PRIMARY,
             action: () => _transactionController.deleteTransaction(transaction),
           ),
           roundedButton(
             text: "NO",
-            textColor: Color(0xFFAF47FF),
-            color: Color(0x22AF47FF),
+            textColor: AppColors.PRIMARY,
+            color: AppColors.SECONDARY,
             action: () => Get.back(),
           ),
         ],

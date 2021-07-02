@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants.dart' as constants;
+import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -48,7 +48,7 @@ class ReportController extends GetxController {
       getTransactions();
       getTransactionTotal();
 
-      List<Map<String, Object>> category = constants.Constants.CATEGORIES.where(
+      List<Map<String, Object>> category = Categories.CATEGORIES.where(
         (category) => category["key"] == this.category.value
       ).toList();
       categoryLabel.value = category.length != 0 ?  category[0]['label']: 'Category';

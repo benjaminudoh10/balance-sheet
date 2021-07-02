@@ -1,9 +1,9 @@
-import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/constants/category.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CategoryDialog extends StatelessWidget {
-  final List<Map<String, Object>> categories = Constants.CATEGORIES;
+  final List<Map<String, Object>> categories = Categories.CATEGORIES;
 
   final dynamic controller;
 

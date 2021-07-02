@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
@@ -29,7 +30,7 @@ class MainView extends StatelessWidget {
               bottom: 5.0,
             ),
             decoration: BoxDecoration(
-              color: Color(0xFFAF47FF),
+              color: AppColors.PRIMARY,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,15 +76,15 @@ class MainView extends StatelessWidget {
                           'SEE ALL YOUR TRANSACTIONS',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Color(0xFFAF47FF),
+                            color: AppColors.PRIMARY,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,
                           ),
                         ),
                         roundedIcon(
                           icon: Icons.chevron_right_rounded,
-                          iconColor: Color(0xFFAF47FF),
-                          containerColor: Color(0x22AF47FF),
+                          iconColor: AppColors.PRIMARY,
+                          containerColor: AppColors.SECONDARY,
                           padding: EdgeInsets.all(2.0)
                         ),
                       ],
@@ -100,7 +101,7 @@ class MainView extends StatelessWidget {
                 horizontal: 20.0,
               ),
               decoration: BoxDecoration(
-                color: Color(0x22AF47FF),
+                color: AppColors.SECONDARY,
               ),
               child: Column(
                 children: [
@@ -134,7 +135,7 @@ class MainView extends StatelessWidget {
                             EmptyState(
                               icon: Icon(
                                 Icons.money,
-                                color: Color(0xFFAF47FF),
+                                color: AppColors.PRIMARY,
                               ),
                               primaryText: Text(
                                 'Add your first transaction today',
@@ -185,7 +186,7 @@ Widget _buildButton(TransactionType type) {
     child: Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7.0),
-        color: type == TransactionType.income ? Color(0xdd5DAC7F) : Color(0xaaff0000),
+        color: type == TransactionType.income ? AppColors.GREEN : AppColors.RED,
       ),
       padding: EdgeInsets.symmetric(
         vertical: 10.0,
@@ -205,7 +206,7 @@ Widget _buildButton(TransactionType type) {
             type == TransactionType.income ? "Income" : "Expenditure",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 12.0,
+              fontSize: 14.0,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -239,7 +240,7 @@ class TotalContainer extends StatelessWidget {
           _buildBalanceSection(
             "Today's Balance",
             _transactionController.todaysIncome.value - _transactionController.todaysExpense.value,
-            Color(0xffdedeff),
+            AppColors.PURPLE_GREY,
             false,
           ),
         ],

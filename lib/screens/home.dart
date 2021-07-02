@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
@@ -15,8 +16,8 @@ class Home extends StatelessWidget {
         : ContactView(),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xffE6E2F4),
-        selectedItemColor: Color(0xFFC77DFF),
-        unselectedItemColor: Color(0x66C77DFF),
+        selectedItemColor: AppColors.PRIMARY,
+        unselectedItemColor: AppColors.LIGHT_PRIMARY,
         type: BottomNavigationBarType.fixed,
         currentIndex: _appController.index.value,
         onTap: _appController.setIndex,

@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -40,7 +41,7 @@ class ReportView extends StatelessWidget {
                 horizontal: APP_WIDTH,
               ),
               decoration: BoxDecoration(
-                color: Color(0xFFAF47FF),
+                color: AppColors.PRIMARY,
               ),
               child: Column(
                 children: [
@@ -84,7 +85,7 @@ class ReportView extends StatelessWidget {
                           Text(
                             formatAmount(_reportController.expense.value),
                             style: TextStyle(
-                              color: Color(0xff000000),
+                              color: Colors.black,
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,
                             ),
@@ -259,7 +260,7 @@ class ReportView extends StatelessWidget {
                       if (_reportController.transactions.length == 0) EmptyState(
                         icon: Icon(
                           Icons.money,
-                          color: Color(0xFFAF47FF),
+                          color: AppColors.PRIMARY,
                         ),
                         primaryText: Text(
                           'No transaction was recorded in this time period',
@@ -303,7 +304,7 @@ class ReportView extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(7.0),
-            border: Border.all(color: Color(0x11000000)),
+            border: Border.all(color: AppColors.LIGHT_1_GREY),
             color: Colors.white,
           ),
           padding: EdgeInsets.all(12.0),
@@ -322,7 +323,7 @@ class ReportView extends StatelessWidget {
               Text(
                 formatAmount(expense),
                 style: TextStyle(
-                  color: Colors.redAccent,
+                  color: AppColors.RED,
                   fontSize: 14.0,
                 ),
               ),
@@ -332,7 +333,7 @@ class ReportView extends StatelessWidget {
                   Text(
                     formatAmount(income),
                     style: TextStyle(
-                      color: Colors.green,
+                      color: AppColors.GREEN,
                       fontSize: 14.0,
                     ),
                   ),
@@ -341,7 +342,7 @@ class ReportView extends StatelessWidget {
                     "View",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFAF47FF),
+                      color: AppColors.PRIMARY,
                       fontSize: 12.0,
                     ),
                   ),
@@ -382,9 +383,9 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                       onTap: Get.back,
                       child: roundedIcon(
                         icon: Icons.close,
-                        iconColor: Color(0xbbAF47FF),
+                        iconColor: AppColors.PRIMARY,
                         iconSize: 24.0,
-                        containerColor: Color(0x22AF47FF),
+                        containerColor: AppColors.SECONDARY,
                         padding: EdgeInsets.all(3.0)
                       ),
                     ),
@@ -397,7 +398,7 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                   EmptyState(
                     icon: Icon(
                       Icons.money,
-                      color: Color(0xFFAF47FF),
+                      color: AppColors.PRIMARY,
                     ),
                     primaryText: Text(
                       'No transaction was recorded in this time period',

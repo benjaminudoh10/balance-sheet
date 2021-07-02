@@ -1,5 +1,5 @@
 import 'dart:io' as io;
-import 'package:balance_sheet/constants.dart';
+import 'package:balance_sheet/constants/db.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -22,13 +22,13 @@ class AppDb {
 
   initDb() async {
     io.Directory documentDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentDirectory.path, "transaction.db");
+    String path = join(documentDirectory.path, DBConstants.DB_NAME);
     var taskDb = await openDatabase(
       path,
-      version: Constants.DB_VERSION,
+      version: DBConstants.DB_VERSION,
       onCreate: (Database db, int version) async {
         await db.execute("""
-          CREATE TABLE transactions(
+          CREATE TABLE ${DBConstants.TRANSACTION}(
             id INTEGER PRIMARY KEY,
             description TEXT NOT NULL,
             type TEXT NOT NULL,
@@ -40,7 +40,7 @@ class AppDb {
           )"""
         );
         await db.execute("""
-          CREATE TABLE contacts(
+          CREATE TABLE ${DBConstants.CONTACT}(
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL
           )"""
