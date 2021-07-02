@@ -79,7 +79,7 @@ class TransactionController extends GetxController {
     Get.back();
 
     // update data in controller
-    transactions.add(transaction);
+    transactions.insert(0, transaction);
     updateControllerData(transaction);
   }
 

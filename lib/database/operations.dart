@@ -44,6 +44,7 @@ Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String
     query = "$query AND contactId = $contactId ";
   }
 
+  query = "$query ORDER BY date DESC ";
   final transactions = await dbClient.rawQuery(query.trim());
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
