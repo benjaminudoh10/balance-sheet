@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/file_handler.dart';
@@ -263,7 +264,7 @@ class TransactionController extends GetxController {
     int page = 0;
     String filename = "Balanced_${DateTime.now()}";
 
-    while (page * Constants.PER_PAGE < totalTransactions) {
+    while (page * DBConstants.PER_PAGE < totalTransactions) {
       List<Transaction> transactions = await getTransactionsByPage(page);
       List<List<String>> csvRows = transactions.map(
         (transaction) => transaction.toListString()

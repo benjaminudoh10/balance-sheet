@@ -60,7 +60,7 @@ Future<int> getTotalTransactions() async {
 
 Future<List<Transaction>> getTransactionsByPage(int page) async {
   var dbClient = await AppDb().db;
-  String query = "SELECT * FROM transactions LIMIT ${Constants.PER_PAGE} OFFSET ${page * Constants.PER_PAGE}";
+  String query = "SELECT * FROM transactions LIMIT ${DBConstants.PER_PAGE} OFFSET ${page * DBConstants.PER_PAGE}";
   final transactions = await dbClient.rawQuery(query);
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
