@@ -1,11 +1,12 @@
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class Settings extends StatelessWidget {
-  final TransactionController _transactionController = Get.find();
+  final SecurityController _securityController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class Settings extends StatelessWidget {
         automaticallyImplyLeading: true,
       ),
       body: Container(
-        color: Color(0x11000000),
+        color: AppColors.LIGHT_1_GREY,
         padding: EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -30,20 +31,26 @@ class Settings extends StatelessWidget {
               icon: Icons.person,
               iconSize: 34.0,
               iconColor: Colors.white,
-              containerColor: Color(0x22AF47FF),
+              containerColor: AppColors.SECONDARY,
               padding: EdgeInsets.all(20.0),
             ),
+            // _buildSettingRow(
+            //   'Export to CSV',
+            //   Icons.assignment_outlined,
+            //   Colors.purple,
+            //   () => exportToCSV(),
+            // ),
+            // _buildSettingRow(
+            //   'Import from CSV',
+            //   Icons.assignment_returned_outlined,
+            //   Colors.green,
+            //   () {},
+            // ),
             _buildSettingRow(
-              'Export to CSV',
-              Icons.assignment_outlined,
-              Colors.purple,
-              () => exportToCSV(),
-            ),
-            _buildSettingRow(
-              'Import from CSV',
-              Icons.assignment_returned_outlined,
-              Colors.green,
-              () {},
+              'Change access PIN',
+              Icons.lock_outline,
+              Colors.red,
+              () => goToPinView(),
             ),
           ],
         ),
@@ -51,36 +58,41 @@ class Settings extends StatelessWidget {
     );
   }
 
-  void exportToCSV() async {
-    showCustomModalBottomSheet(
-      context: Get.context,
-      // isDismissible: false,
-      builder: (context) => Container(
-        height: Get.height * 0.2,
-        color: Colors.white,
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      containerWidget: (_, animation, child) => Padding(
-        padding: EdgeInsets.only(
-          left: 20.0,
-          right: 20.0,
-          top: 0.0,
-          bottom: 40.0, // (Get.height * 0.8) / 2,
-        ),
-        child: Material(
-          color: Colors.grey,
-          clipBehavior: Clip.antiAlias,
-          borderRadius: BorderRadius.circular(20.0),
-          child: child,
-        ),
-      )
-    );
-    await _transactionController.exportTransactions();
-    print('no whoops!!!!!!');
-    Get.to(Settings());
+  goToPinView() {
+    Get.to(Pin());
+    _securityController.reset();
   }
+
+  // void exportToCSV() async {
+  //   showCustomModalBottomSheet(
+  //     context: Get.context,
+  //     // isDismissible: false,
+  //     builder: (context) => Container(
+  //       height: Get.height * 0.2,
+  //       color: Colors.white,
+  //       child: Center(
+  //         child: CircularProgressIndicator(),
+  //       ),
+  //     ),
+  //     containerWidget: (_, animation, child) => Padding(
+  //       padding: EdgeInsets.only(
+  //         left: 20.0,
+  //         right: 20.0,
+  //         top: 0.0,
+  //         bottom: 40.0, // (Get.height * 0.8) / 2,
+  //       ),
+  //       child: Material(
+  //         color: Colors.grey,
+  //         clipBehavior: Clip.antiAlias,
+  //         borderRadius: BorderRadius.circular(20.0),
+  //         child: child,
+  //       ),
+  //     )
+  //   );
+  //   await _transactionController.exportTransactions();
+  //   print('no whoops!!!!!!');
+  //   Get.to(Settings());
+  // }
 
   Widget _buildSettingRow(String title, IconData icon, Color iconColor, Function action) {
     return GestureDetector(

@@ -1,9 +1,12 @@
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:pinput/pin_put/pin_put.dart';
 
 class DecimalTextInputFormatter extends TextInputFormatter {
   final int decimalRange;
@@ -206,6 +209,64 @@ class ContactInput extends StatelessWidget {
           _contactController.name.value = value.trim();
         },
       ),
+    );
+  }
+}
+
+class PinInput extends StatelessWidget {
+  final Function(String) onCompleted;
+  final Function(String) onChanged;
+  final TextEditingController controller;
+  final FocusNode _focusNode = FocusNode();
+
+  PinInput({
+    @required this.onCompleted,
+    @required this.onChanged,
+    @required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    _focusNode.requestFocus();
+
+    return PinPut(
+      fieldsCount: AppConstants.PIN_CODE_LENGTH,
+      controller: controller,
+      autofocus: true,
+      textStyle: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16.0,
+      ),
+      obscureText: "●",
+      focusNode: _focusNode,
+      selectedFieldDecoration: BoxDecoration(
+        color: AppColors.SECONDARY,
+        border: Border.all(
+          color: AppColors.PRIMARY,
+          width: 2.0,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+      submittedFieldDecoration: BoxDecoration(
+        color: AppColors.SECONDARY,
+        border: Border.all(
+          color: AppColors.PRIMARY,
+          width: 2.0,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+      followingFieldDecoration: BoxDecoration(
+        color: AppColors.LIGHT_2_GREY,
+        border: Border.all(color: AppColors.LIGHT_2_GREY),
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+      onChanged: onChanged,
+      onSubmit: (value) {
+        FocusScope.of(Get.context).unfocus();
+        onCompleted(value);
+      },
+      eachFieldWidth: 50.0,
+      eachFieldHeight: 50.0,
     );
   }
 }

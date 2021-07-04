@@ -1,7 +1,10 @@
+import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/home.dart';
+import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:get/get.dart';
 
 class AppController extends GetxController {
+  SecurityController _securityController = Get.find();
   RxInt index = 0.obs;
 
   @override
@@ -11,7 +14,14 @@ class AppController extends GetxController {
   }
 
   _setInitialScreen() {
-    Future.delayed(const Duration(milliseconds: 2500), () => Get.offAll(Home()));
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      print('value first ${_securityController.currentStoredPin.value}');
+      if (_securityController.currentStoredPin.value != "") {
+        Get.offAll(LockScreen());
+      } else {
+        Get.offAll(Home());
+      }
+    });
   }
 
   setIndex(int i) {
