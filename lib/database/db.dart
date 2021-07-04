@@ -1,6 +1,4 @@
-import 'dart:io' as io;
 import 'package:balance_sheet/constants/db.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -21,8 +19,8 @@ class AppDb {
   AppDb.internal();
 
   initDb() async {
-    io.Directory documentDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentDirectory.path, DBConstants.DB_NAME);
+    String dbPath = await getDatabasesPath();
+    String path = join(dbPath, DBConstants.DB_NAME);
     var taskDb = await openDatabase(
       path,
       version: DBConstants.DB_VERSION,
