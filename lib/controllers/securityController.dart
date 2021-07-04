@@ -54,9 +54,9 @@ class SecurityController extends GetxController {
       Get.snackbar(
         "Error",
         "PINs do not match",
-        backgroundColor: AppColors.RED,
+        backgroundColor: AppColors.SNACKBAR_RED,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
 
       return false;
@@ -77,9 +77,9 @@ class SecurityController extends GetxController {
       Get.snackbar(
         "Error",
         "Invalid PIN provided",
-        backgroundColor: AppColors.RED,
+        backgroundColor: AppColors.SNACKBAR_RED,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
 
       return false;
@@ -88,9 +88,9 @@ class SecurityController extends GetxController {
       Get.snackbar(
         "Error",
         "PINs do not match",
-        backgroundColor: AppColors.RED,
+        backgroundColor: AppColors.SNACKBAR_RED,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
 
       return false;
@@ -111,9 +111,9 @@ class SecurityController extends GetxController {
       Get.snackbar(
         "Error",
         "Invalid PIN provided. Try again.",
-        backgroundColor: AppColors.RED,
+        backgroundColor: AppColors.SNACKBAR_RED,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } else {
       Get.offAll(Home());
