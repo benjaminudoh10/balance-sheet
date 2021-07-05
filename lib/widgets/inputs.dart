@@ -265,6 +265,8 @@ class PinInput extends StatelessWidget {
         FocusScope.of(Get.context).unfocus();
         onCompleted(value);
       },
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
       eachFieldWidth: 50.0,
       eachFieldHeight: 50.0,
     );
