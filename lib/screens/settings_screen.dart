@@ -27,10 +27,12 @@ class Settings extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            roundedIcon(
-              icon: Icons.person,
-              iconSize: 34.0,
-              iconColor: Colors.white,
+            roundedWidget(
+              widget: Icon(
+                Icons.person,
+                size: 34.0,
+                color: Colors.white,
+              ),
               containerColor: AppColors.SECONDARY,
               padding: EdgeInsets.all(20.0),
             ),
@@ -122,8 +124,11 @@ class Settings extends StatelessWidget {
                 title,
               ),
             ),
-            roundedIcon(
-              icon: Icons.chevron_right_outlined,
+            roundedWidget(
+              widget: Icon(
+                Icons.chevron_right_outlined,
+                size: 20.0,
+              ),
               containerColor: Color(0x22AF47FF),
               padding: EdgeInsets.all(5.0),
             ),

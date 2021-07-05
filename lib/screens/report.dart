@@ -260,6 +260,7 @@ class ReportView extends StatelessWidget {
                       if (_reportController.transactions.length == 0) EmptyState(
                         icon: Icon(
                           Icons.money,
+                          size: 48.0,
                           color: AppColors.PRIMARY,
                         ),
                         primaryText: Text(
@@ -381,10 +382,12 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                     ),
                     GestureDetector(
                       onTap: Get.back,
-                      child: roundedIcon(
-                        icon: Icons.close,
-                        iconColor: AppColors.PRIMARY,
-                        iconSize: 24.0,
+                      child: roundedWidget(
+                        widget: Icon(
+                          Icons.close,
+                          color: AppColors.PRIMARY,
+                          size: 24.0,
+                        ),
                         containerColor: AppColors.SECONDARY,
                         padding: EdgeInsets.all(3.0)
                       ),
@@ -398,6 +401,7 @@ void _showTransactions(String date, List<Transaction> transactions, int income, 
                   EmptyState(
                     icon: Icon(
                       Icons.money,
+                      size: 48.0,
                       color: AppColors.PRIMARY,
                     ),
                     primaryText: Text(

@@ -62,10 +62,12 @@ class TransactionDetails extends StatelessWidget {
                     flex: 1,
                     child: GestureDetector(
                       onTap: Get.back,
-                      child: roundedIcon(
-                        icon: Icons.close,
-                        iconSize: 22.0,
-                        iconColor: Colors.white,
+                      child: roundedWidget(
+                        widget: Icon(
+                          Icons.close,
+                          size: 22.0,
+                          color: Colors.white,
+                        ),
                         containerColor: Color(0x22ffffff),
                         padding: EdgeInsets.all(8.0),
                       ),

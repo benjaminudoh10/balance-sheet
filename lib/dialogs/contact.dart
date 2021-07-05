@@ -40,6 +40,7 @@ class ContactDialog extends StatelessWidget {
               icon: Icon(
                 Icons.person_outline,
                 color: Color(0xFFAF47FF),
+                size: 48.0,
               ),
               primaryText: Text(
                 'No contact has been added',

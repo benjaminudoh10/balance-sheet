@@ -7,18 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-Widget roundedIcon({IconData icon, Color iconColor, double iconSize, Color containerColor, EdgeInsets padding}) {
+Widget roundedWidget({Widget widget, Color containerColor, EdgeInsets padding, BoxShadow shadow}) {
   return Container(
     padding: padding,
     decoration: BoxDecoration(
-      shape: BoxShape.circle,
       color: containerColor,
+      borderRadius: BorderRadius.circular(15.0),
+      boxShadow: shadow != null ? [shadow] : [],
     ),
-    child: Icon(
-      icon,
-      color: iconColor,
-      size: iconSize ?? 20.0,
-    ),
+    child: widget,
   );
 }
 
@@ -210,10 +207,8 @@ class EmptyState extends StatelessWidget {
       child: Container(
         child: Column(
           children: [
-            roundedIcon(
-              icon: icon.icon,
-              iconColor: icon.color,
-              iconSize: 48.0,
+            roundedWidget(
+              widget: icon,
               containerColor: AppColors.LIGHT_1_GREY,
               padding: EdgeInsets.all(25.0)
             ),

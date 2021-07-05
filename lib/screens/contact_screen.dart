@@ -126,6 +126,7 @@ class ContactView extends StatelessWidget {
                   icon: Icon(
                     Icons.person_outline,
                     color: Colors.white,
+                    size: 48.0,
                   ),
                   primaryText: Text(
                     'No contact added',

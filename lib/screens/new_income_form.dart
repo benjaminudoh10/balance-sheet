@@ -102,10 +102,12 @@ class IncomeForm extends StatelessWidget {
                         SizedBox(width: 5.0),
                         GestureDetector(
                           onTap: () => _transactionController.resetContact(),
-                          child: roundedIcon(
-                            icon: Icons.close,
-                            iconColor: Colors.white,
-                            iconSize: 14.0,
+                          child: roundedWidget(
+                            widget: Icon(
+                              Icons.close,
+                              size: 14.0,
+                              color: Colors.white,
+                            ),
                             containerColor: Color(0x44ffffff),
                             padding: EdgeInsets.all(3.0),
                           ),

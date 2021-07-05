@@ -24,7 +24,6 @@ class MainView extends StatelessWidget {
         children: [
           Container(
             padding: EdgeInsets.only(
-              top: 70.0,
               left: APP_WIDTH,
               right: APP_WIDTH,
               bottom: 5.0,
@@ -32,66 +31,94 @@ class MainView extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.PRIMARY,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Balance Sheet',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Balance Sheet',
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Get.to(Settings()),
-                      child: roundedIcon(
-                        icon: Icons.settings,
-                        iconColor: Colors.white,iconSize: 22.0,
-                        containerColor: Color(0x44ffffff),
-                        padding: EdgeInsets.all(7.0),
-                      ),
-                    ),
-                  ],
-                ),
-                TotalContainer(),
-                GestureDetector(
-                  onTap: () => Get.to(ReportView()),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(
-                      vertical: 15.0
-                    ),
-                    padding: EdgeInsets.all(15.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(7.0)
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'SEE ALL YOUR TRANSACTIONS',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: AppColors.PRIMARY,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
+                      GestureDetector(
+                        onTap: () => Get.to(Settings()),
+                        child: roundedWidget(
+                          widget: Row(
+                            children: [
+                              Text(
+                                'Settings',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 10.0),
+                              Icon(
+                                Icons.settings,
+                                color: Colors.white,
+                                size: 22.0,
+                              ),
+                            ],
+                          ),
+                          containerColor: Color(0x44ffffff),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 7.0,
+                            horizontal: 15.0,
+                          ),
+                          shadow: BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 15.0,
                           ),
                         ),
-                        roundedIcon(
-                          icon: Icons.chevron_right_rounded,
-                          iconColor: AppColors.PRIMARY,
-                          containerColor: AppColors.SECONDARY,
-                          padding: EdgeInsets.all(2.0)
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  TotalContainer(),
+                  GestureDetector(
+                    onTap: () => Get.to(ReportView()),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: 15.0
+                      ),
+                      padding: EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(7.0)
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'SEE ALL YOUR TRANSACTIONS',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: AppColors.PRIMARY,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          roundedWidget(
+                            widget: Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.PRIMARY,
+                              size: 20.0,
+                            ),
+                            containerColor: AppColors.SECONDARY,
+                            padding: EdgeInsets.all(2.0)
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -135,6 +162,7 @@ class MainView extends StatelessWidget {
                             EmptyState(
                               icon: Icon(
                                 Icons.money,
+                                size: 48.0,
                                 color: AppColors.PRIMARY,
                               ),
                               primaryText: Text(
@@ -196,10 +224,17 @@ Widget _buildButton(TransactionType type) {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          roundedIcon(
-            icon: type == TransactionType.income ? Icons.add : Icons.remove,
+          roundedWidget(
+            widget: type == TransactionType.income ? Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 20.0,
+            ) : Icon(
+              Icons.remove,
+              color: Colors.white,
+              size: 20.0,
+            ),
             containerColor: Color(0x22ffffff),
-            iconColor: Colors.white,
           ),
           SizedBox(width: 15.0),
           Text(
