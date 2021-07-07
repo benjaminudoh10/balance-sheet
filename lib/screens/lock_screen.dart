@@ -38,7 +38,7 @@ class LockScreen extends StatelessWidget {
               child: PinInput(
                 onCompleted: (value) => _securityController.confirmPin(value),
                 onChanged: (value) {},
-                controller: _securityController.lockScreenController.value,
+                controller: TextEditingController(),
               ),
             ),
           ],

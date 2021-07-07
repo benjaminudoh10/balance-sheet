@@ -1,5 +1,6 @@
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -48,21 +49,25 @@ class Settings extends StatelessWidget {
             //   Colors.green,
             //   () {},
             // ),
-            _buildSettingRow(
-              'Change access PIN',
+            Obx(() => _buildSettingRow(
+              _securityController.currentStoredPin.value == "" ? 'Setup access PIN' : 'Change access PIN',
               Icons.lock_outline,
               Colors.red,
-              () => goToPinView(),
-            ),
+              (value) => goToPinView(value),
+            )),
           ],
         ),
       ),
     );
   }
 
-  goToPinView() {
-    Get.to(Pin());
+  goToPinView(bool value) {
     _securityController.reset();
+    if (value) Get.to(Pin());
+    else {
+      _securityController.fromSettings.value = true;
+      Get.to(LockScreen());
+    }
   }
 
   // void exportToCSV() async {
@@ -98,19 +103,19 @@ class Settings extends StatelessWidget {
 
   Widget _buildSettingRow(String title, IconData icon, Color iconColor, Function action) {
     return GestureDetector(
-      onTap: action,
+      onTap: () => Get.to(Pin()),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(40.0),
+          borderRadius: BorderRadius.circular(10.0),
           boxShadow: [
             BoxShadow(
-              color: Color(0x22AF47FF),
+              color: AppColors.SECONDARY,
               blurRadius: 5.0,
             )
           ]
         ),
-        padding: EdgeInsets.all(8.0),
+        padding: EdgeInsets.symmetric(horizontal: 8.0),
         margin: EdgeInsets.only(top: 15.0),
         child: Row(
           children: [
@@ -124,14 +129,10 @@ class Settings extends StatelessWidget {
                 title,
               ),
             ),
-            roundedWidget(
-              widget: Icon(
-                Icons.chevron_right_outlined,
-                size: 20.0,
-              ),
-              containerColor: Color(0x22AF47FF),
-              padding: EdgeInsets.all(5.0),
-            ),
+            Obx(() => Switch(
+              value: _securityController.currentStoredPin.value != "",
+              onChanged: action,
+            ))
           ],
         ),
       ),

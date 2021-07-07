@@ -79,7 +79,7 @@ class NewPinScreen extends StatelessWidget {
           PinInput(
             onCompleted: (value) => _securityController.showVerifyInput.value = true,
             onChanged: (value) => _securityController.newPin.value = value,
-            controller: _securityController.newPinController.value,
+            controller: TextEditingController(),
           ),
           SizedBox(height: 30.0),
           _securityController.showVerifyInput.value ? Text(
@@ -93,7 +93,7 @@ class NewPinScreen extends StatelessWidget {
           _securityController.showVerifyInput.value ? PinInput(
             onCompleted: (value) {},
             onChanged: (value) => _securityController.verifyPin.value = value,
-            controller: _securityController.verifiedPinController.value,
+            controller: TextEditingController(),
           ) : SizedBox(),
           SizedBox(height: 30.0),
           GestureDetector(
@@ -180,7 +180,7 @@ class ChangePinScreen extends StatelessWidget {
           PinInput(
             onCompleted: (value) => _securityController.showNewPin.value = true,
             onChanged: (value) => _securityController.currentPinEnteredByUser.value = value,
-            controller: _securityController.enteredPinController.value,
+            controller: TextEditingController(),
           ),
           SizedBox(height: 30.0),
           _securityController.showNewPin.value ? Text(
@@ -194,7 +194,7 @@ class ChangePinScreen extends StatelessWidget {
           _securityController.showNewPin.value ? PinInput(
             onCompleted: (value) => _securityController.showVerifyInput.value = true,
             onChanged: (value) => _securityController.newPin.value = value,
-            controller: _securityController.newPinController.value,
+            controller: TextEditingController(),
           ) : SizedBox(),
           SizedBox(height: _securityController.showNewPin.value ? 30.0 : 0.0),
           _securityController.showVerifyInput.value ? Text(
@@ -208,7 +208,7 @@ class ChangePinScreen extends StatelessWidget {
           _securityController.showVerifyInput.value ? PinInput(
             onCompleted: (value) {},
             onChanged: (value) => _securityController.verifyPin.value = value,
-            controller: _securityController.verifiedPinController.value,
+            controller: TextEditingController(),
           ) : SizedBox(),
           SizedBox(height: 30.0),
           GestureDetector(

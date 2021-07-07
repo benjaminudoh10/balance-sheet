@@ -1,6 +1,8 @@
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/screens/home.dart';
+import 'package:balance_sheet/screens/lock_screen.dart';
+import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -8,18 +10,12 @@ import 'package:get_storage/get_storage.dart';
 class SecurityController extends GetxController {
   RxString currentStoredPin = "".obs;
   RxString currentPinEnteredByUser = "".obs;
-  Rx<TextEditingController> enteredPinController = TextEditingController().obs;
-
   RxString newPin = "".obs;
-  Rx<TextEditingController> newPinController = TextEditingController().obs;
-
   RxString verifyPin = "".obs;
-  Rx<TextEditingController> verifiedPinController = TextEditingController().obs;
-
-  Rx<TextEditingController> lockScreenController = TextEditingController().obs;
 
   RxBool showNewPin = false.obs;
   RxBool showVerifyInput = false.obs;
+  RxBool fromSettings = false.obs;
 
   @override
   void onReady() {
@@ -42,15 +38,19 @@ class SecurityController extends GetxController {
     newPin.value = "";
     showNewPin.value = false;
     currentPinEnteredByUser.value = "";
-    enteredPinController.value.text = "";
-    verifiedPinController.value.text = "";
-    newPinController.value.text = "";
-    lockScreenController.value.text = "";
+  }
+
+  setPinInStorage(String pin) {
+    GetStorage box = GetStorage();
+    box.write(AppConstants.USER_PIN_KEY, pin);
   }
 
   Future<bool> setNewPin() async {
     if (newPin.value != verifyPin.value) {
-      reset();
+      /* this is a hack. find a better solution by understanding why reset does not work */
+      Get.back();
+      Get.to(Pin(), transition: Transition.noTransition);
+      /* end of hack */
       Get.snackbar(
         "Error",
         "PINs do not match",
@@ -58,12 +58,11 @@ class SecurityController extends GetxController {
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
-
+      reset();
       return false;
     }
 
-    GetStorage box = GetStorage();
-    box.write(AppConstants.USER_PIN_KEY, newPin.value);
+    setPinInStorage(newPin.value);
     currentStoredPin.value = newPin.value;
     reset();
     Get.back();
@@ -74,6 +73,10 @@ class SecurityController extends GetxController {
   Future<bool> changePin() async {
     if (currentPinEnteredByUser.value != currentStoredPin.value) {
       reset();
+      /* this is a hack. find a better solution by understanding why reset does not work */
+      Get.back();
+      Get.to(Pin(), transition: Transition.noTransition);
+      /* end of hack */
       Get.snackbar(
         "Error",
         "Invalid PIN provided",
@@ -85,6 +88,10 @@ class SecurityController extends GetxController {
       return false;
     } else if (newPin.value != verifyPin.value) {
       reset();
+      /* this is a hack. find a better solution by understanding why reset does not work */
+      Get.back();
+      Get.to(Pin(), transition: Transition.noTransition);
+      /* end of hack */
       Get.snackbar(
         "Error",
         "PINs do not match",
@@ -96,8 +103,7 @@ class SecurityController extends GetxController {
       return false;
     }
 
-    GetStorage box = GetStorage();
-    box.write(AppConstants.USER_PIN_KEY, newPin.value);
+    setPinInStorage(newPin.value);
     currentStoredPin.value = newPin.value;
     reset();
     Get.back();
@@ -107,7 +113,12 @@ class SecurityController extends GetxController {
 
   confirmPin(String value) {
     if (currentStoredPin.value != value) {
-      reset();
+      /* this is a hack. find a better solution by understanding why reset does not work */
+      if (fromSettings.value) {
+        Get.back();
+        Get.to(LockScreen(), transition: Transition.noTransition);
+      } else Get.offAll(LockScreen(), transition: Transition.noTransition);
+      /* end of hack */
       Get.snackbar(
         "Error",
         "Invalid PIN provided. Try again.",
@@ -116,7 +127,21 @@ class SecurityController extends GetxController {
         snackPosition: SnackPosition.TOP,
       );
     } else {
-      Get.offAll(Home());
+      if (fromSettings.value) {
+        setPinInStorage(null);
+        currentStoredPin.value = "";
+        Get.back();
+        Get.snackbar(
+          "Success",
+          "PIN removed successfully.",
+          backgroundColor: AppColors.GREEN,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+      } else {
+        Get.offAll(Home());
+      }
+      fromSettings.value = false;
     }
   }
 }
