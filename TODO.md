@@ -7,4 +7,4 @@
 - [ ] Charts (maybe?).
 - [ ] Data export (PDF)
 - [ ] Other platforms (web, macos)
-- [ ] Security pin or fingerprint
+- [x] Security pin or fingerprint
