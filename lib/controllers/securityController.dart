@@ -32,7 +32,7 @@ class SecurityController extends GetxController {
   _init() {
     GetStorage box = GetStorage();
     currentStoredPin.value = box.read(AppConstants.USER_PIN_KEY) ?? "";
-    fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT ?? false);
+    fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
   }
 
   reset() {
@@ -167,7 +167,7 @@ class SecurityController extends GetxController {
   }
 
   unlockWithFingerprint() async {
-    if (!(fingerprintInUse.value ?? false)) return;
+    if (!fingerprintInUse.value) return;
 
     LocalAuthentication localAuth = LocalAuthentication();
     bool canCheckBiometrics = await localAuth.canCheckBiometrics;
@@ -178,8 +178,21 @@ class SecurityController extends GetxController {
           biometricOnly: true,
           stickyAuth: true,
         );
-        if (didAuthenticate) Get.offAll(Home());
-        else {
+        if (didAuthenticate) {
+          if (fromSettings.value) {
+            setValueInStorage(AppConstants.USER_PIN_KEY, null);
+            currentStoredPin.value = "";
+            Get.back();
+            Get.snackbar(
+              "Success",
+              "PIN removed successfully.",
+              backgroundColor: AppColors.GREEN,
+              colorText: Colors.white,
+              snackPosition: SnackPosition.TOP,
+            );
+            fromSettings.value = false;
+          } else Get.offAll(Home());
+        } else {
           Get.snackbar(
             "Error",
             "Fingerprint auth failed",
