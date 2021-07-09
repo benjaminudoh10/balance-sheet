@@ -49,11 +49,23 @@ class Settings extends StatelessWidget {
             //   Colors.green,
             //   () {},
             // ),
-            Obx(() => _buildSettingRow(
-              _securityController.currentStoredPin.value == "" ? 'Setup access PIN' : 'Change access PIN',
-              Icons.lock_outline,
-              Colors.red,
-              (value) => goToPinView(value),
+            Obx(() => SettingsItem(
+              title: _securityController.currentStoredPin.value == "" ? 'Setup access PIN' : 'Change access PIN',
+              icon: Icons.lock_outline,
+              iconColor: Colors.red,
+              action: (value) => goToPinView(value),
+              containerAction: () => Get.to(Pin()),
+              switchDisabled: false,
+              switchValue: _securityController.currentStoredPin.value != "",
+            )),
+            Obx(() => SettingsItem(
+              title: _securityController.fingerprintInUse.value ? "Disable fingerprint" : "Use fingerprint?",
+              icon: Icons.lock_outline_rounded,
+              iconColor: Colors.red,
+              action: toggleFingerPrintLock,
+              containerAction: null,
+              switchDisabled: _securityController.currentStoredPin.value == "",
+              switchValue: _securityController.fingerprintInUse.value,
             )),
           ],
         ),
@@ -68,6 +80,10 @@ class Settings extends StatelessWidget {
       _securityController.fromSettings.value = true;
       Get.to(LockScreen());
     }
+  }
+
+  toggleFingerPrintLock(bool value) async {
+    _securityController.activateFingerPrint(value);
   }
 
   // void exportToCSV() async {
@@ -100,10 +116,31 @@ class Settings extends StatelessWidget {
   //   print('no whoops!!!!!!');
   //   Get.to(Settings());
   // }
+}
 
-  Widget _buildSettingRow(String title, IconData icon, Color iconColor, Function action) {
+class SettingsItem extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final Function(bool) action;
+  final Function containerAction;
+  final bool switchDisabled;
+  final bool switchValue;
+
+  SettingsItem({
+    this.title,
+    this.icon,
+    this.iconColor,
+    this.action,
+    this.containerAction,
+    this.switchDisabled = false,
+    this.switchValue = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Get.to(Pin()),
+      onTap: containerAction,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -129,10 +166,10 @@ class Settings extends StatelessWidget {
                 title,
               ),
             ),
-            Obx(() => Switch(
-              value: _securityController.currentStoredPin.value != "",
-              onChanged: action,
-            ))
+            Switch(
+              value: this.switchValue,
+              onChanged: this.switchDisabled ? null : action,
+            ),
           ],
         ),
       ),

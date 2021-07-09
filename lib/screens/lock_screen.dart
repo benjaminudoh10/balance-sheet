@@ -9,6 +9,7 @@ class LockScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    _securityController.unlockWithFingerprint();
     return Scaffold(
       appBar: AppBar(
         title: Center(

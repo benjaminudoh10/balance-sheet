@@ -6,6 +6,7 @@ import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:local_auth/local_auth.dart';
 
 class SecurityController extends GetxController {
   RxString currentStoredPin = "".obs;
@@ -16,6 +17,7 @@ class SecurityController extends GetxController {
   RxBool showNewPin = false.obs;
   RxBool showVerifyInput = false.obs;
   RxBool fromSettings = false.obs;
+  RxBool fingerprintInUse = false.obs;
 
   @override
   void onReady() {
@@ -24,12 +26,13 @@ class SecurityController extends GetxController {
     // for overriding the password
     // GetStorage box = GetStorage();
     // box.write(AppConstants.USER_PIN_KEY, null);
-    _getCurrentPin();
+    _init();
   }
 
-  _getCurrentPin() {
+  _init() {
     GetStorage box = GetStorage();
     currentStoredPin.value = box.read(AppConstants.USER_PIN_KEY) ?? "";
+    fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT ?? false);
   }
 
   reset() {
@@ -40,9 +43,9 @@ class SecurityController extends GetxController {
     currentPinEnteredByUser.value = "";
   }
 
-  setPinInStorage(String pin) {
+  setValueInStorage(String key, value) {
     GetStorage box = GetStorage();
-    box.write(AppConstants.USER_PIN_KEY, pin);
+    box.write(key, value);
   }
 
   Future<bool> setNewPin() async {
@@ -62,8 +65,11 @@ class SecurityController extends GetxController {
       return false;
     }
 
-    setPinInStorage(newPin.value);
+    setValueInStorage(AppConstants.USER_PIN_KEY, newPin.value);
     currentStoredPin.value = newPin.value;
+    setValueInStorage(AppConstants.USE_FINGERPRINT, false);
+    fingerprintInUse.value = false;
+
     reset();
     Get.back();
 
@@ -103,7 +109,7 @@ class SecurityController extends GetxController {
       return false;
     }
 
-    setPinInStorage(newPin.value);
+    setValueInStorage(AppConstants.USER_PIN_KEY, newPin.value);
     currentStoredPin.value = newPin.value;
     reset();
     Get.back();
@@ -128,7 +134,7 @@ class SecurityController extends GetxController {
       );
     } else {
       if (fromSettings.value) {
-        setPinInStorage(null);
+        setValueInStorage(AppConstants.USER_PIN_KEY, null);
         currentStoredPin.value = "";
         Get.back();
         Get.snackbar(
@@ -138,10 +144,59 @@ class SecurityController extends GetxController {
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
         );
+        fromSettings.value = false;
       } else {
         Get.offAll(Home());
       }
-      fromSettings.value = false;
+    }
+  }
+
+  activateFingerPrint(bool value) {
+    if (currentStoredPin.value == "" && value) {
+      Get.snackbar(
+        "Error",
+        "Setup PIN to make use of fingerprint lock",
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+    setValueInStorage(AppConstants.USE_FINGERPRINT, value);
+    fingerprintInUse.value = value;
+  }
+
+  unlockWithFingerprint() async {
+    if (!(fingerprintInUse.value ?? false)) return;
+
+    LocalAuthentication localAuth = LocalAuthentication();
+    bool canCheckBiometrics = await localAuth.canCheckBiometrics;
+    if (canCheckBiometrics) {
+      try {
+        bool didAuthenticate = await localAuth.authenticate(
+          localizedReason: 'Please authenticate to show account balance',
+          biometricOnly: true,
+          stickyAuth: true,
+        );
+        if (didAuthenticate) Get.offAll(Home());
+        else {
+          Get.snackbar(
+            "Error",
+            "Fingerprint auth failed",
+            backgroundColor: AppColors.SNACKBAR_RED,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.TOP,
+          );
+        }
+      } catch (error) {
+        Get.snackbar(
+          "Error",
+          "Fingerprint auth failed",
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+      }
     }
   }
 }
