@@ -174,7 +174,7 @@ class SecurityController extends GetxController {
     if (canCheckBiometrics) {
       try {
         bool didAuthenticate = await localAuth.authenticate(
-          localizedReason: 'Please authenticate to show account balance',
+          localizedReason: 'Use your fingerprint to unlock app',
           biometricOnly: true,
           stickyAuth: true,
         );
