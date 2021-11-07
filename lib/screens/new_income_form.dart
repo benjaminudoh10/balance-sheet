@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -16,6 +17,7 @@ class IncomeForm extends StatelessWidget {
   final TransactionType type;
   final Transaction transaction;
   final TransactionController _transactionController = Get.find();
+  final OrganizationController _organizationController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +166,7 @@ class IncomeForm extends StatelessWidget {
                     amount: _transactionController.amount.value,
                     category: _transactionController.category.value,
                     contactId: _transactionController.contact.value.id,
+                    organizationId: _organizationController.organization.value.id,
                     date: DateTime.now(),
                   );
                   if (this.transaction != null) {

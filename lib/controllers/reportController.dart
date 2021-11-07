@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 
 class ReportController extends GetxController {
   RxBool fetchingTransaction = false.obs;
-  var type = ReportType.today.obs;
+  Rx<ReportType> type = ReportType.today.obs;
   RxString label = "Today".obs;
   RxDouble amount = 0.0.obs;
 

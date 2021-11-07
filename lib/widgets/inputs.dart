@@ -2,6 +2,7 @@ import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -269,6 +270,45 @@ class PinInput extends StatelessWidget {
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
       eachFieldWidth: 50.0,
       eachFieldHeight: 50.0,
+    );
+  }
+}
+
+class OrganizationInput extends StatelessWidget {
+  final OrganizationController _organizationController = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(10.0),
+        color: Color(0x33ffffff),
+      ),
+      margin: EdgeInsets.symmetric(
+        vertical: 10.0,
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.all(10.0),
+          hintText: "e.g. Investments",
+          hintStyle: TextStyle(
+            fontSize: 14.0,
+            color: Color(0x88ffffff),
+          ),
+          border: InputBorder.none,
+        ),
+        style: TextStyle(
+          color: Colors.white,
+        ),
+        cursorColor: Colors.white,
+        keyboardType: TextInputType.text,
+        textCapitalization: TextCapitalization.sentences,
+        autofocus: true,
+        onChanged: (value) {
+          _organizationController.name.value = value.trim();
+        },
+      ),
     );
   }
 }

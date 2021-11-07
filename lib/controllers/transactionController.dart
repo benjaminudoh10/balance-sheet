@@ -26,34 +26,6 @@ class TransactionController extends GetxController {
   var transactions = [].obs;
   Rx<Contact> contact = Contact(name: '').obs;
 
-  @override
-  void onReady() {
-    super.onReady();
-
-    DateTime currentDate = DateTime.now();
-    DateTime startOfToday = DateTime(
-      currentDate.year,
-      currentDate.month,
-      currentDate.day,
-    );
-    DateTime endOfToday = DateTime(
-      currentDate.year,
-      currentDate.month,
-      currentDate.day,
-      23,
-      59,
-      59,
-      999,
-    );
-
-    getTransactions(
-      startOfToday.millisecondsSinceEpoch,
-      endOfToday.millisecondsSinceEpoch,
-    );
-    getTotalBalance();
-    getTodaysBalance();
-  }
-
   resetContact() {
     contact.value = Contact(name: "");
   }
@@ -91,6 +63,7 @@ class TransactionController extends GetxController {
       "amount": transaction.amount,
       "category": transaction.category,
       "contactId": transaction.contactId,
+      "organizationId": transaction.organizationId,
       "date": previousTransaction.date.millisecondsSinceEpoch,
       "description": transaction.description,
     });
@@ -139,7 +112,7 @@ class TransactionController extends GetxController {
   getTransactions(int startMillisecond, int endMillisecond) async {
     transactions.value = await db.getAllTransactions(
       startMillisecond,
-      endMillisecond
+      endMillisecond,
     );
   }
 

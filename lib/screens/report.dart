@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -19,18 +20,14 @@ class ReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ReportController _reportController = Get.put(ReportController());
+    OrganizationController _organizationController = Get.find();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Report"),
-        // actions: [
-        //   IconButton(
-        //     icon: Icon(Icons.bar_chart),
-        //     onPressed: () => _showCharts(23, 158),
-        //     tooltip: "View chart",
-        //   ),
-        //   SizedBox(width: 10.0),
-        // ],
+        title: Text(
+          "Report - ${_organizationController.organization.value.name}",
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: Obx(() => Container(
         child: Column(

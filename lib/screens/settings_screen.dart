@@ -1,6 +1,7 @@
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
+import 'package:balance_sheet/screens/new_organization_form.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -37,23 +38,11 @@ class Settings extends StatelessWidget {
               containerColor: AppColors.SECONDARY,
               padding: EdgeInsets.all(20.0),
             ),
-            // _buildSettingRow(
-            //   'Export to CSV',
-            //   Icons.assignment_outlined,
-            //   Colors.purple,
-            //   () => exportToCSV(),
-            // ),
-            // _buildSettingRow(
-            //   'Import from CSV',
-            //   Icons.assignment_returned_outlined,
-            //   Colors.green,
-            //   () {},
-            // ),
             Obx(() => SettingsItem(
               title: _securityController.currentStoredPin.value == "" ? 'Setup access PIN' : 'Change access PIN',
               icon: Icons.lock_outline,
               iconColor: Colors.red,
-              action: (value) => goToPinView(value),
+              action: goToPinView,
               containerAction: () => Get.to(Pin()),
               switchDisabled: false,
               switchValue: _securityController.currentStoredPin.value != "",
@@ -67,6 +56,13 @@ class Settings extends StatelessWidget {
               switchDisabled: _securityController.currentStoredPin.value == "",
               switchValue: _securityController.fingerprintInUse.value,
             )),
+            SettingsItem(
+              title: 'Add organization',
+              icon: Icons.business,
+              containerAction: addOrganization,
+              iconColor: AppColors.PRIMARY,
+              hideSwitch: true,
+            ),
           ],
         ),
       ),
@@ -82,7 +78,17 @@ class Settings extends StatelessWidget {
     }
   }
 
-  toggleFingerPrintLock(bool value) async {
+  addOrganization() async {
+    await showModalBottomSheet<void>(
+      backgroundColor: Colors.transparent,
+      barrierColor: Color(0x22AF47FF),
+      isScrollControlled: true,
+      context: Get.context,
+      builder: (context) => OrganizationForm(),
+    ).whenComplete(() => null);
+  }
+
+  toggleFingerPrintLock(bool value) {
     _securityController.activateFingerPrint(value);
   }
 
@@ -126,6 +132,7 @@ class SettingsItem extends StatelessWidget {
   final Function containerAction;
   final bool switchDisabled;
   final bool switchValue;
+  final bool hideSwitch;
 
   SettingsItem({
     this.title,
@@ -135,6 +142,7 @@ class SettingsItem extends StatelessWidget {
     this.containerAction,
     this.switchDisabled = false,
     this.switchValue = false,
+    this.hideSwitch = false,
   });
 
   @override
@@ -142,6 +150,7 @@ class SettingsItem extends StatelessWidget {
     return GestureDetector(
       onTap: containerAction,
       child: Container(
+        height: 50.0,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10.0),
@@ -149,8 +158,8 @@ class SettingsItem extends StatelessWidget {
             BoxShadow(
               color: AppColors.SECONDARY,
               blurRadius: 5.0,
-            )
-          ]
+            ),
+          ],
         ),
         padding: EdgeInsets.symmetric(horizontal: 8.0),
         margin: EdgeInsets.only(top: 15.0),
@@ -166,7 +175,7 @@ class SettingsItem extends StatelessWidget {
                 title,
               ),
             ),
-            Switch(
+            if (!this.hideSwitch) Switch(
               value: this.switchValue,
               onChanged: this.switchDisabled ? null : action,
             ),

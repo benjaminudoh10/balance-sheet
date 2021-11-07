@@ -34,7 +34,7 @@ class AppDb {
             date INTEGER NOT NULL,
             category TEXT NOT NULL,
             contactId INTEGER,
-            FOREIGN KEY(contactId) REFERENCES contacts(id)
+            FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
           )"""
         );
         await db.execute("""
@@ -44,16 +44,22 @@ class AppDb {
           )"""
         );
       },
-      // onUpgrade: (Database db, int oldVersion, int newVersion) async {
-      //   if (newVersion > oldVersion) {
-      //     await db.execute("""
-      //       CREATE TABLE contacts(
-      //         id INTEGER PRIMARY KEY,
-      //         name TEXT NOT NULL
-      //       )"""
-      //     );
-      //   }
-      // }
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (newVersion > oldVersion) {
+          await db.execute("""
+            CREATE TABLE ${DBConstants.ORGANIZATION}(
+              id INTEGER PRIMARY KEY,
+              name TEXT NOT NULL
+            )"""
+          );
+          await db.execute("""
+            INSERT INTO ${DBConstants.ORGANIZATION} (id, name) VALUES (1, 'Personal')"""
+          );
+          await db.execute("""
+            ALTER TABLE ${DBConstants.TRANSACTION} ADD organizationId INTEGER NOT NULL DEFAULT 1"""
+          );
+        }
+      }
     );
     return taskDb;
   }
