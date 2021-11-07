@@ -66,56 +66,47 @@ class ContactView extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    secondaryBackground: Container(
-                      margin: EdgeInsets.only(
-                        top: 5.0,
-                        bottom: 5.0,
-                      ),
-                      padding: EdgeInsets.only(right: 15.0),
-                      color: AppColors.GREEN,
-                    ),
+                    direction: DismissDirection.startToEnd,
                     onDismissed: (direction) {
-                      if (direction == DismissDirection.startToEnd) {
-                        _contactController.deleteContact(contact);
-                      } else {
-                        _contactController.readd(contact);
-                      }
+                      _contactController.deleteContact(contact);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: Ink(
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25.0)
-                          ),
-                          contentPadding: EdgeInsets.all(5.0),
-                          tileColor: AppColors.LIGHT_6_GREY,
-                          leading: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.GREEN,
-                            ),
-                            width: 40.0,
-                            height: 40.0,
-                            margin: EdgeInsets.only(left: 10.0),
-                            child: Center(
-                              child: Text(
-                                '${contact.name.substring(0, 1)}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.bold,
+                      child: Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.LIGHT_6_GREY,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.GREEN,
+                              ),
+                              width: 40.0,
+                              height: 40.0,
+                              margin: EdgeInsets.only(left: 10.0, right: 10.0),
+                              child: Center(
+                                child: Text(
+                                  '${contact.name.substring(0, 1)}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          title: Text(
-                            "${contact.name}",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18.0,
+                            Text(
+                              "${contact.name}",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ),

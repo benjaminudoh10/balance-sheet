@@ -10,21 +10,31 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
-      body: _appController.index.value == 0
-        ? MainView()
-        : ContactView(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xffE6E2F4),
-        selectedItemColor: AppColors.PRIMARY,
-        unselectedItemColor: AppColors.LIGHT_PRIMARY,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _appController.index.value,
-        onTap: _appController.setIndex,
-        items: [
-          _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Transactions"),
-          _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "Contacts"),
-        ],
+    return Obx(() => WillPopScope(
+      onWillPop: () async {
+        if (_appController.index.value == 1) {
+          _appController.setIndex(0);
+          return false;
+        } else {
+          return true;
+        }
+      },
+      child: Scaffold(
+        body: _appController.index.value == 0
+          ? MainView()
+          : ContactView(),
+        bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Color(0xffE6E2F4),
+          selectedItemColor: AppColors.PRIMARY,
+          unselectedItemColor: AppColors.LIGHT_PRIMARY,
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _appController.index.value,
+          onTap: _appController.setIndex,
+          items: [
+            _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Transactions"),
+            _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "Contacts"),
+          ],
+        ),
       ),
     ));
   }

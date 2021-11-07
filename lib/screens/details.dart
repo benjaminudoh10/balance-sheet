@@ -178,17 +178,17 @@ class TransactionDetails extends StatelessWidget {
                           ]
                         ),
                         SizedBox(width: 15.0),
-                        Obx(() => Flexible(
-                          child: Text(
-                            '${_contactController.contact.value.name}',
+                        Flexible(
+                          child: Obx(() => Text(
+                            '${_contactController.contact.value?.name ?? ''}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.PRIMARY,
                               fontSize: 16.0
                             ),
                             overflow: TextOverflow.ellipsis,
-                          ),
-                        )),
+                          )),
+                        ),
                       ],
                     ),
                     roundedButton(

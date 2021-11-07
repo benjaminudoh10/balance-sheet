@@ -10,7 +10,7 @@ class ContactController extends GetxController {
 
   var nameController = TextEditingController().obs;
   RxList<Contact> contacts = <Contact>[].obs;
-  Rx<Contact> contact = Contact(name: '').obs;
+  Rx<Contact> contact = Rxn<Contact>();
 
   @override
   void onReady() {
@@ -65,14 +65,6 @@ class ContactController extends GetxController {
     );
   }
 
-  readd(Contact contact) {
-    contacts.removeWhere((_contact) => contact.id == _contact.id);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      contacts.add(contact);
-      contacts.sort((a, b) => a.name.compareTo(b.name));
-    });
-  }
-
   updateContact(Contact contact, Contact previousContact) async {
     // Transaction update = Transaction.fromJson({
     //   "id": previousTransaction.id,
@@ -115,5 +107,6 @@ class ContactController extends GetxController {
 
   getContact(int id) async {
     if (id != null) contact.value = await db.getContact(id);
+    else contact.value = null;
   }
 }

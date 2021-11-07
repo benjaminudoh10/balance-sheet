@@ -15,7 +15,7 @@ class AppController extends GetxController {
 
   _setInitialScreen() {
     Future.delayed(const Duration(milliseconds: 1000), () {
-      print('value first ${_securityController.currentStoredPin.value}');
+      print('[PIN VALUE] ${_securityController.currentStoredPin.value}');
       if (_securityController.currentStoredPin.value != "") {
         Get.offAll(LockScreen());
       } else {
