@@ -11,7 +11,6 @@ class Organizations extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(20.0),
-      height: Get.height * 0.5,
       decoration: new BoxDecoration(
         color: AppColors.PRIMARY,
         borderRadius: new BorderRadius.only(
@@ -38,13 +37,19 @@ class Organizations extends StatelessWidget {
                 }
               ),
               Expanded(
-                child: Text(
-                  organization.name,
-                  style: TextStyle(
-                    color: AppColors.PRIMARY,
-                    fontSize: 18.0,
+                child: GestureDetector(
+                  onTap: () {
+                    _organizationController.organization.value = organization;
+                    Get.back();
+                  },
+                  child: Text(
+                    organization.name,
+                    style: TextStyle(
+                      color: AppColors.PRIMARY,
+                      fontSize: 18.0,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               IconButton(
@@ -58,7 +63,11 @@ class Organizations extends StatelessWidget {
                   barrierColor: Color(0x22AF47FF),
                   isScrollControlled: true,
                   context: context,
-                  builder: (context) => OrganizationForm(organization: organization),
+                  builder: (context) => Wrap(
+                    children: [
+                      OrganizationForm(organization: organization),
+                    ],
+                  ),
                 ).whenComplete(() => null),
               ),
               // IconButton(

@@ -84,7 +84,11 @@ class Settings extends StatelessWidget {
       barrierColor: Color(0x22AF47FF),
       isScrollControlled: true,
       context: Get.context,
-      builder: (context) => OrganizationForm(),
+      builder: (context) => Wrap(
+        children: [
+          OrganizationForm(),
+        ],
+      ),
     ).whenComplete(() => null);
   }
 

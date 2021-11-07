@@ -221,7 +221,11 @@ void showNewTransactionModal(TransactionType type) async {
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
-    builder: (context) => IncomeForm(type: type),
+    builder: (context) => Wrap(
+      children: [
+        IncomeForm(type: type),
+      ],
+    ),
   ).whenComplete(() => _transactionController.resetFieldValues());
 }
 
@@ -232,7 +236,11 @@ void organizationModal() async {
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
-    builder: (context) => Organizations(),
+    builder: (context) => Wrap(
+      children: [
+        Organizations(),
+      ],
+    ),
   ).whenComplete(() => null);
 }
 

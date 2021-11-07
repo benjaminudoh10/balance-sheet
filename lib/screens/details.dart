@@ -196,7 +196,7 @@ class TransactionDetails extends StatelessWidget {
                       color: AppColors.PRIMARY,
                       action: () => showEditModal(
                         this.transaction,
-                        _contactController.contact.value.name
+                        _contactController.contact.value?.name
                       ),
                     ),
                     roundedButton(
@@ -221,7 +221,7 @@ void showEditModal(Transaction transaction, String contactName) async {
   _transactionController.descController.value.text = transaction.description;
   _transactionController.amount.value = transaction.amount;
   _transactionController.category.value = transaction.category;
-  _transactionController.contact.value = Contact(name: contactName);
+  _transactionController.contact.value = (contactName == null || contactName == '') ? null : Contact(name: contactName);
   _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
 
   BuildContext context = Get.context;
@@ -230,9 +230,13 @@ void showEditModal(Transaction transaction, String contactName) async {
     barrierColor: Color(0x22AF47FF),
     isScrollControlled: true,
     context: context,
-    builder: (context) => IncomeForm(
-      type: transaction.type,
-      transaction: transaction,
+    builder: (context) => Wrap(
+      children: [
+        IncomeForm(
+          type: transaction.type,
+          transaction: transaction,
+        ),
+      ],
     ),
   ).whenComplete(() => _transactionController.resetFieldValues());
 }

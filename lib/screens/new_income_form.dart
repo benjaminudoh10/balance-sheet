@@ -23,7 +23,6 @@ class IncomeForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
-      height: Get.height * 0.5,
       decoration: new BoxDecoration(
         color: AppColors.PRIMARY,
         borderRadius: new BorderRadius.only(
@@ -80,7 +79,7 @@ class IncomeForm extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 15.0),
-                  _transactionController.contact.value.name != "" ? Flexible(
+                  if (_transactionController.contact.value?.name != "" && _transactionController.contact.value?.name != null) Flexible(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -92,7 +91,7 @@ class IncomeForm extends StatelessWidget {
                         SizedBox(width: 5.0),
                         Flexible(
                           child: Text(
-                            _transactionController.contact.value.name,
+                            _transactionController.contact.value?.name ?? '',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -116,7 +115,7 @@ class IncomeForm extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ) : SizedBox(),
+                  ),
                 ],
               ),
               Row(
@@ -206,6 +205,10 @@ class IncomeForm extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: SizedBox(),
           ),
         ],
       ),

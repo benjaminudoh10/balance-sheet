@@ -31,7 +31,7 @@ class ContactDialog extends StatelessWidget {
             return _buildDialogItem(
               _contactController.contacts[index].name,
               index,
-              this.controller.contact.value.id == _contactController.contacts[index].id
+              this.controller.contact.value?.id == _contactController.contacts[index].id
             );
           },
         ) : Column(

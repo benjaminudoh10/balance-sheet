@@ -9,7 +9,7 @@ class OrganizationController extends GetxController {
   RxList<Organization> organizations = <Organization>[].obs;
   Rx<Organization> organization = Rxn<Organization>();
   RxBool addingOrganization = false.obs;
-  RxString name = "".obs;
+  Rx<String> name = Rxn<String>();
 
   TransactionController _transactionController = Get.find();
 

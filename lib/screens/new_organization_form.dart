@@ -16,7 +16,6 @@ class OrganizationForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() => Container(
       padding: EdgeInsets.all(20.0),
-      height: Get.height * 0.5,
       decoration: new BoxDecoration(
         color: AppColors.PRIMARY,
         borderRadius: new BorderRadius.only(
@@ -60,7 +59,7 @@ class OrganizationForm extends StatelessWidget {
                   if (!validInput()) {
                     Get.snackbar(
                       "Error",
-                      "All fields are required",
+                      "Organization name is required",
                       colorText: Colors.white,
                       snackPosition: SnackPosition.TOP,
                       backgroundColor: AppColors.SNACKBAR_RED,
@@ -107,6 +106,10 @@ class OrganizationForm extends StatelessWidget {
                   ),
                 ),
               ),
+              Padding(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: SizedBox(),
+              ),
             ],
           ),
         ],
@@ -115,6 +118,6 @@ class OrganizationForm extends StatelessWidget {
   }
 
   bool validInput() {
-    return _organizationController.name.value != null;
+    return _organizationController.name.value != null && _organizationController.name.value != "";
   }
 }
