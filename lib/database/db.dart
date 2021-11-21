@@ -43,22 +43,21 @@ class AppDb {
             name TEXT NOT NULL
           )"""
         );
+        await db.execute("""
+          CREATE TABLE ${DBConstants.ORGANIZATION}(
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL
+          )"""
+        );
+        await db.execute("""
+          INSERT INTO ${DBConstants.ORGANIZATION} (id, name) VALUES (1, 'Personal')"""
+        );
+        await db.execute("""
+          ALTER TABLE ${DBConstants.TRANSACTION} ADD organizationId INTEGER NOT NULL DEFAULT 1"""
+        );
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        if (newVersion > oldVersion) {
-          await db.execute("""
-            CREATE TABLE ${DBConstants.ORGANIZATION}(
-              id INTEGER PRIMARY KEY,
-              name TEXT NOT NULL
-            )"""
-          );
-          await db.execute("""
-            INSERT INTO ${DBConstants.ORGANIZATION} (id, name) VALUES (1, 'Personal')"""
-          );
-          await db.execute("""
-            ALTER TABLE ${DBConstants.TRANSACTION} ADD organizationId INTEGER NOT NULL DEFAULT 1"""
-          );
-        }
+        if (newVersion > oldVersion) {}
       }
     );
     return taskDb;
