@@ -11,7 +11,7 @@ class ContactDialog extends StatelessWidget {
 
   final dynamic controller;
 
-  ContactDialog({@required this.controller});
+  ContactDialog({required this.controller});
 
   @override
   Widget build(BuildContext context) {

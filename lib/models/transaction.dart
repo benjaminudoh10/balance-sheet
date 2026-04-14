@@ -2,14 +2,14 @@ import 'package:balance_sheet/enums.dart';
 
 class Transaction {
   Transaction({
-    this.id,
-    this.description,
-    this.type,
-    this.amount,
-    this.date,
-    this.category,
-    this.contactId,
-    this.organizationId,
+    this.id = 0,
+    required this.description,
+    required this.type,
+    required this.amount,
+    required this.date,
+    required this.category,
+    required this.contactId,
+    required this.organizationId,
   });
 
   @override
@@ -52,14 +52,14 @@ class Transaction {
 
   factory Transaction.fromJson(Map<String, dynamic> data) {
     return Transaction(
-      id: data['id'],
-      amount: data['amount'],
-      description: data['description'],
+      id: data['id'] as int? ?? 0,
+      amount: data['amount'] as int? ?? 0,
+      description: data['description'] as String? ?? '',
       type: data['type'] == "income" ? TransactionType.income : TransactionType.expenditure,
-      date: DateTime.fromMillisecondsSinceEpoch(data['date']),
-      category: data['category'],
-      contactId: data['contactId'],
-      organizationId: data['organizationId'],
+      date: DateTime.fromMillisecondsSinceEpoch(data['date'] as int? ?? 0),
+      category: data['category'] as String? ?? '',
+      contactId: data['contactId'] as int? ?? 0,
+      organizationId: data['organizationId'] as int? ?? 0,
     );
   }
 }

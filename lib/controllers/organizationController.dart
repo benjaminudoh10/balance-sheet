@@ -7,9 +7,9 @@ import 'package:get/get.dart';
 
 class OrganizationController extends GetxController {
   RxList<Organization> organizations = <Organization>[].obs;
-  Rx<Organization> organization = Rxn<Organization>();
+  Rxn<Organization> organization = Rxn<Organization>();
   RxBool addingOrganization = false.obs;
-  Rx<String> name = Rxn<String>();
+  Rxn<String> name = Rxn<String>();
 
   TransactionController _transactionController = Get.find();
 
@@ -117,7 +117,7 @@ class OrganizationController extends GetxController {
   }
 
   updateControllerDataAfterUpdate(Organization update, Organization previousOrganization) {
-    if (organization.value.id == update.id) {
+    if (organization.value?.id == update.id) {
       organization.value = update;
     }
 

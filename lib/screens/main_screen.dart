@@ -52,7 +52,7 @@ class MainView extends StatelessWidget {
                               size: 30.0,
                             ),
                             Obx(() => Text(
-                              _organizationController.organization.value.name,
+                              _organizationController.organization.value?.name ?? '',
                               style: TextStyle(
                                 fontSize: 18.0,
                                 color: Colors.white,
@@ -215,7 +215,7 @@ class MainView extends StatelessWidget {
 void showNewTransactionModal(TransactionType type) async {
   final TransactionController _transactionController = Get.find();
 
-  BuildContext context = Get.context;
+  BuildContext context = Get.context!;
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
@@ -230,7 +230,7 @@ void showNewTransactionModal(TransactionType type) async {
 }
 
 void organizationModal() async {
-  BuildContext context = Get.context;
+  BuildContext context = Get.context!;
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),

@@ -7,7 +7,7 @@ import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:pinput/pin_put/pin_put.dart';
+import 'package:pinput/pinput.dart';
 
 class DecimalTextInputFormatter extends TextInputFormatter {
   final int decimalRange;
@@ -17,7 +17,6 @@ class DecimalTextInputFormatter extends TextInputFormatter {
 
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    TextSelection newSelection = newValue.selection;
     String truncated = newValue.text;
     String value = newValue.text;
     // String afterDecimal = value.substring(value.indexOf(".") + 1);
@@ -27,21 +26,14 @@ class DecimalTextInputFormatter extends TextInputFormatter {
     //   newSelection = oldValue.selection;
     if (value.startsWith(".")) {
       truncated = "0$value";
-      newSelection = oldValue.selection;
     } else if (".".allMatches(value).length == 2) {
       // catch double fullstop
       truncated = value.replaceFirst(RegExp('.'), '', value.lastIndexOf("."));
-      newSelection = oldValue.selection;
     } else if (value.contains(".") &&
       value.substring(value.indexOf(".") + 1).length > decimalRange) {
       truncated = this.formatNewValue(newValue.text);
-      newSelection = oldValue.selection;
     } else if (value == ".") {
       truncated = "0.";
-      newSelection = newValue.selection.copyWith(
-        baseOffset: truncated.length,
-        extentOffset: truncated.length,
-      );
     }
 
     return TextEditingValue(
@@ -109,7 +101,7 @@ class CategoryInput extends StatelessWidget {
     List<Map<String, Object>> category = Categories.CATEGORIES.where(
       (category) => category["key"] == _transactionController.category.value
     ).toList();
-    String categoryLabel = category[0]['label'];
+    String categoryLabel = category[0]['label']! as String;
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white),
@@ -215,61 +207,70 @@ class ContactInput extends StatelessWidget {
 }
 
 class PinInput extends StatelessWidget {
-  final Function(String) onCompleted;
-  final Function(String) onChanged;
+  final void Function(String) onCompleted;
+  final void Function(String) onChanged;
   final TextEditingController controller;
   final FocusNode _focusNode = FocusNode();
 
   PinInput({
-    @required this.onCompleted,
-    @required this.onChanged,
-    @required this.controller,
+    super.key,
+    required this.onCompleted,
+    required this.onChanged,
+    required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
     _focusNode.requestFocus();
 
-    return PinPut(
-      fieldsCount: AppConstants.PIN_CODE_LENGTH,
-      controller: controller,
-      autofocus: true,
+    final following = PinTheme(
+      width: 50,
+      height: 50,
       textStyle: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16.0,
       ),
-      obscureText: "●",
-      focusNode: _focusNode,
-      selectedFieldDecoration: BoxDecoration(
-        color: AppColors.SECONDARY,
-        border: Border.all(
-          color: AppColors.PRIMARY,
-          width: 2.0,
-        ),
-        borderRadius: BorderRadius.circular(5.0),
-      ),
-      submittedFieldDecoration: BoxDecoration(
-        color: AppColors.SECONDARY,
-        border: Border.all(
-          color: AppColors.PRIMARY,
-          width: 2.0,
-        ),
-        borderRadius: BorderRadius.circular(5.0),
-      ),
-      followingFieldDecoration: BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.LIGHT_2_GREY,
         border: Border.all(color: AppColors.LIGHT_2_GREY),
         borderRadius: BorderRadius.circular(5.0),
       ),
-      onChanged: onChanged,
-      onSubmit: (value) {
-        FocusScope.of(Get.context).unfocus();
-        onCompleted(value);
-      },
+    );
+    final focused = PinTheme(
+      width: 50,
+      height: 50,
+      textStyle: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16.0,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.SECONDARY,
+        border: Border.all(
+          color: AppColors.PRIMARY,
+          width: 2.0,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+    );
+
+    return Pinput(
+      length: AppConstants.PIN_CODE_LENGTH,
+      controller: controller,
+      autofocus: true,
+      obscureText: true,
+      obscuringCharacter: '●',
+      focusNode: _focusNode,
+      defaultPinTheme: following,
+      focusedPinTheme: focused,
+      submittedPinTheme: focused,
+      followingPinTheme: following,
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-      eachFieldWidth: 50.0,
-      eachFieldHeight: 50.0,
+      onChanged: onChanged,
+      onCompleted: (value) {
+        FocusScope.of(context).unfocus();
+        onCompleted(value);
+      },
     );
   }
 }

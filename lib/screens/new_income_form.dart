@@ -12,10 +12,10 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 class IncomeForm extends StatelessWidget {
-  IncomeForm({this.type, this.transaction});
+  IncomeForm({required this.type, this.transaction});
 
   final TransactionType type;
-  final Transaction transaction;
+  final Transaction? transaction;
   final TransactionController _transactionController = Get.find();
   final OrganizationController _organizationController = Get.find();
 
@@ -164,14 +164,14 @@ class IncomeForm extends StatelessWidget {
                     type: this.type,
                     amount: _transactionController.amount.value,
                     category: _transactionController.category.value,
-                    contactId: _transactionController.contact.value.id,
-                    organizationId: _organizationController.organization.value.id,
+                    contactId: _transactionController.contact.value?.id ?? 0,
+                    organizationId: _organizationController.organization.value!.id,
                     date: DateTime.now(),
                   );
                   if (this.transaction != null) {
                     await _transactionController.updateTransaction(
                       transaction,
-                      this.transaction,
+                      this.transaction!,
                     );
                   } else {
                     await _transactionController.addTransaction(transaction);
@@ -216,9 +216,7 @@ class IncomeForm extends StatelessWidget {
   }
 
   bool validInput() {
-    return _transactionController.description.value != null &&
-        _transactionController.description.value != "" &&
-        _transactionController.amount.value != null &&
+    return _transactionController.description.value != "" &&
         _transactionController.amount.value > 0;
   }
 }

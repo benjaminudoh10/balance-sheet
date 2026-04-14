@@ -18,14 +18,14 @@ class TransactionDetails extends StatelessWidget {
   final Transaction transaction;
   final ContactController _contactController = Get.find();
 
-  TransactionDetails({@required this.transaction});
+  TransactionDetails({required this.transaction});
 
   @override
   Widget build(BuildContext context) {
     List<Map<String, Object>> category = Categories.CATEGORIES.where(
       (category) => category["key"] == transaction.category
     ).toList();
-    String categoryLabel = category[0]['label'];
+    String categoryLabel = category.isEmpty ? '' : category[0]['label']! as String;
     _contactController.getContact(this.transaction.contactId);
     return Scaffold(
       body: Container(
@@ -180,7 +180,7 @@ class TransactionDetails extends StatelessWidget {
                         SizedBox(width: 15.0),
                         Flexible(
                           child: Obx(() => Text(
-                            '${_contactController.contact.value?.name ?? ''}',
+                            _contactController.contact.value?.name ?? '',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.PRIMARY,
@@ -196,7 +196,7 @@ class TransactionDetails extends StatelessWidget {
                       color: AppColors.PRIMARY,
                       action: () => showEditModal(
                         this.transaction,
-                        _contactController.contact.value?.name
+                        _contactController.contact.value?.name ?? '',
                       ),
                     ),
                     roundedButton(
@@ -221,10 +221,10 @@ void showEditModal(Transaction transaction, String contactName) async {
   _transactionController.descController.value.text = transaction.description;
   _transactionController.amount.value = transaction.amount;
   _transactionController.category.value = transaction.category;
-  _transactionController.contact.value = (contactName == null || contactName == '') ? null : Contact(name: contactName);
+  _transactionController.contact.value = contactName.isEmpty ? null : Contact(name: contactName);
   _transactionController.amountController.value.text = (transaction.amount / 100).toStringAsFixed(2);
 
-  BuildContext context = Get.context;
+  BuildContext context = Get.context!;
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
     barrierColor: Color(0x22AF47FF),
@@ -242,7 +242,7 @@ void showEditModal(Transaction transaction, String contactName) async {
 }
 
 void showDeleteModal(Transaction transaction) {
-  BuildContext context = Get.context;
+  BuildContext context = Get.context!;
   TransactionController _transactionController = Get.find();
 
   showModalBottomSheet(

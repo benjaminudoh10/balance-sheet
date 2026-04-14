@@ -176,7 +176,7 @@ class SecurityController extends GetxController {
         bool didAuthenticate = await localAuth.authenticate(
           localizedReason: 'Use your fingerprint to unlock app',
           biometricOnly: true,
-          stickyAuth: true,
+          persistAcrossBackgrounding: true,
         );
         if (didAuthenticate) {
           if (fromSettings.value) {

@@ -1,7 +1,7 @@
 class Contact {
   Contact({
-    this.id,
-    this.name,
+    this.id = 0,
+    required this.name,
   });
 
   @override
@@ -21,8 +21,8 @@ class Contact {
 
   factory Contact.fromJson(Map<String, dynamic> data) {
     return Contact(
-      id: data['id'],
-      name: data['name'],
+      id: data['id'] as int? ?? 0,
+      name: data['name'] as String? ?? '',
     );
   }
 }

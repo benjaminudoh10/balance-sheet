@@ -39,7 +39,7 @@ class Home extends StatelessWidget {
     ));
   }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem({IconData icon, String label}) {
+  BottomNavigationBarItem _buildBottomNavigationBarItem({required IconData icon, required String label}) {
     return BottomNavigationBarItem(
       activeIcon: Icon(
         icon,

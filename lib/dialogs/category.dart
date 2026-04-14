@@ -7,7 +7,7 @@ class CategoryDialog extends StatelessWidget {
 
   final dynamic controller;
 
-  CategoryDialog({@required this.controller});
+  CategoryDialog({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class CategoryDialog extends StatelessWidget {
           itemCount: this.categories.length,
           itemBuilder: (context, index) {
             return _buildDialogItem(
-              this.categories[index]["label"],
+              this.categories[index]["label"]! as String,
               index,
               this.controller.category.value == this.categories[index]["key"]
             );

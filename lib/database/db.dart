@@ -6,14 +6,14 @@ class AppDb {
   static final AppDb _instance = new AppDb.internal();
 
   factory AppDb() => _instance;
-  static Database _db;
+  static Database? _db;
 
   Future<Database> get db async {
     if (_db != null) {
-      return _db;
+      return _db!;
     }
     _db = await initDb();
-    return _db;
+    return _db!;
   }
 
   AppDb.internal();

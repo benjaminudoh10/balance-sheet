@@ -23,8 +23,14 @@ class TransactionController extends GetxController {
   RxInt todaysExpense = 0.obs;
   RxInt todaysIncome = 0.obs;
 
-  var transactions = [].obs;
-  Rx<Contact> contact = Contact(name: '').obs;
+  var transactions = <Transaction>[].obs;
+  final Rxn<Contact> contact = Rxn<Contact>();
+
+  @override
+  void onInit() {
+    contact.value = Contact(name: '');
+    super.onInit();
+  }
 
   resetContact() {
     contact.value = Contact(name: "");

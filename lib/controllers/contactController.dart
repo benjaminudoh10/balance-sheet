@@ -10,7 +10,7 @@ class ContactController extends GetxController {
 
   var nameController = TextEditingController().obs;
   RxList<Contact> contacts = <Contact>[].obs;
-  Rx<Contact> contact = Rxn<Contact>();
+  Rxn<Contact> contact = Rxn<Contact>();
 
   @override
   void onReady() {
@@ -106,7 +106,6 @@ class ContactController extends GetxController {
   }
 
   getContact(int id) async {
-    if (id != null) contact.value = await db.getContact(id);
-    else contact.value = null;
+    contact.value = await db.getContact(id);
   }
 }

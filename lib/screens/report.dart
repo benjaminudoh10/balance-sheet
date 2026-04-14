@@ -25,7 +25,7 @@ class ReportView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Report - ${_organizationController.organization.value.name}",
+          "Report - ${_organizationController.organization.value?.name ?? ''}",
           overflow: TextOverflow.ellipsis,
         ),
       ),
@@ -286,7 +286,7 @@ class ReportView extends StatelessWidget {
       String formattedDate = DateFormat.yMMMd().format(
         DateTime.fromMillisecondsSinceEpoch(date)
       );
-      List<Transaction> transactions = splitData[date];
+      List<Transaction> transactions = splitData[date]!;
       if (transactions.length == 0) {
         return SizedBox();
       }
@@ -356,7 +356,7 @@ class ReportView extends StatelessWidget {
 
 void _showTransactions(String date, List<Transaction> transactions, int income, int expense) {
   showCupertinoModalBottomSheet(
-    context: Get.context,
+    context: Get.context!,
     expand: true,
     builder: (context) => Scaffold(
       body: SafeArea(

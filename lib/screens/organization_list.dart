@@ -1,5 +1,6 @@
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/organizationController.dart';
+import 'package:balance_sheet/models/organization.dart';
 import 'package:balance_sheet/screens/new_organization_form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,9 +32,11 @@ class Organizations extends StatelessWidget {
               Radio(
                 value: organization,
                 groupValue: _organizationController.organization.value,
-                onChanged: (value) {
-                  _organizationController.organization.value = value;
-                  Get.back();
+                onChanged: (Organization? value) {
+                  if (value != null) {
+                    _organizationController.organization.value = value;
+                    Get.back();
+                  }
                 }
               ),
               Expanded(

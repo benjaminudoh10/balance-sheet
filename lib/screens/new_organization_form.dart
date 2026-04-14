@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 class OrganizationForm extends StatelessWidget {
   OrganizationForm({this.organization});
 
-  final Organization organization;
+  final Organization? organization;
   final OrganizationController _organizationController = Get.find();
 
   @override
@@ -68,12 +68,12 @@ class OrganizationForm extends StatelessWidget {
                   }
 
                   Organization organization = Organization(
-                    name: _organizationController.name.value,
+                    name: _organizationController.name.value ?? '',
                   );
                   if (this.organization != null) {
                     await _organizationController.updateOrganization(
                       organization,
-                      this.organization,
+                      this.organization!,
                     );
                   } else {
                     await _organizationController.addOrganization(organization);
@@ -118,6 +118,6 @@ class OrganizationForm extends StatelessWidget {
   }
 
   bool validInput() {
-    return _organizationController.name.value != null && _organizationController.name.value != "";
+    return (_organizationController.name.value ?? "").isNotEmpty;
   }
 }

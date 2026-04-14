@@ -7,7 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-Widget roundedWidget({Widget widget, Color containerColor, EdgeInsets padding, BoxShadow shadow}) {
+Widget roundedWidget({
+  required Widget widget,
+  required Color containerColor,
+  EdgeInsets? padding,
+  BoxShadow? shadow,
+}) {
   return Container(
     padding: padding,
     decoration: BoxDecoration(
@@ -94,7 +99,7 @@ Widget totalDayTransaction(String date, int income, int expense) {
   );
 }
 
-Widget roundedButton({String text, Color textColor, Color color, Function action}) {
+Widget roundedButton({required String text, Color? textColor, Color? color, void Function()? action}) {
   return GestureDetector(
     onTap: action,
     child: Container(
@@ -199,7 +204,7 @@ class EmptyState extends StatelessWidget {
   final Text primaryText;
   final Text secondaryText;
 
-  EmptyState({this.icon, this.primaryText, this.secondaryText});
+  EmptyState({required this.icon, required this.primaryText, required this.secondaryText});
 
   @override
   Widget build(BuildContext context) {

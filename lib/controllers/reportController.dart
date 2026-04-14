@@ -27,7 +27,7 @@ class ReportController extends GetxController {
 
   RxString category = 'Category'.obs;
   RxString categoryLabel = 'Category'.obs;
-  Rx<Contact> contact = Contact(name: 'Contact').obs;
+  final Rx<Contact> contact = Contact(name: 'Contact').obs;
 
   List<int> timeFrames = [0, 0];
 
@@ -48,10 +48,10 @@ class ReportController extends GetxController {
       getTransactions();
       getTransactionTotal();
 
-      List<Map<String, Object>> category = Categories.CATEGORIES.where(
-        (category) => category["key"] == this.category.value
+      final matches = Categories.CATEGORIES.where(
+        (c) => c["key"] == this.category.value
       ).toList();
-      categoryLabel.value = category.length != 0 ?  category[0]['label']: 'Category';
+      categoryLabel.value = matches.isNotEmpty ? matches[0]["label"] as String : 'Category';
     });
 
     contact.listen((_) {
@@ -70,16 +70,17 @@ class ReportController extends GetxController {
     } else if (reportType == ReportType.lastMonth) {
       label.value = "Last month";
     } else if (reportType == ReportType.singleDay) {
-      singleDate = await selectDate();
-      if (singleDate == null) {
+      final DateTime? picked = await selectDate();
+      if (picked == null) {
         singleDate = DateTime.now();
         Get.back();
         return;
       }
+      singleDate = picked;
       label.value = DateFormat.yMMMMd().format(singleDate);
     } else if (reportType == ReportType.dateRange) {
-      dateTimeRange = await selectDateRange();
-      if (dateTimeRange == null) {
+      final DateTimeRange? range = await selectDateRange();
+      if (range == null) {
         dateTimeRange = DateTimeRange(
           start: DateTime.now(),
           end: DateTime.now()
@@ -87,6 +88,7 @@ class ReportController extends GetxController {
         Get.back();
         return;
       }
+      dateTimeRange = range;
       label.value = '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
     }
     type.value = reportType;
@@ -203,9 +205,9 @@ class ReportController extends GetxController {
     income.value = transactionData['income'] ?? 0;
   }
 
-  Future<DateTime> selectDate() async {
-    return await showDatePicker(
-      context: Get.context,
+  Future<DateTime?> selectDate() async {
+    return showDatePicker(
+      context: Get.context!,
       initialDate: singleDate,
       firstDate: DateTime(2021, 6),
       lastDate: DateTime.now(),
@@ -213,9 +215,9 @@ class ReportController extends GetxController {
     );
   }
 
-  Future<DateTimeRange> selectDateRange() async {
-    return await showDateRangePicker(
-      context: Get.context,
+  Future<DateTimeRange?> selectDateRange() async {
+    return showDateRangePicker(
+      context: Get.context!,
       initialDateRange: dateTimeRange,
       firstDate: DateTime(2021, 6),
       lastDate: DateTime.now(),

@@ -83,7 +83,7 @@ class Settings extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: Color(0x22AF47FF),
       isScrollControlled: true,
-      context: Get.context,
+      context: Get.context!,
       builder: (context) => Wrap(
         children: [
           OrganizationForm(),
@@ -132,16 +132,16 @@ class SettingsItem extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color iconColor;
-  final Function(bool) action;
-  final Function containerAction;
+  final void Function(bool)? action;
+  final VoidCallback? containerAction;
   final bool switchDisabled;
   final bool switchValue;
   final bool hideSwitch;
 
   SettingsItem({
-    this.title,
-    this.icon,
-    this.iconColor,
+    required this.title,
+    required this.icon,
+    required this.iconColor,
     this.action,
     this.containerAction,
     this.switchDisabled = false,

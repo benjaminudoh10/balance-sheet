@@ -55,7 +55,7 @@ class ReportTypeDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDialogItem(String text, Function action, bool highlight) {
+  Widget _buildDialogItem(String text, VoidCallback action, bool highlight) {
     return GestureDetector(
       onTap: action,
       child: Padding(
