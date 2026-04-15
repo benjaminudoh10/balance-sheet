@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -12,8 +13,25 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
   transactionController.descController.value.text = transaction.description;
   transactionController.amount.value = transaction.amount;
   transactionController.category.value = transaction.category;
-  transactionController.contact.value =
-      contactName.isEmpty ? null : Contact(name: contactName);
+
+  // Must preserve contact id so save keeps contactId; name-only Contact() had id 0 and cleared DB.
+  if (transaction.contactId > 0) {
+    final ContactController contactController = Get.find();
+    Contact? match;
+    for (final Contact c in contactController.contacts) {
+      if (c.id == transaction.contactId) {
+        match = c;
+        break;
+      }
+    }
+    transactionController.contact.value = match ??
+        Contact(
+          id: transaction.contactId,
+          name: contactName.isNotEmpty ? contactName : 'Contact',
+        );
+  } else {
+    transactionController.contact.value = null;
+  }
   transactionController.amountController.value.text =
       (transaction.amount / 100).toStringAsFixed(2);
 
