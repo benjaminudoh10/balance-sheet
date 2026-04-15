@@ -1,12 +1,7 @@
 import 'package:balance_sheet/constants/db.dart';
-import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/models/contact.dart';
-import 'package:balance_sheet/models/organization.dart';
 import 'package:balance_sheet/models/transaction.dart';
-import 'package:get/get.dart';
-
-OrganizationController _organizationController = Get.find();
 
 Future<int> addTransaction(Transaction transaction) async {
   Map<String, dynamic> data = transaction.toJson();
@@ -42,8 +37,7 @@ Future<int> updateTransaction(Transaction transaction) async {
 
 Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String? category, int? contactId}) async {
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  String query = "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime AND organizationId = $organizationId ";
+  String query = "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime ";
   if (category != null && category != "Category") {
     query = "$query AND category = '$category' ";
   }
@@ -59,8 +53,7 @@ Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String
 
 Future<int> getTotalTransactions() async {
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  String query = "SELECT COUNT(*) as total FROM transactions WHERE organizationId = $organizationId";
+  String query = "SELECT COUNT(*) as total FROM ${DBConstants.TRANSACTION}";
   final total = await dbClient.rawQuery(query);
 
   return (total[0]['total'] as int?) ?? 0;
@@ -68,8 +61,7 @@ Future<int> getTotalTransactions() async {
 
 Future<List<Transaction>> getTransactionsByPage(int page) async {
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  String query = "SELECT * FROM transactions WHERE organizationId = $organizationId LIMIT ${DBConstants.PER_PAGE} OFFSET ${page * DBConstants.PER_PAGE}";
+  String query = "SELECT * FROM ${DBConstants.TRANSACTION} LIMIT ${DBConstants.PER_PAGE} OFFSET ${page * DBConstants.PER_PAGE}";
   final transactions = await dbClient.rawQuery(query);
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
@@ -77,9 +69,8 @@ Future<List<Transaction>> getTransactionsByPage(int page) async {
 
 Future<int> getBalances() async {
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND organizationId = $organizationId");
-  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND organizationId = $organizationId");
+  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure'");
+  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income'");
   int income = (totalIncome[0]['total'] as int?) ?? 0;
   int expenses = (totalExpenses[0]['total'] as int?) ?? 0;
   return income - expenses;
@@ -90,9 +81,8 @@ Future<Map<String, int>> getTodayBalances() async {
   int start = DateTime(today.year, today.month, today.day).millisecondsSinceEpoch;
   int end = DateTime(today.year, today.month, today.day, 23, 59, 59, 999).millisecondsSinceEpoch;
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end AND organizationId = $organizationId");
-  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end AND organizationId = $organizationId");
+  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end");
+  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end");
   return {
     'expenses': (totalExpenses[0]['total'] as int?) ?? 0,
     'income': (totalIncome[0]['total'] as int?) ?? 0,
@@ -101,9 +91,8 @@ Future<Map<String, int>> getTodayBalances() async {
 
 Future<Map<String, int>> getExpenseForTimePeriod(int start, int end, {String? category, int? contactId}) async {
   var dbClient = await AppDb().db;
-  int organizationId = _organizationController.organization.value!.id;
-  String expenseQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end AND organizationId = $organizationId ";
-  String incomeQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end AND organizationId = $organizationId ";
+  String expenseQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end ";
+  String incomeQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end ";
   if (category != null && category != "Category") {
     expenseQuery = "$expenseQuery AND category = '$category' ";
     incomeQuery = "$incomeQuery AND category = '$category' ";
@@ -183,58 +172,3 @@ Future<Contact> getContact(int id) async {
     return Contact.fromJson(contact[0]);
   }
 }
-
-Future<Organization?> getOrganization(int id) async {
-  var dbClient = await AppDb().db;
-  final organization = await dbClient.query(
-    '${DBConstants.ORGANIZATION}',
-    where: 'id = ?',
-    whereArgs: [id],
-  );
-
-  if (organization.length == 0) {
-    return null;
-  } else {
-    return Organization.fromJson(organization[0]);
-  }
-}
-
-Future<List<Organization>> getOrganizations() async {
-  var dbClient = await AppDb().db;
-  final organizations = await dbClient.rawQuery("SELECT * FROM ${DBConstants.ORGANIZATION} ORDER BY id ASC");
-
-  return organizations.map((organization) => Organization.fromJson(organization)).toList();
-}
-
-Future<int> addOrganization(Organization organization) async {
-  Map<String, dynamic> data = organization.toJson();
-  data.remove('id');
-
-  final dbClient = await AppDb().db;
-  int res = await dbClient.insert("${DBConstants.ORGANIZATION}", data);
-  return res;
-}
-
-Future<int> updateOrganization(Organization organization) async {
-  final dbClient = await AppDb().db;
-  int res = await dbClient.update(
-    "${DBConstants.ORGANIZATION}",
-    organization.toJson(),
-    where: "id = ?",
-    whereArgs: [organization.id],
-  );
-
-  return res;
-}
-
-Future<int> deleteOrganization(Organization organization) async {
-  final dbClient = await AppDb().db;
-  int res = await dbClient.delete(
-    "${DBConstants.ORGANIZATION}",
-    where: "id = ?",
-    whereArgs: [organization.id],
-  );
-
-  return res;
-}
-

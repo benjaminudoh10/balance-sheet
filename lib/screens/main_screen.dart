@@ -1,9 +1,7 @@
 import 'package:balance_sheet/constants/colors.dart';
-import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
-import 'package:balance_sheet/screens/organization_list.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/screens/settings_screen.dart';
 import 'package:balance_sheet/utils.dart';
@@ -16,7 +14,6 @@ const double APP_WIDTH = 20.0;
 
 class MainView extends StatelessWidget {
   final TransactionController _transactionController = Get.find();
-  final OrganizationController _organizationController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -42,25 +39,12 @@ class MainView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      GestureDetector(
-                        onTap: () => organizationModal(),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.keyboard_arrow_down_sharp,
-                              color: Colors.white,
-                              size: 30.0,
-                            ),
-                            Obx(() => Text(
-                              _organizationController.organization.value?.name ?? '',
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            )),
-                          ],
+                      Text(
+                        'Balanced',
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       GestureDetector(
@@ -227,21 +211,6 @@ void showNewTransactionModal(TransactionType type) async {
       ],
     ),
   ).whenComplete(() => _transactionController.resetFieldValues());
-}
-
-void organizationModal() async {
-  BuildContext context = Get.context!;
-  await showModalBottomSheet<void>(
-    backgroundColor: Colors.transparent,
-    barrierColor: Color(0x22AF47FF),
-    isScrollControlled: true,
-    context: context,
-    builder: (context) => Wrap(
-      children: [
-        Organizations(),
-      ],
-    ),
-  ).whenComplete(() => null);
 }
 
 Widget _buildButton(TransactionType type) {

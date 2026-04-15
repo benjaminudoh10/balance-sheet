@@ -1,7 +1,6 @@
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
-import 'package:balance_sheet/screens/new_organization_form.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -56,13 +55,6 @@ class Settings extends StatelessWidget {
               switchDisabled: _securityController.currentStoredPin.value == "",
               switchValue: _securityController.fingerprintInUse.value,
             )),
-            SettingsItem(
-              title: 'Add organization',
-              icon: Icons.business,
-              containerAction: addOrganization,
-              iconColor: AppColors.PRIMARY,
-              hideSwitch: true,
-            ),
           ],
         ),
       ),
@@ -76,20 +68,6 @@ class Settings extends StatelessWidget {
       _securityController.fromSettings.value = true;
       Get.to(LockScreen());
     }
-  }
-
-  addOrganization() async {
-    await showModalBottomSheet<void>(
-      backgroundColor: Colors.transparent,
-      barrierColor: Color(0x22AF47FF),
-      isScrollControlled: true,
-      context: Get.context!,
-      builder: (context) => Wrap(
-        children: [
-          OrganizationForm(),
-        ],
-      ),
-    ).whenComplete(() => null);
   }
 
   toggleFingerPrintLock(bool value) {

@@ -9,7 +9,6 @@ class Transaction {
     required this.date,
     required this.category,
     required this.contactId,
-    required this.organizationId,
   });
 
   @override
@@ -24,7 +23,6 @@ class Transaction {
   final DateTime date;
   final String category;
   final int contactId;
-  final int organizationId;
 
   Map<String, dynamic> toJson() {
     return {
@@ -35,7 +33,6 @@ class Transaction {
       "date": this.date.millisecondsSinceEpoch,
       "category": this.category,
       "contactId": this.contactId,
-      "organizationId": this.organizationId,
     };
   }
 
@@ -46,7 +43,6 @@ class Transaction {
       "${this.amount}",
       "${this.date.millisecondsSinceEpoch}",
       "${this.contactId}",
-      "${this.organizationId}",
     ];
   }
 
@@ -59,7 +55,6 @@ class Transaction {
       date: DateTime.fromMillisecondsSinceEpoch(data['date'] as int? ?? 0),
       category: data['category'] as String? ?? '',
       contactId: data['contactId'] as int? ?? 0,
-      organizationId: data['organizationId'] as int? ?? 0,
     );
   }
 }

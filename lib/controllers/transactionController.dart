@@ -69,7 +69,6 @@ class TransactionController extends GetxController {
       "amount": transaction.amount,
       "category": transaction.category,
       "contactId": transaction.contactId,
-      "organizationId": transaction.organizationId,
       "date": previousTransaction.date.millisecondsSinceEpoch,
       "description": transaction.description,
     });

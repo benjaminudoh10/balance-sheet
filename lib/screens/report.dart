@@ -1,5 +1,4 @@
 import 'package:balance_sheet/constants/colors.dart';
-import 'package:balance_sheet/controllers/organizationController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -20,12 +19,11 @@ class ReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ReportController _reportController = Get.put(ReportController());
-    OrganizationController _organizationController = Get.find();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Report - ${_organizationController.organization.value?.name ?? ''}",
+          "Report",
           overflow: TextOverflow.ellipsis,
         ),
       ),

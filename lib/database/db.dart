@@ -43,22 +43,32 @@ class AppDb {
             name TEXT NOT NULL
           )"""
         );
-        await db.execute("""
-          CREATE TABLE ${DBConstants.ORGANIZATION}(
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL
-          )"""
-        );
-        await db.execute("""
-          INSERT INTO ${DBConstants.ORGANIZATION} (id, name) VALUES (1, 'Personal')"""
-        );
-        await db.execute("""
-          ALTER TABLE ${DBConstants.TRANSACTION} ADD organizationId INTEGER NOT NULL DEFAULT 1"""
-        );
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        if (newVersion > oldVersion) {}
-      }
+        if (oldVersion < 3) {
+          await db.execute('''
+            CREATE TABLE ${DBConstants.TRANSACTION}_new(
+              id INTEGER PRIMARY KEY,
+              description TEXT NOT NULL,
+              type TEXT NOT NULL,
+              amount INTEGER NOT NULL,
+              date INTEGER NOT NULL,
+              category TEXT NOT NULL,
+              contactId INTEGER,
+              FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
+            )
+          ''');
+          await db.execute('''
+            INSERT INTO ${DBConstants.TRANSACTION}_new (id, description, type, amount, date, category, contactId)
+            SELECT id, description, type, amount, date, category, contactId FROM ${DBConstants.TRANSACTION}
+          ''');
+          await db.execute('DROP TABLE ${DBConstants.TRANSACTION}');
+          await db.execute(
+            'ALTER TABLE ${DBConstants.TRANSACTION}_new RENAME TO ${DBConstants.TRANSACTION}',
+          );
+          await db.execute('DROP TABLE IF EXISTS organizations');
+        }
+      },
     );
     return taskDb;
   }
