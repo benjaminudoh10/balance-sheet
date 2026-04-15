@@ -7,6 +7,7 @@ import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 /// Field labels in the income/expense sheet — caps, uses theme scale.
 TextStyle _fieldLabelStyle(TextTheme textTheme, AppPalette p) => textTheme.labelMedium!.copyWith(
@@ -14,6 +15,92 @@ TextStyle _fieldLabelStyle(TextTheme textTheme, AppPalette p) => textTheme.label
       height: 1.2,
       color: p.textPrimary.withValues(alpha: 0.88),
     );
+
+Future<void> _pickEntryDateTime(
+  BuildContext context,
+  TransactionController controller,
+) async {
+  final DateTime initial = controller.entryDateTime.value;
+  final DateTime now = DateTime.now();
+  final DateTime today = DateTime(now.year, now.month, now.day);
+  final DateTime? date = await showDatePicker(
+    context: context,
+    initialDate: initial.isAfter(today) ? today : initial,
+    firstDate: DateTime(2000),
+    lastDate: today,
+  );
+  if (date == null || !context.mounted) return;
+  final TimeOfDay? time = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.fromDateTime(initial),
+  );
+  if (!context.mounted) return;
+  final TimeOfDay effective = time ?? TimeOfDay.fromDateTime(initial);
+  controller.entryDateTime.value = DateTime(
+    date.year,
+    date.month,
+    date.day,
+    effective.hour,
+    effective.minute,
+  );
+}
+
+class _EntryDateTimeField extends StatelessWidget {
+  const _EntryDateTimeField({
+    required this.accent,
+    required this.controller,
+    required this.onPick,
+  });
+
+  final Color accent;
+  final TransactionController controller;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: p.border),
+        borderRadius: BorderRadius.circular(10.0),
+        color: p.surface,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPick,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.schedule_rounded, color: accent, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Obx(
+                    () => Text(
+                      DateFormat('EEE, MMM d, y • h:mm a')
+                          .format(controller.entryDateTime.value),
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: p.textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: p.textSecondary,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class IncomeForm extends StatelessWidget {
   IncomeForm({required this.type, this.transaction});
@@ -106,7 +193,7 @@ class IncomeForm extends StatelessWidget {
                               Text(
                                 transaction != null
                                     ? 'Edit the details below.'
-                                    : 'Log a new entry for today.',
+                                    : 'Add amount, category, and when it occurred.',
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                   height: 1.35,
                                   color: p.textSecondary.withValues(alpha: 0.9),
@@ -135,6 +222,17 @@ class IncomeForm extends StatelessWidget {
                     _FormSection(
                       label: 'Amount (₦)',
                       child: AmountInput(compact: true),
+                    ),
+                    _FormSection(
+                      label: 'Date & time',
+                      child: _EntryDateTimeField(
+                        accent: accent,
+                        controller: _transactionController,
+                        onPick: () => _pickEntryDateTime(
+                          context,
+                          _transactionController,
+                        ),
+                      ),
                     ),
                     _CategoryAndContactBlock(
                       contactName: _transactionController.contact.value?.name,
@@ -176,7 +274,7 @@ class IncomeForm extends StatelessWidget {
                               category: _transactionController.category.value,
                               contactId:
                                   _transactionController.contact.value?.id ?? 0,
-                              date: DateTime.now(),
+                              date: _transactionController.entryDateTime.value,
                             );
                             if (transaction != null) {
                               await _transactionController.updateTransaction(

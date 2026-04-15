@@ -23,6 +23,9 @@ class TransactionController extends GetxController {
   var transactions = <Transaction>[].obs;
   final Rxn<Contact> contact = Rxn<Contact>();
 
+  /// When the income/expense sheet saves, this becomes [Transaction.date].
+  final Rx<DateTime> entryDateTime = DateTime.now().obs;
+
   @override
   void onInit() {
     contact.value = Contact(name: '');
@@ -74,9 +77,8 @@ class TransactionController extends GetxController {
     transaction.id = id;
     Get.back();
 
-    // update data in controller
-    transactions.insert(0, transaction);
-    updateControllerData(transaction);
+    await loadHomeScreenData();
+    resetFieldValues();
   }
 
   updateTransaction(Transaction transaction, Transaction previousTransaction) async {
@@ -86,11 +88,12 @@ class TransactionController extends GetxController {
       "amount": transaction.amount,
       "category": transaction.category,
       "contactId": transaction.contactId,
-      "date": previousTransaction.date.millisecondsSinceEpoch,
+      "date": transaction.date.millisecondsSinceEpoch,
       "description": transaction.description,
     });
 
     await db.updateTransaction(update);
+    await loadHomeScreenData();
     updateControllerDataAfterUpdate(update, previousTransaction);
     Get.back();
     Get.back();
@@ -148,13 +151,19 @@ class TransactionController extends GetxController {
     todaysIncome.value = todaysData['income'] ?? 0;
   }
 
-  updateControllerData(Transaction transaction) {
+  /// Updates in-memory totals after an add without reloading from SQLite (e.g. tests).
+  void updateControllerData(Transaction transaction) {
     resetFieldValues();
+    final DateTime now = DateTime.now();
+    final DateTime beginningOfDay = DateTime(now.year, now.month, now.day);
+    final bool onToday = transaction.date.year == beginningOfDay.year &&
+        transaction.date.month == beginningOfDay.month &&
+        transaction.date.day == beginningOfDay.day;
     if (transaction.type == TransactionType.expenditure) {
-      todaysExpense.value += transaction.amount;
+      if (onToday) todaysExpense.value += transaction.amount;
       total.value -= transaction.amount;
     } else {
-      todaysIncome.value += transaction.amount;
+      if (onToday) todaysIncome.value += transaction.amount;
       total.value += transaction.amount;
     }
   }
@@ -195,46 +204,23 @@ class TransactionController extends GetxController {
   }
 
   updateControllerDataAfterUpdate(Transaction transaction, Transaction previousTransaction) {
-    DateTime now = DateTime.now();
-    DateTime beginningOfDay = DateTime(now.year, now.month, now.day);
-    
-    int index = transactions.indexWhere((txn) => txn.id == previousTransaction.id);
-    if (index != -1) transactions[index] = transaction;
-
     resetFieldValues();
-    if (transaction.type == TransactionType.expenditure) {
-      if (transaction.date.year == beginningOfDay.year &&
-        transaction.date.month == beginningOfDay.month &&
-        transaction.date.day == beginningOfDay.day) {
-        todaysExpense.value -= previousTransaction.amount;
-        todaysExpense.value += transaction.amount;
-      }
-
-      total.value += previousTransaction.amount;
-      total.value -= transaction.amount;
-    } else {
-      if (transaction.date.year == beginningOfDay.year &&
-        transaction.date.month == beginningOfDay.month &&
-        transaction.date.day == beginningOfDay.day) {
-        todaysIncome.value -= previousTransaction.amount;
-        todaysIncome.value += transaction.amount;
-      }
-
-      total.value -= previousTransaction.amount;
-      total.value += transaction.amount;
-    }
 
     try {
-      ReportController _reportController = Get.find();
+      final ReportController _reportController = Get.find();
 
-      int index = _reportController.transactions.indexWhere(
-        (txn) => txn.id == transaction.id
+      final int index = _reportController.transactions.indexWhere(
+        (txn) => txn.id == transaction.id,
       );
-      _reportController.transactions[index] = transaction;
-      if (transaction.type == TransactionType.expenditure) {
-        _reportController.expense.value += (transaction.amount - previousTransaction.amount);
-      } else {
-        _reportController.income.value += (transaction.amount - previousTransaction.amount);
+      if (index != -1) {
+        _reportController.transactions[index] = transaction;
+        if (transaction.type == TransactionType.expenditure) {
+          _reportController.expense.value +=
+              (transaction.amount - previousTransaction.amount);
+        } else {
+          _reportController.income.value +=
+              (transaction.amount - previousTransaction.amount);
+        }
       }
     } catch (error) {
       print('$error');
@@ -246,6 +232,7 @@ class TransactionController extends GetxController {
     descController.value.text = "";
     amount.value = 0;
     amountController.value.text = "0.00";
+    entryDateTime.value = DateTime.now();
     resetContact();
   }
 }

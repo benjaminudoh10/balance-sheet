@@ -120,7 +120,7 @@ void main() {
       expect(c.total.value, 5200);
     });
 
-    test('updateControllerDataAfterUpdate adjusts totals for expenditure same day', () async {
+    test('updateControllerDataAfterUpdate patches report list and resets fields', () async {
       final TransactionController c = await pumpController();
       c.total.value = 10000;
       c.todaysExpense.value = 300;
@@ -154,9 +154,9 @@ void main() {
       );
       c.updateControllerDataAfterUpdate(next, prev);
 
-      expect(c.todaysExpense.value, 500);
-      expect(c.total.value, 9800);
-      expect(c.transactions.first.amount, 500);
+      expect(report.transactions.first.amount, 500);
+      expect(report.expense.value, 500);
+      expect(c.description.value, '');
     });
   });
 

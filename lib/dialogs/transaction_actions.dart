@@ -34,6 +34,7 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
   }
   transactionController.amountController.value.text =
       (transaction.amount / 100).toStringAsFixed(2);
+  transactionController.entryDateTime.value = transaction.date;
 
   final BuildContext context = Get.context!;
   final AppPalette p = AppPalette.of(context);
