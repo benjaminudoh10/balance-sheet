@@ -98,7 +98,8 @@ This document proposes a visual and structural refresh for **All transactions** 
 | Reuse as-is | Adapt / wrap |
 |-------------|----------------|
 | `ReportController` (time range, filters, `splitTransactions`) | Optional: map list to flat `List<Transaction>` + group in UI, or keep map |
-| `ReportTypeDialog`, `CategoryDialog`, `ContactDialog` | Style dialogs to midnight if still Material 2 grey |
+| `ReportTypeDialog`, `CategoryDialog` | Style dialogs to midnight if still Material 2 grey |
+| `showContactPickerSheet` (contact picker) | Already uses `AppPalette` bottom sheet |
 | `singleTransactionContainer`, `totalDayTransaction`, `EmptyState` | — |
 | `MidnightGridPainter` | New thin wrapper or copy stack from `MainView` |
 | `formatAmount`, `formatSignedNet` | Summary strip |

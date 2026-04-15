@@ -365,7 +365,7 @@ class _ContactFilterChip extends StatelessWidget {
       color: p.surface,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        onTap: () => Get.dialog(ContactDialog(controller: controller)),
+        onTap: () => showContactPickerSheet(context, controller: controller),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 200),

@@ -139,8 +139,10 @@ class IncomeForm extends StatelessWidget {
                     _CategoryAndContactBlock(
                       contactName: _transactionController.contact.value?.name,
                       onClearContact: () => _transactionController.resetContact(),
-                      contactTap: () => Get.dialog(
-                        ContactDialog(controller: _transactionController),
+                      contactTap: () => showContactPickerSheet(
+                        context,
+                        controller: _transactionController,
+                        popUnderlyingSheetWhenAddingContact: true,
                       ),
                       categoryChild: CategoryInput(compact: true),
                     ),
