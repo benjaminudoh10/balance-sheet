@@ -40,6 +40,17 @@ class AppController extends GetxController {
     GetStorage().write(AppConstants.APP_THEME_MODE_KEY, _themeModeToStorage(mode));
   }
 
+  /// Reloads font and theme from [GetStorage] (e.g. after backup import).
+  void syncFromStorage() {
+    final GetStorage box = GetStorage();
+    final String? stored = box.read<String>(AppConstants.APP_FONT_KEY);
+    if (stored != null && AppFontIds.isValid(stored)) {
+      fontId.value = stored;
+    }
+    final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
+    themeMode.value = _themeModeFromStorage(modeRaw);
+  }
+
   static ThemeMode _themeModeFromStorage(String? raw) {
     switch (raw) {
       case 'light':

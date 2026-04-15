@@ -30,7 +30,12 @@ class SecurityController extends GetxController {
   }
 
   _init() {
-    GetStorage box = GetStorage();
+    reloadFromStorage();
+  }
+
+  /// Reloads PIN and fingerprint flags from [GetStorage] (e.g. after backup import).
+  void reloadFromStorage() {
+    final GetStorage box = GetStorage();
     currentStoredPin.value = box.read(AppConstants.USER_PIN_KEY) ?? "";
     fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
   }

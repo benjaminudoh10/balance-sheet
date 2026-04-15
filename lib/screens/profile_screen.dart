@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'dart:ui' show ImageFilter;
 
+import 'package:balance_sheet/backup/backup_service.dart';
+import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
@@ -7,7 +10,9 @@ import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
 
 /// Matches [pubspec.yaml] version (update when bumping release).
@@ -184,6 +189,29 @@ class ProfileView extends StatelessWidget {
                               switchDisabled: _securityController.currentStoredPin.value == '',
                               onSwitch: (v) => _securityController.activateFingerPrint(v),
                             )),
+                        const SizedBox(height: 20),
+                        Text(
+                          'DATA',
+                          style: textTheme.labelMedium!.copyWith(
+                            letterSpacing: 1.4,
+                            color: p.textSecondary.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _BackupActionRow(
+                          label: 'Export backup',
+                          subtitle:
+                              'Choose where to save a JSON file (e.g. Files or Downloads). PIN included if set — keep the file private.',
+                          icon: Icons.save_alt_rounded,
+                          onTap: () => _exportBackup(context),
+                        ),
+                        const SizedBox(height: 8),
+                        _BackupActionRow(
+                          label: 'Import backup',
+                          subtitle: 'Replace everything on this device from a Balanced backup file',
+                          icon: Icons.file_download_outlined,
+                          onTap: () => _importBackup(context),
+                        ),
                       ],
                     ),
                   ),
@@ -227,6 +255,183 @@ class ProfileView extends StatelessWidget {
       _securityController.fromSettings.value = true;
       Get.to(() => LockScreen());
     }
+  }
+
+  Future<void> _exportBackup(BuildContext context) async {
+    try {
+      final String? path = await BackupService.exportBackup();
+      if (!context.mounted) return;
+      if (path == null) return;
+      Get.snackbar(
+        'Backup saved',
+        p.basename(path),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.GREEN,
+        colorText: Colors.white,
+      );
+    } catch (e, st) {
+      debugPrint('$e\n$st');
+      if (!context.mounted) return;
+      Get.snackbar(
+        'Backup',
+        'Could not export: $e',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> _importBackup(BuildContext context) async {
+    final FilePickerResult? result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: <String>['json'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    final String? path = result.files.single.path;
+    if (path == null) {
+      Get.snackbar(
+        'Import',
+        'Could not read the selected file.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) {
+        final AppPalette p = AppPalette.of(ctx);
+        final TextTheme tt = Theme.of(ctx).textTheme;
+        return AlertDialog(
+          backgroundColor: p.surface,
+          title: Text(
+            'Replace all data?',
+            style: tt.titleLarge?.copyWith(color: p.textPrimary),
+          ),
+          content: Text(
+            'Importing overwrites transactions, contacts, theme, and lock settings on this device. This cannot be undone.',
+            style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text('Import', style: TextStyle(color: p.mint)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final String raw = await File(path).readAsString();
+      await BackupService.importFromJsonString(raw);
+      await BackupService.refreshControllersAfterImport();
+      if (!context.mounted) return;
+      Get.snackbar(
+        'Restored',
+        'Backup imported successfully.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.GREEN,
+        colorText: Colors.white,
+      );
+    } on BackupException catch (e) {
+      Get.snackbar(
+        'Import failed',
+        e.message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Import failed',
+        '$e',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+      );
+    }
+  }
+}
+
+class _BackupActionRow extends StatelessWidget {
+  const _BackupActionRow({
+    required this.label,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: p.surface,
+            border: Border.all(color: p.border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: p.mint.withValues(alpha: 0.12),
+                  border: Border.all(
+                    color: p.mint.withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Icon(icon, color: p.mint, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall!.copyWith(
+                        height: 1.3,
+                        color: p.textSecondary.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
