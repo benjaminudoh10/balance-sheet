@@ -117,19 +117,6 @@ class _LockScreenState extends State<LockScreen> {
                         color: MidnightTheme.textSecondary.withValues(alpha: 0.92),
                       ),
                     ),
-                    if (!turningOffPin && _securityController.fingerprintInUse.value) ...[
-                      const SizedBox(height: 14),
-                      Text(
-                        'Or use fingerprint when prompted',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          color: MidnightTheme.mint.withValues(alpha: 0.85),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 28),
                     PinFieldCard(
                       label: cardLabel,
@@ -144,6 +131,44 @@ class _LockScreenState extends State<LockScreen> {
                         controller: _pinController,
                       ),
                     ),
+                    if (_securityController.fingerprintInUse.value) ...[
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () =>
+                                    _securityController.unlockWithFingerprint(),
+                                borderRadius: BorderRadius.circular(32),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Icon(
+                                    Icons.fingerprint_rounded,
+                                    size: 48,
+                                    color: MidnightTheme.mint,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Use fingerprint',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: MidnightTheme.textSecondary.withValues(
+                                  alpha: 0.95,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
