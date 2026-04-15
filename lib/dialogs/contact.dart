@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/screens/home.dart';
@@ -20,7 +21,8 @@ class ContactDialog extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          color: Colors.white,
+          color: MidnightTheme.surfaceElevated,
+          border: Border.all(color: MidnightTheme.border),
         ),
         padding: EdgeInsets.all(10.0),
         height: 250.0,
@@ -39,17 +41,19 @@ class ContactDialog extends StatelessWidget {
             EmptyState(
               icon: Icon(
                 Icons.person_outline,
-                color: Color(0xFFAF47FF),
+                color: MidnightTheme.mint.withOpacity(0.7),
                 size: 48.0,
               ),
               primaryText: Text(
                 'No contact has been added',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: MidnightTheme.textPrimary,
                 ),
               ),
               secondaryText: Text(
                 'Click the button below to add a contact',
+                style: TextStyle(color: MidnightTheme.textSecondary),
               ),
             ),
             TextButton(
@@ -59,7 +63,7 @@ class ContactDialog extends StatelessWidget {
                 Get.to(Home());
                 _appController.setIndex(1);
               },
-              child: Text('Add contact'),
+              child: Text('Add contact', style: TextStyle(color: MidnightTheme.mint)),
             )
           ],
         ),
@@ -78,8 +82,9 @@ class ContactDialog extends StatelessWidget {
         child: Container(
           width: Get.width,
           decoration: BoxDecoration(
-            color: highlight ? Color(0x33AF47FF) : Color(0x44000000),
+            color: highlight ? MidnightTheme.mint.withOpacity(0.2) : MidnightTheme.surface,
             borderRadius: BorderRadius.circular(15.0),
+            border: Border.all(color: MidnightTheme.border),
           ),
           padding: EdgeInsets.symmetric(
             vertical: 8.0,
@@ -90,7 +95,7 @@ class ContactDialog extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 16.0,
-                color: Colors.white,
+                color: MidnightTheme.textPrimary,
               ),
             ),
           ),

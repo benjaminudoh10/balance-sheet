@@ -51,22 +51,6 @@ Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
 }
 
-Future<int> getTotalTransactions() async {
-  var dbClient = await AppDb().db;
-  String query = "SELECT COUNT(*) as total FROM ${DBConstants.TRANSACTION}";
-  final total = await dbClient.rawQuery(query);
-
-  return (total[0]['total'] as int?) ?? 0;
-}
-
-Future<List<Transaction>> getTransactionsByPage(int page) async {
-  var dbClient = await AppDb().db;
-  String query = "SELECT * FROM ${DBConstants.TRANSACTION} LIMIT ${DBConstants.PER_PAGE} OFFSET ${page * DBConstants.PER_PAGE}";
-  final transactions = await dbClient.rawQuery(query);
-
-  return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
-}
-
 Future<int> getBalances() async {
   var dbClient = await AppDb().db;
   final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure'");
@@ -139,36 +123,9 @@ Future<int> deleteContact(Contact contact) async {
   return res;
 }
 
-Future<int> updateContact(Contact contact) async {
-  final dbClient = await AppDb().db;
-  int res = await dbClient.update(
-    "${DBConstants.CONTACT}",
-    contact.toJson(),
-    where: "id = ?",
-    whereArgs: [contact.id],
-  );
-
-  return res;
-}
-
 Future<List<Contact>> getContacts() async {
   var dbClient = await AppDb().db;
   final contacts = await dbClient.rawQuery("SELECT * FROM ${DBConstants.CONTACT} ORDER BY name ASC");
 
   return contacts.map((contact) => Contact.fromJson(contact)).toList();
-}
-
-Future<Contact> getContact(int id) async {
-  var dbClient = await AppDb().db;
-  final contact = await dbClient.query(
-    '${DBConstants.CONTACT}',
-    where: 'id = ?',
-    whereArgs: [id],
-  );
-
-  if (contact.length == 0) {
-    return Contact(name: '');
-  } else {
-    return Contact.fromJson(contact[0]);
-  }
 }

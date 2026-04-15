@@ -1,7 +1,9 @@
-import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
+import 'package:balance_sheet/screens/placeholder_tab.dart';
+import 'package:balance_sheet/screens/profile_screen.dart';
+import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,45 +14,33 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() => WillPopScope(
       onWillPop: () async {
-        if (_appController.index.value == 1) {
+        if (_appController.index.value != 0) {
           _appController.setIndex(0);
           return false;
-        } else {
-          return true;
         }
+        return true;
       },
       child: Scaffold(
-        body: _appController.index.value == 0
-          ? MainView()
-          : ContactView(),
-        bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Color(0xffE6E2F4),
-          selectedItemColor: AppColors.PRIMARY,
-          unselectedItemColor: AppColors.LIGHT_PRIMARY,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _appController.index.value,
-          onTap: _appController.setIndex,
-          items: [
-            _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Transactions"),
-            _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "Contacts"),
-          ],
-        ),
+        body: _bodyForIndex(_appController.index.value),
+        bottomNavigationBar: const MidnightBottomNav(),
       ),
     ));
   }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem({required IconData icon, required String label}) {
-    return BottomNavigationBarItem(
-      activeIcon: Icon(
-        icon,
-        size: 36.0,
-      ),
-      icon: Icon(
-        icon,
-        size: 36.0,
-      ),
-      label: label,
-      tooltip: label
-    );
+  Widget _bodyForIndex(int index) {
+    switch (index) {
+      case 0:
+        return MainView();
+      case 1:
+        return ContactView();
+      case 2:
+        return const PlaceholderTab(title: 'Activity');
+      case 3:
+        return const PlaceholderTab(title: 'Insights');
+      case 4:
+        return ProfileView();
+      default:
+        return MainView();
+    }
   }
 }

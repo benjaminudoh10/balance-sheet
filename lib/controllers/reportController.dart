@@ -8,10 +8,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class ReportController extends GetxController {
-  RxBool fetchingTransaction = false.obs;
   Rx<ReportType> type = ReportType.today.obs;
   RxString label = "Today".obs;
-  RxDouble amount = 0.0.obs;
 
   RxInt income = 0.obs;
   RxInt expense = 0.obs;
@@ -60,20 +58,19 @@ class ReportController extends GetxController {
     });
   }
 
-  changeType(ReportType reportType) async {
+  /// Updates period from UI (e.g. report screen dropdown).
+  Future<void> applyPeriodType(ReportType reportType) async {
     if (reportType == ReportType.today) {
-      label.value = "Today";
+      label.value = 'Today';
     } else if (reportType == ReportType.month) {
-      label.value = "This month";
+      label.value = 'This month';
     } else if (reportType == ReportType.thisWeek) {
-      label.value = "This week";
+      label.value = 'This week';
     } else if (reportType == ReportType.lastMonth) {
-      label.value = "Last month";
+      label.value = 'Last month';
     } else if (reportType == ReportType.singleDay) {
       final DateTime? picked = await selectDate();
       if (picked == null) {
-        singleDate = DateTime.now();
-        Get.back();
         return;
       }
       singleDate = picked;
@@ -81,22 +78,16 @@ class ReportController extends GetxController {
     } else if (reportType == ReportType.dateRange) {
       final DateTimeRange? range = await selectDateRange();
       if (range == null) {
-        dateTimeRange = DateTimeRange(
-          start: DateTime.now(),
-          end: DateTime.now()
-        );
-        Get.back();
         return;
       }
       dateTimeRange = range;
-      label.value = '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
+      label.value =
+          '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
     }
     type.value = reportType;
-  
-    Get.back();
     timeFrames = getTimeFrame();
-    getTransactions();
-    getTransactionTotal();
+    await getTransactions();
+    await getTransactionTotal();
   }
 
   List<int> getTimeFrame() {

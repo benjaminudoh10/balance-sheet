@@ -1,14 +1,21 @@
-import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
-import 'package:balance_sheet/dialogs/category.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
-import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+
+/// Field labels in the income/expense sheet — slightly larger, near-white caps.
+TextStyle _fieldLabelStyle() => TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 1.15,
+      height: 1.2,
+      color: MidnightTheme.textPrimary.withOpacity(0.88),
+    );
 
 class IncomeForm extends StatelessWidget {
   IncomeForm({required this.type, this.transaction});
@@ -17,203 +24,369 @@ class IncomeForm extends StatelessWidget {
   final Transaction? transaction;
   final TransactionController _transactionController = Get.find();
 
+  bool get _isIncome => type == TransactionType.income;
+
+  Color get _accent => _isIncome ? MidnightTheme.mint : MidnightTheme.coral;
+
+  String get _verb => transaction != null ? 'Update' : 'Add';
+
+  String get _typeLabel => _isIncome ? 'Income' : 'Expense';
+
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Container(
-      padding: EdgeInsets.all(20.0),
-      decoration: new BoxDecoration(
-        color: AppColors.PRIMARY,
-        borderRadius: new BorderRadius.only(
-          topLeft: const Radius.circular(25.0),
-          topRight: const Radius.circular(25.0),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 10.0,
-              horizontal: 30.0,
-            ),
-            margin: EdgeInsets.only(bottom: 7.0),
+    final double keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
+    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
+
+    return Obx(() => ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxSheetHeight),
+          child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              color: AppColors.LIGHT_3_GREY,
-            ),
-            child: Text(
-              "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Item description",
-                style: TextStyle(
-                  color: Colors.white,
+              color: MidnightTheme.background,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: MidnightTheme.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.35),
+                  blurRadius: 24,
+                  offset: const Offset(0, -4),
                 ),
-              ),
-              DescriptionInput(),
-              Text(
-                "Amount (₦)",
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              AmountInput(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Category",
-                    style: TextStyle(
-                      color: Colors.white,
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + keyboardBottom),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: MidnightTheme.border,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 15.0),
-                  if (_transactionController.contact.value?.name != "" && _transactionController.contact.value?.name != null) Flexible(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.contacts,
-                          color: Colors.white,
-                          size: 12.0,
-                        ),
-                        SizedBox(width: 5.0),
-                        Flexible(
-                          child: Text(
-                            _transactionController.contact.value?.name ?? '',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.0,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: _accent.withOpacity(0.12),
+                            border: Border.all(color: _accent.withOpacity(0.28)),
+                          ),
+                          child: Icon(
+                            _isIncome
+                                ? Icons.trending_up_rounded
+                                : Icons.trending_down_rounded,
+                            color: _accent,
+                            size: 26,
                           ),
                         ),
-                        SizedBox(width: 5.0),
-                        GestureDetector(
-                          onTap: () => _transactionController.resetContact(),
-                          child: roundedWidget(
-                            widget: Icon(
-                              Icons.close,
-                              size: 14.0,
-                              color: Colors.white,
-                            ),
-                            containerColor: Color(0x44ffffff),
-                            padding: EdgeInsets.all(3.0),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$_verb $_typeLabel',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: MidnightTheme.textPrimary,
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                transaction != null
+                                    ? 'Edit the details below.'
+                                    : 'Log a new entry for today.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.35,
+                                  color: MidnightTheme.textSecondary.withOpacity(0.9),
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        IconButton(
+                          onPressed: () => Get.back(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: MidnightTheme.surface,
+                            foregroundColor: MidnightTheme.textSecondary,
+                            padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(40, 40),
+                          ),
+                          icon: const Icon(Icons.close_rounded, size: 22),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.dialog(
-                        CategoryDialog(
-                          controller: _transactionController,
-                        ),
-                      ),
-                      child: CategoryInput(),
+                    const SizedBox(height: 24),
+                    _FormSection(
+                      label: 'Description',
+                      child: DescriptionInput(compact: true),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 15.0),
-                    child: GestureDetector(
-                      onTap: () => Get.dialog(
-                        ContactDialog(
-                          controller: _transactionController,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.contacts,
-                        color: Colors.white,
-                      ),
+                    _FormSection(
+                      label: 'Amount (₦)',
+                      child: AmountInput(compact: true),
                     ),
-                  )
-                ],
-              ),
-              GestureDetector(
-                onTap: () async {
-                  if (!validInput()) {
-                    Get.snackbar(
-                      "Error",
-                      "All fields are required",
-                      colorText: Colors.white,
-                      snackPosition: SnackPosition.TOP,
-                      backgroundColor: AppColors.SNACKBAR_RED,
-                    );
-                    return;
-                  }
+                    _CategoryAndContactBlock(
+                      contactName: _transactionController.contact.value?.name,
+                      onClearContact: () => _transactionController.resetContact(),
+                      contactTap: () => Get.dialog(
+                        ContactDialog(controller: _transactionController),
+                      ),
+                      categoryChild: CategoryInput(compact: true),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: Material(
+                        color: validInput()
+                            ? _accent
+                            : MidnightTheme.surfaceElevated,
+                        borderRadius: BorderRadius.circular(26),
+                        child: InkWell(
+                          onTap: () async {
+                            if (!validInput()) {
+                              Get.snackbar(
+                                'Error',
+                                'All fields are required',
+                                colorText: MidnightTheme.textPrimary,
+                                snackPosition: SnackPosition.TOP,
+                                backgroundColor:
+                                    MidnightTheme.coral.withOpacity(0.9),
+                              );
+                              return;
+                            }
 
-                  Transaction transaction = Transaction(
-                    description: _transactionController.description.value,
-                    type: this.type,
-                    amount: _transactionController.amount.value,
-                    category: _transactionController.category.value,
-                    contactId: _transactionController.contact.value?.id ?? 0,
-                    date: DateTime.now(),
-                  );
-                  if (this.transaction != null) {
-                    await _transactionController.updateTransaction(
-                      transaction,
-                      this.transaction!,
-                    );
-                  } else {
-                    await _transactionController.addTransaction(transaction);
-                  }
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.0),
-                    color: validInput() ? AppColors.GREEN : Color(0xAAAF47FF),
-                    boxShadow: [BoxShadow()]
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 10.0),
-                  padding: EdgeInsets.symmetric(
-                    vertical: 15.0,
-                    horizontal: 20.0
-                  ),
-                  child: Center(
-                    child: _transactionController.addingTransaction.value
-                      ? const SpinKitThreeBounce(
-                          color: Colors.white,
-                          size: 20.0,
-                        )
-                      : Text(
-                          "${this.transaction != null ? 'Update' : 'Add'} ${this.type == TransactionType.income ? 'Income' : 'Expenditure'}",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
+                            final Transaction tx = Transaction(
+                              description: _transactionController.description.value,
+                              type: type,
+                              amount: _transactionController.amount.value,
+                              category: _transactionController.category.value,
+                              contactId:
+                                  _transactionController.contact.value?.id ?? 0,
+                              date: DateTime.now(),
+                            );
+                            if (transaction != null) {
+                              await _transactionController.updateTransaction(
+                                tx,
+                                transaction!,
+                              );
+                            } else {
+                              await _transactionController.addTransaction(tx);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(26),
+                          child: Center(
+                            child: _transactionController.addingTransaction.value
+                                ? SpinKitThreeBounce(
+                                    color: validInput()
+                                        ? (_isIncome
+                                            ? Colors.black87
+                                            : Colors.white)
+                                        : MidnightTheme.textSecondary,
+                                    size: 20,
+                                  )
+                                : Text(
+                                    '$_verb $_typeLabel',
+                                    style: TextStyle(
+                                      color: validInput()
+                                          ? (_isIncome
+                                              ? Colors.black87
+                                              : Colors.white)
+                                          : MidnightTheme.textSecondary,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ));
+  }
+
+  bool validInput() {
+    return _transactionController.description.value != '' &&
+        _transactionController.amount.value > 0;
+  }
+}
+
+class _FormSection extends StatelessWidget {
+  const _FormSection({
+    required this.label,
+    required this.child,
+  });
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: _fieldLabelStyle(),
+          ),
+          const SizedBox(height: 4),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryAndContactBlock extends StatelessWidget {
+  const _CategoryAndContactBlock({
+    required this.contactName,
+    required this.onClearContact,
+    required this.contactTap,
+    required this.categoryChild,
+  });
+
+  final String? contactName;
+  final VoidCallback onClearContact;
+  final VoidCallback contactTap;
+  final Widget categoryChild;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasContact =
+        contactName != null && contactName!.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'CATEGORY',
+                style: _fieldLabelStyle(),
+              ),
+              if (hasContact)
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _ContactChip(
+                      name: contactName!,
+                      onClear: onClearContact,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: categoryChild,
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 50,
+                height: 50,
+                child: Material(
+                  color: MidnightTheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    onTap: contactTap,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: MidnightTheme.border),
+                      ),
+                      child: const Icon(
+                        Icons.contacts_rounded,
+                        color: MidnightTheme.mint,
+                        size: 22,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-            child: SizedBox(),
-          ),
         ],
       ),
-    ));
+    );
   }
+}
 
-  bool validInput() {
-    return _transactionController.description.value != "" &&
-        _transactionController.amount.value > 0;
+class _ContactChip extends StatelessWidget {
+  const _ContactChip({required this.name, required this.onClear});
+
+  final String name;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.person_outline_rounded,
+          size: 16,
+          color: MidnightTheme.mint.withOpacity(0.9),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            name,
+            style: const TextStyle(
+              color: MidnightTheme.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        const SizedBox(width: 6),
+        GestureDetector(
+          onTap: onClear,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: MidnightTheme.border.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.close_rounded,
+              size: 14,
+              color: MidnightTheme.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

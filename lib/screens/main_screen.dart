@@ -1,194 +1,143 @@
-import 'package:balance_sheet/constants/colors.dart';
+import 'dart:ui';
+
+import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
-import 'package:balance_sheet/screens/settings_screen.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
-const double APP_WIDTH = 20.0;
+const double _horizontalPad = 20.0;
 
 class MainView extends StatelessWidget {
   final TransactionController _transactionController = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat.yMMMd().format(DateTime.now());
-
-    return Container(
-      child: Column(
+    return Material(
+      color: MidnightTheme.background,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Container(
-            padding: EdgeInsets.only(
-              left: APP_WIDTH,
-              right: APP_WIDTH,
-              bottom: 5.0,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.PRIMARY,
-            ),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 10.0),
-                  Row(
+          Positioned.fill(
+            child: CustomPaint(painter: MidnightGridPainter(heightFraction: 1.0)),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(_horizontalPad, 12, _horizontalPad, 8),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Balanced',
                         style: TextStyle(
-                          fontSize: 18.0,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          color: MidnightTheme.textPrimary,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => Get.to(Settings()),
-                        child: roundedWidget(
-                          widget: Row(
+                      IconButton(
+                        onPressed: () => Get.find<AppController>().setIndex(4),
+                        icon: const Icon(Icons.settings_outlined),
+                        color: MidnightTheme.textPrimary,
+                        style: IconButton.styleFrom(
+                          backgroundColor: MidnightTheme.surface.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Obx(() {
+                  final list = _transactionController.transactions;
+                  return CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: _horizontalPad),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                'Settings',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              _GlassBalanceCard(
+                                total: _transactionController.total.value,
+                                todayIncome: _transactionController.todaysIncome.value,
+                                todayExpense: _transactionController.todaysExpense.value,
+                              ),
+                              const SizedBox(height: 18),
+                              _IncomeExpenseRow(),
+                              const SizedBox(height: 28),
+                              const Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Recent Transactions',
+                                  style: TextStyle(
+                                    color: MidnightTheme.textPrimary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                              SizedBox(width: 10.0),
-                              Icon(
-                                Icons.settings,
-                                color: Colors.white,
-                                size: 22.0,
-                              ),
+                              const SizedBox(height: 12),
                             ],
                           ),
-                          containerColor: Color(0x44ffffff),
-                          padding: EdgeInsets.symmetric(
-                            vertical: 7.0,
-                            horizontal: 15.0,
-                          ),
-                          shadow: BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 15.0,
-                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  TotalContainer(),
-                  GestureDetector(
-                    onTap: () => Get.to(ReportView()),
-                    child: Container(
-                      margin: EdgeInsets.symmetric(
-                        vertical: 15.0
-                      ),
-                      padding: EdgeInsets.all(15.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(7.0)
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'SEE ALL YOUR TRANSACTIONS',
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              color: AppColors.PRIMARY,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.0,
+                      if (list.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: EmptyState(
+                            icon: Icon(
+                              Icons.receipt_long_outlined,
+                              size: 48,
+                              color: MidnightTheme.mint.withOpacity(0.7),
+                            ),
+                            primaryText: const Text(
+                              'Add your first transaction today',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: MidnightTheme.textPrimary,
+                              ),
+                            ),
+                            secondaryText: const Text(
+                              'Tap Income or Expense above.',
+                              style: TextStyle(
+                                color: MidnightTheme.textSecondary,
+                              ),
                             ),
                           ),
-                          roundedWidget(
-                            widget: Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.PRIMARY,
-                              size: 20.0,
-                            ),
-                            containerColor: AppColors.SECONDARY,
-                            padding: EdgeInsets.all(2.0)
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                vertical: 30.0,
-                horizontal: 20.0,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.SECONDARY,
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 45.0,
-                    height: 3.0,
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(3.0),
-                    ),
-                    margin: EdgeInsets.only(
-                      bottom: 15.0,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildButton(TransactionType.expenditure),
-                      _buildButton(TransactionType.income),
-                    ],
-                  ),
-                  Obx(() => totalDayTransaction(
-                    formattedDate,
-                    _transactionController.todaysIncome.value,
-                    _transactionController.todaysExpense.value
-                  )),
-                  Obx(() => Expanded(
-                    child: _transactionController.transactions.length == 0
-                      ? ListView(
-                          children: [
-                            EmptyState(
-                              icon: Icon(
-                                Icons.money,
-                                size: 48.0,
-                                color: AppColors.PRIMARY,
-                              ),
-                              primaryText: Text(
-                                'Add your first transaction today',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              secondaryText: Text(
-                                'Click "Income" or "Expenditure" above.',
-                              ),
-                            ),
-                          ],
                         )
-                      : ListView.builder(
-                          padding: EdgeInsets.only(top: 0.0),
-                          itemCount: _transactionController.transactions.length,
-                          itemBuilder: (context, index) {
-                            return singleTransactionContainer(_transactionController.transactions[index]);
-                          },
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 24),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : 10),
+                                  child: singleTransactionContainer(list[index]),
+                                );
+                              },
+                              childCount: list.length,
+                            ),
+                          ),
                         ),
-                  )),
-                ],
+                    ],
+                  );
+                }),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -196,13 +145,215 @@ class MainView extends StatelessWidget {
   }
 }
 
-void showNewTransactionModal(TransactionType type) async {
-  final TransactionController _transactionController = Get.find();
 
-  BuildContext context = Get.context!;
+class _GlassBalanceCard extends StatelessWidget {
+  const _GlassBalanceCard({
+    required this.total,
+    required this.todayIncome,
+    required this.todayExpense,
+  });
+
+  final int total;
+  final int todayIncome;
+  final int todayExpense;
+
+  @override
+  Widget build(BuildContext context) {
+    final int todayNet = todayIncome - todayExpense;
+    final bool isDailyLoss = todayNet < 0;
+    final Color netColor = isDailyLoss ? MidnightTheme.coral : MidnightTheme.mint;
+    final Color cardAccent = isDailyLoss ? MidnightTheme.coral : MidnightTheme.mint;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: cardAccent.withOpacity(0.35)),
+            gradient: MidnightTheme.balanceCardGradient(isDailyLoss),
+            boxShadow: [
+              BoxShadow(
+                color: cardAccent.withOpacity(0.28),
+                blurRadius: 28,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(
+                formatAmount(total),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: MidnightTheme.textPrimary,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    formatSignedNet(todayNet),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: netColor,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Today',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: MidnightTheme.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      height: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Get.to(() => const ReportView()),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: cardAccent,
+                    side: BorderSide(color: cardAccent.withOpacity(0.45)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        'All transactions',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(Icons.chevron_right_rounded, size: 22),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IncomeExpenseRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ActionPill(
+            label: 'Income',
+            icon: Icons.add,
+            accent: MidnightTheme.mint,
+            glow: MidnightTheme.mint.withOpacity(0.35),
+            onTap: () => showNewTransactionModal(TransactionType.income),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _ActionPill(
+            label: 'Expense',
+            icon: Icons.remove,
+            accent: MidnightTheme.coral,
+            glow: MidnightTheme.coral.withOpacity(0.35),
+            onTap: () => showNewTransactionModal(TransactionType.expenditure),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionPill extends StatelessWidget {
+  const _ActionPill({
+    required this.label,
+    required this.icon,
+    required this.accent,
+    required this.glow,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final Color glow;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const double radius = 32;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(radius),
+        splashColor: accent.withOpacity(0.12),
+        highlightColor: accent.withOpacity(0.06),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(color: accent.withOpacity(0.55)),
+            color: accent.withOpacity(0.08),
+            boxShadow: [
+              BoxShadow(
+                color: glow,
+                blurRadius: 20,
+                spreadRadius: 0,
+                offset: Offset.zero,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: accent, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  color: accent,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void showNewTransactionModal(TransactionType type) async {
+  final TransactionController transactionController = Get.find();
+
+  final BuildContext context = Get.context!;
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
-    barrierColor: Color(0x22AF47FF),
+    barrierColor: MidnightTheme.overlay,
     isScrollControlled: true,
     context: context,
     builder: (context) => Wrap(
@@ -210,120 +361,5 @@ void showNewTransactionModal(TransactionType type) async {
         IncomeForm(type: type),
       ],
     ),
-  ).whenComplete(() => _transactionController.resetFieldValues());
-}
-
-Widget _buildButton(TransactionType type) {
-  return GestureDetector(
-    onTap: () => showNewTransactionModal(type),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7.0),
-        color: type == TransactionType.income ? AppColors.GREEN : AppColors.RED,
-      ),
-      padding: EdgeInsets.symmetric(
-        vertical: 10.0,
-        horizontal: 20.0,
-      ),
-      width: Get.width * .5 - APP_WIDTH - 5,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          roundedWidget(
-            widget: type == TransactionType.income ? Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 20.0,
-            ) : Icon(
-              Icons.remove,
-              color: Colors.white,
-              size: 20.0,
-            ),
-            containerColor: Color(0x22ffffff),
-          ),
-          SizedBox(width: 15.0),
-          Text(
-            type == TransactionType.income ? "Income" : "Expenditure",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class TotalContainer extends StatelessWidget {
-  final TransactionController _transactionController = Get.find();
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() => Container(
-      margin: EdgeInsets.only(top: 10.0),
-      width: 500,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100.0),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildBalanceSection(
-            'Total Balance',
-            _transactionController.total.value,
-            Colors.white,
-            true,
-          ),
-          _buildBalanceSection(
-            "Today's Balance",
-            _transactionController.todaysIncome.value - _transactionController.todaysExpense.value,
-            AppColors.PURPLE_GREY,
-            false,
-          ),
-        ],
-      ),
-    ));
-  }
-
-  Widget _buildBalanceSection(String text, int amount, Color color, bool leftPosition) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.only(
-          top: 10.0,
-          left: 15.0,
-          bottom: 30.0,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: leftPosition ? Radius.circular(7.0) : Radius.zero,
-            bottomLeft: leftPosition ? Radius.circular(7.0) : Radius.zero,
-            topRight: leftPosition ? Radius.zero : Radius.circular(7.0),
-            bottomRight: leftPosition ? Radius.zero : Radius.circular(7.0),
-          ),
-          color: color,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              padding: EdgeInsets.only(
-                bottom: 5.0,
-              ),
-            ),
-            Text('${formatAmount(amount)}', style: TextStyle(fontSize: 16.0)),
-          ],
-        ),
-      ),
-    );
-  }
+  ).whenComplete(transactionController.resetFieldValues);
 }

@@ -65,31 +65,8 @@ class ContactController extends GetxController {
     );
   }
 
-  updateContact(Contact contact, Contact previousContact) async {
-    // Transaction update = Transaction.fromJson({
-    //   "id": previousTransaction.id,
-    //   "type": previousTransaction.type == TransactionType.expenditure ? 'expenditure' : 'income',
-    //   "amount": transaction.amount,
-    //   "category": transaction.category,
-    //   "date": previousTransaction.date.millisecondsSinceEpoch,
-    //   "description": transaction.description,
-    // });
-
-    // await db.updateTransaction(update);
-    // updateControllerDataAfterUpdate(update, previousTransaction);
-    // Get.back();
-    // Get.back();
-    // Get.snackbar(
-    //   "Successful",
-    //   "Transaction updated successfully",
-    //   snackPosition: SnackPosition.TOP,
-    //   backgroundColor: AppColors.GREEN,
-    // );
-  }
-
   deleteContact(Contact contact) async {
     await db.deleteContact(contact);
-    // remove txn from UI
     contacts.value = contacts.where((_contact) => contact.id != _contact.id).toList();
 
     Get.snackbar(
@@ -103,9 +80,5 @@ class ContactController extends GetxController {
 
   getContacts() async {
     contacts.value = await db.getContacts();
-  }
-
-  getContact(int id) async {
-    contact.value = await db.getContact(id);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
@@ -26,13 +27,41 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final ThemeData darkBase = ThemeData(
+      brightness: Brightness.dark,
+      useMaterial3: true,
+    );
     return GetMaterialApp(
-      title: 'Flutter Demo',
+      title: 'Balanced',
       theme: ThemeData(
-        textTheme: GoogleFonts.robotoTextTheme(
-          Theme.of(context).textTheme,
+        brightness: Brightness.dark,
+        useMaterial3: true,
+        scaffoldBackgroundColor: MidnightTheme.background,
+        colorScheme: ColorScheme.dark(
+          surface: MidnightTheme.surface,
+          primary: MidnightTheme.mint,
+          secondary: MidnightTheme.coral,
+          onPrimary: Colors.black87,
+          onSecondary: Colors.white,
+          onSurface: MidnightTheme.textPrimary,
         ),
-        primarySwatch: Colors.purple,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: MidnightTheme.background,
+          foregroundColor: MidnightTheme.textPrimary,
+          elevation: 0,
+          centerTitle: false,
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: MidnightTheme.surfaceElevated,
+        ),
+        textTheme: GoogleFonts.robotoTextTheme(darkBase.textTheme).apply(
+          bodyColor: MidnightTheme.textPrimary,
+          displayColor: MidnightTheme.textPrimary,
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: MidnightTheme.surfaceElevated,
+          contentTextStyle: const TextStyle(color: MidnightTheme.textPrimary),
+        ),
       ),
       home: Splash(),
       debugShowCheckedModeBanner: false,

@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -6,11 +6,12 @@ class Splash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: MidnightTheme.background,
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        decoration: BoxDecoration(
-          color: AppColors.PRIMARY,
+        decoration: const BoxDecoration(
+          color: MidnightTheme.background,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -24,34 +25,36 @@ class Splash extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.menu_book,
+                        Icons.menu_book_rounded,
                         size: 36.0,
-                        color: Colors.white,
+                        color: MidnightTheme.mint,
                       ),
-                      const SizedBox(width: 15.0,),
-                      Text(
-                        "Balanced",
+                      const SizedBox(width: 15.0),
+                      const Text(
+                        'Balanced',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36.0
+                          color: MidnightTheme.textPrimary,
+                          fontSize: 36.0,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
                   Text(
-                    "...know where your money goes",
+                    '...know where your money goes',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.0
+                      color: MidnightTheme.textSecondary,
+                      fontSize: 18.0,
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               flex: 1,
-              child: const SpinKitThreeBounce(
-                color: Colors.white,
+              child: SpinKitThreeBounce(
+                color: MidnightTheme.mint,
                 size: 20.0,
               ),
             ),
