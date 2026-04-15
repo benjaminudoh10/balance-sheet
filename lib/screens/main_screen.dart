@@ -265,7 +265,7 @@ class _IncomeExpenseRow extends StatelessWidget {
         Expanded(
           child: _ActionPill(
             label: 'Income',
-            icon: Icons.add,
+            icon: Icons.add_circle_rounded,
             accent: MidnightTheme.mint,
             glow: MidnightTheme.mint.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.income),
@@ -275,7 +275,7 @@ class _IncomeExpenseRow extends StatelessWidget {
         Expanded(
           child: _ActionPill(
             label: 'Expense',
-            icon: Icons.remove,
+            icon: Icons.remove_circle_rounded,
             accent: MidnightTheme.coral,
             glow: MidnightTheme.coral.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.expenditure),
@@ -329,7 +329,7 @@ class _ActionPill extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: accent, size: 20),
+              Icon(icon, color: accent, size: 24),
               const SizedBox(width: 10),
               Text(
                 label,
