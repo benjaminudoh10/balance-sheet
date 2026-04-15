@@ -185,13 +185,13 @@ class _GlassBalanceCard extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                formatAmount(total),
+                formatSignedNet(total),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: MidnightTheme.textPrimary,
                   fontSize: 34,
                   fontWeight: FontWeight.w600,
-                  letterSpacing: -0.8,
+                  letterSpacing: -0.6,
                 ),
               ),
               const SizedBox(height: 10),
