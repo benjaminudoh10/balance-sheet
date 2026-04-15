@@ -1,5 +1,5 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,11 +9,12 @@ class MidnightBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppController controller = Get.find();
+    final AppPalette p = AppPalette.of(context);
 
     return Obx(() {
       final int index = controller.index.value;
       return Material(
-        color: MidnightTheme.surface,
+        color: p.surface,
         elevation: 8,
         child: SafeArea(
           top: false,
@@ -21,7 +22,7 @@ class MidnightBottomNav extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: MidnightTheme.border.withValues(alpha: 0.6)),
+                top: BorderSide(color: p.border.withValues(alpha: 0.6)),
               ),
             ),
             child: Row(
@@ -88,8 +89,9 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color active = MidnightTheme.mint;
-    final Color inactive = MidnightTheme.textSecondary;
+    final AppPalette p = AppPalette.of(context);
+    final Color active = p.mint;
+    final Color inactive = p.textSecondary;
 
     return Expanded(
       child: InkWell(

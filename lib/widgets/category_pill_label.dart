@@ -18,7 +18,10 @@ class CategoryPillLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CategoryPillStyle style = Categories.pillStyleForKey(categoryKey);
+    final CategoryPillStyle style = Categories.pillStyleForKey(
+      categoryKey,
+      Theme.of(context).brightness,
+    );
     final EdgeInsets pad = compact
         ? const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0)
         : const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0);

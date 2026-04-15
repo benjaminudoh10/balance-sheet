@@ -1,7 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/category.dart';
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -38,8 +38,9 @@ void _openEditModalFor(Transaction transaction) {
 
 Widget singleTransactionContainer(BuildContext context, Transaction transaction) {
   final TextTheme textTheme = Theme.of(context).textTheme;
+  final AppPalette p = AppPalette.of(context);
   final bool isIncome = transaction.type == TransactionType.income;
-  final Color accent = isIncome ? MidnightTheme.mint : MidnightTheme.coral;
+  final Color accent = isIncome ? p.mint : p.coral;
   final String categoryLabel = _categoryLabelForTransaction(transaction);
 
   return Padding(
@@ -58,7 +59,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
         children: [
           SlidableAction(
             onPressed: (_) => _openEditModalFor(transaction),
-            backgroundColor: MidnightTheme.mint,
+            backgroundColor: p.mint,
             foregroundColor: Colors.black87,
             icon: Icons.edit_rounded,
             label: 'Edit',
@@ -73,7 +74,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
         children: [
           SlidableAction(
             onPressed: (_) => showDeleteModal(transaction),
-            backgroundColor: MidnightTheme.coral,
+            backgroundColor: p.coral,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline_rounded,
             label: 'Delete',
@@ -83,9 +84,9 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: MidnightTheme.surface,
+          color: p.surface,
           borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: MidnightTheme.border),
+          border: Border.all(color: p.border),
         ),
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
@@ -127,7 +128,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
                               maxLines: 1,
                               style: textTheme.titleSmall!.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: MidnightTheme.textPrimary,
+                                color: p.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 6.0),
@@ -146,7 +147,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
                                 Text(
                                   DateFormat.jm().format(transaction.date),
                                   style: textTheme.bodySmall!.copyWith(
-                                    color: MidnightTheme.textSecondary,
+                                    color: p.textSecondary,
                                   ),
                                 ),
                               ],
@@ -157,7 +158,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
                       Text(
                         formatAmount(transaction.amount),
                         style: textTheme.titleSmall!.copyWith(
-                          color: MidnightTheme.textPrimary,
+                          color: p.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -188,21 +189,21 @@ class EmptyStateIconFrame extends StatelessWidget {
 
   static const double _radius = 18;
 
-  List<BoxShadow> get _mintGlow => [
+  static List<BoxShadow> _mintGlow(AppPalette p) => [
         BoxShadow(
-          color: MidnightTheme.mint.withValues(alpha: 0.38),
+          color: p.mint.withValues(alpha: 0.38),
           blurRadius: 26,
           spreadRadius: 0,
           offset: Offset.zero,
         ),
         BoxShadow(
-          color: MidnightTheme.mint.withValues(alpha: 0.22),
+          color: p.mint.withValues(alpha: 0.22),
           blurRadius: 44,
           spreadRadius: -4,
           offset: const Offset(0, 6),
         ),
         BoxShadow(
-          color: MidnightTheme.mint.withValues(alpha: 0.12),
+          color: p.mint.withValues(alpha: 0.12),
           blurRadius: 56,
           spreadRadius: 2,
           offset: Offset.zero,
@@ -211,20 +212,25 @@ class EmptyStateIconFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final Color rim = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.14)
+        : p.border.withValues(alpha: 0.45);
+
     final BoxDecoration innerDeco = circular
         ? BoxDecoration(
             shape: BoxShape.circle,
-            color: MidnightTheme.surfaceElevated.withValues(alpha: 0.42),
+            color: p.surfaceElevated.withValues(alpha: 0.42),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: rim,
               width: 1,
             ),
           )
         : BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
-            color: MidnightTheme.surfaceElevated.withValues(alpha: 0.42),
+            color: p.surfaceElevated.withValues(alpha: 0.42),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: rim,
               width: 1,
             ),
           );
@@ -242,7 +248,7 @@ class EmptyStateIconFrame extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow: _mintGlow,
+          boxShadow: _mintGlow(p),
         ),
         child: ClipOval(
           child: frosted,
@@ -253,7 +259,7 @@ class EmptyStateIconFrame extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_radius),
-        boxShadow: _mintGlow,
+        boxShadow: _mintGlow(p),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_radius),

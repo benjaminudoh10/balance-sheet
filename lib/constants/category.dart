@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Per-category tint for transaction row category chips (dark UI).
+/// Per-category tint for transaction row category chips.
 class CategoryPillStyle {
   const CategoryPillStyle({
     required this.background,
@@ -43,7 +43,15 @@ class Categories {
   }
 
   /// Distinct background / border / label colors per category key.
-  static CategoryPillStyle pillStyleForKey(String key) {
+  /// [brightness] must match the surface behind the pill (dark theme = dark pills, light = high-contrast tints).
+  static CategoryPillStyle pillStyleForKey(String key, Brightness brightness) {
+    return brightness == Brightness.light
+        ? _pillStyleForLight(key)
+        : _pillStyleForDark(key);
+  }
+
+  /// Tuned for dark shells (translucent fills, light label hues).
+  static CategoryPillStyle _pillStyleForDark(String key) {
     switch (key) {
       case 'food':
         return const CategoryPillStyle(
@@ -104,6 +112,72 @@ class Categories {
           background: Color(0xFF21262D),
           border: Color(0xFF30363D),
           foreground: Color(0xFFF0F6FC),
+        );
+    }
+  }
+
+  /// Opaque pastels + saturated foregrounds for light backgrounds.
+  static CategoryPillStyle _pillStyleForLight(String key) {
+    switch (key) {
+      case 'food':
+        return const CategoryPillStyle(
+          background: Color(0xFFFEF3C7),
+          border: Color(0xFFF59E0B),
+          foreground: Color(0xFF92400E),
+        );
+      case 'transport':
+        return const CategoryPillStyle(
+          background: Color(0xFFE0F2FE),
+          border: Color(0xFF38BDF8),
+          foreground: Color(0xFF0369A1),
+        );
+      case 'investment':
+        return const CategoryPillStyle(
+          background: Color(0xFFD1FAE5),
+          border: Color(0xFF34D399),
+          foreground: Color(0xFF047857),
+        );
+      case 'salary':
+        return const CategoryPillStyle(
+          background: Color(0xFFCCFBF1),
+          border: Color(0xFF2DD4BF),
+          foreground: Color(0xFF0F766E),
+        );
+      case 'savings':
+        return const CategoryPillStyle(
+          background: Color(0xFFE0E7FF),
+          border: Color(0xFF818CF8),
+          foreground: Color(0xFF4338CA),
+        );
+      case 'charity':
+        return const CategoryPillStyle(
+          background: Color(0xFFFCE7F3),
+          border: Color(0xFFF472B6),
+          foreground: Color(0xFF9D174D),
+        );
+      case 'rent':
+        return const CategoryPillStyle(
+          background: Color(0xFFF3E8FF),
+          border: Color(0xFFC084FC),
+          foreground: Color(0xFF6B21A8),
+        );
+      case 'utilities':
+        return const CategoryPillStyle(
+          background: Color(0xFFFEF9C3),
+          border: Color(0xFFEAB308),
+          foreground: Color(0xFFA16207),
+        );
+      case 'misc':
+        return const CategoryPillStyle(
+          background: Color(0xFFE2E8F0),
+          border: Color(0xFF64748B),
+          foreground: Color(0xFF1E293B),
+        );
+      default:
+        return const CategoryPillStyle(
+          background: Color(0xFFF1F5F9),
+          border: Color(0xFFCBD5E1),
+          foreground: Color(0xFF0F172A),
         );
     }
   }

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
@@ -19,13 +19,16 @@ class MainView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Material(
-      color: MidnightTheme.background,
+      color: p.background,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Positioned.fill(
-            child: CustomPaint(painter: MidnightGridPainter(heightFraction: 1.0)),
+            child: CustomPaint(
+              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+            ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,16 +43,16 @@ class MainView extends StatelessWidget {
                       Text(
                         'Balanced',
                         style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                          color: MidnightTheme.textPrimary,
+                          color: p.textPrimary,
                           letterSpacing: -0.5,
                         ),
                       ),
                       IconButton(
                         onPressed: () => Get.find<AppController>().setIndex(4),
                         icon: const Icon(Icons.settings_outlined),
-                        color: MidnightTheme.textPrimary,
+                        color: p.textPrimary,
                         style: IconButton.styleFrom(
-                          backgroundColor: MidnightTheme.surface.withValues(alpha: 0.9),
+                          backgroundColor: p.surface.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -81,7 +84,7 @@ class MainView extends StatelessWidget {
                                 child: Text(
                                   'Recent Transactions',
                                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: MidnightTheme.textPrimary,
+                                    color: p.textPrimary,
                                   ),
                                 ),
                               ),
@@ -97,19 +100,19 @@ class MainView extends StatelessWidget {
                             icon: Icon(
                               Icons.receipt_long_outlined,
                               size: 48,
-                              color: MidnightTheme.mint.withValues(alpha: 0.7),
+                              color: p.mint.withValues(alpha: 0.7),
                             ),
                             primaryText: Text(
                               'Add your first transaction today',
                               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: MidnightTheme.textPrimary,
+                                color: p.textPrimary,
                               ),
                             ),
                             secondaryText: Text(
                               'Tap Income or Expense above.',
                               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                color: MidnightTheme.textSecondary,
+                                color: p.textSecondary,
                               ),
                             ),
                           ),
@@ -155,10 +158,11 @@ class _GlassBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     final int todayNet = todayIncome - todayExpense;
     final bool isDailyLoss = todayNet < 0;
-    final Color netColor = isDailyLoss ? MidnightTheme.coral : MidnightTheme.mint;
-    final Color cardAccent = isDailyLoss ? MidnightTheme.coral : MidnightTheme.mint;
+    final Color netColor = isDailyLoss ? p.coral : p.mint;
+    final Color cardAccent = isDailyLoss ? p.coral : p.mint;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -169,7 +173,7 @@ class _GlassBalanceCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: cardAccent.withValues(alpha: 0.35)),
-            gradient: MidnightTheme.balanceCardGradient(isDailyLoss),
+            gradient: p.balanceCardGradient(isDailyLoss),
             boxShadow: [
               BoxShadow(
                 color: cardAccent.withValues(alpha: 0.28),
@@ -184,7 +188,7 @@ class _GlassBalanceCard extends StatelessWidget {
                 formatSignedNet(total),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall!.copyWith(
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -206,7 +210,7 @@ class _GlassBalanceCard extends StatelessWidget {
                     'Today',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: MidnightTheme.textSecondary,
+                      color: p.textSecondary,
                       letterSpacing: 0.8,
                       height: 1.0,
                       fontWeight: FontWeight.w500,
@@ -253,14 +257,15 @@ class _GlassBalanceCard extends StatelessWidget {
 class _IncomeExpenseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Row(
       children: [
         Expanded(
           child: _ActionPill(
             label: 'Income',
             icon: Icons.add_circle_rounded,
-            accent: MidnightTheme.mint,
-            glow: MidnightTheme.mint.withValues(alpha: 0.35),
+            accent: p.mint,
+            glow: p.mint.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.income),
           ),
         ),
@@ -269,8 +274,8 @@ class _IncomeExpenseRow extends StatelessWidget {
           child: _ActionPill(
             label: 'Expense',
             icon: Icons.remove_circle_rounded,
-            accent: MidnightTheme.coral,
-            glow: MidnightTheme.coral.withValues(alpha: 0.35),
+            accent: p.coral,
+            glow: p.coral.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.expenditure),
           ),
         ),
@@ -343,9 +348,10 @@ void showNewTransactionModal(TransactionType type) async {
   final TransactionController transactionController = Get.find();
 
   final BuildContext context = Get.context!;
+  final AppPalette p = AppPalette.of(context);
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
-    barrierColor: MidnightTheme.overlay,
+    barrierColor: p.overlay,
     isScrollControlled: true,
     context: context,
     builder: (context) => Wrap(

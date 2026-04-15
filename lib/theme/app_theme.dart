@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -80,53 +80,72 @@ TextTheme midnightScaledTextTheme(TextTheme base) {
   );
 }
 
-ThemeData buildMidnightAppTheme(String fontId) {
+ThemeData _buildAppTheme(String fontId, AppPalette palette) {
   final String id = AppFontIds.isValid(fontId) ? fontId : AppFontIds.defaultId;
+  final bool isDark = palette.brightness == Brightness.dark;
   final ThemeData shell = ThemeData(
-    brightness: Brightness.dark,
+    brightness: palette.brightness,
     useMaterial3: true,
   );
   final TextTheme raw = _googleTextThemeForId(id, shell.textTheme);
   final TextTheme textTheme = midnightScaledTextTheme(raw).apply(
-    bodyColor: MidnightTheme.textPrimary,
-    displayColor: MidnightTheme.textPrimary,
+    bodyColor: palette.textPrimary,
+    displayColor: palette.textPrimary,
   );
 
+  final ColorScheme colorScheme = isDark
+      ? ColorScheme.dark(
+          surface: palette.surface,
+          primary: palette.mint,
+          secondary: palette.coral,
+          onPrimary: Colors.black87,
+          onSecondary: Colors.white,
+          onSurface: palette.textPrimary,
+        ).copyWith(surfaceTint: Colors.transparent)
+      : ColorScheme.light(
+          surface: palette.surface,
+          primary: palette.mint,
+          secondary: palette.coral,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: palette.textPrimary,
+        ).copyWith(surfaceTint: Colors.transparent);
+
   return ThemeData(
-    brightness: Brightness.dark,
+    brightness: palette.brightness,
     useMaterial3: true,
-    scaffoldBackgroundColor: MidnightTheme.background,
-    colorScheme: ColorScheme.dark(
-      surface: MidnightTheme.surface,
-      primary: MidnightTheme.mint,
-      secondary: MidnightTheme.coral,
-      onPrimary: Colors.black87,
-      onSecondary: Colors.white,
-      onSurface: MidnightTheme.textPrimary,
-    ).copyWith(surfaceTint: Colors.transparent),
+    scaffoldBackgroundColor: palette.background,
+    extensions: <ThemeExtension<dynamic>>[palette],
+    colorScheme: colorScheme,
     textTheme: textTheme,
     primaryTextTheme: textTheme,
     appBarTheme: AppBarTheme(
-      backgroundColor: MidnightTheme.background,
-      foregroundColor: MidnightTheme.textPrimary,
+      backgroundColor: palette.background,
+      foregroundColor: palette.textPrimary,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: textTheme.titleLarge?.copyWith(
-        color: MidnightTheme.textPrimary,
+        color: palette.textPrimary,
         fontWeight: FontWeight.w600,
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: MidnightTheme.surfaceElevated,
-      titleTextStyle: textTheme.titleLarge?.copyWith(color: MidnightTheme.textPrimary),
-      contentTextStyle: textTheme.bodyMedium?.copyWith(color: MidnightTheme.textPrimary),
+      backgroundColor: palette.surfaceElevated,
+      titleTextStyle: textTheme.titleLarge?.copyWith(color: palette.textPrimary),
+      contentTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: MidnightTheme.surfaceElevated,
-      contentTextStyle: textTheme.bodyMedium?.copyWith(color: MidnightTheme.textPrimary),
+      backgroundColor: palette.surfaceElevated,
+      contentTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
     ),
     inputDecorationTheme: InputDecorationTheme(
-      hintStyle: textTheme.bodyMedium?.copyWith(color: MidnightTheme.textSecondary),
+      hintStyle: textTheme.bodyMedium?.copyWith(color: palette.textSecondary),
     ),
   );
 }
+
+/// Dark theme (previous default).
+ThemeData buildDarkAppTheme(String fontId) => _buildAppTheme(fontId, AppPalette.dark);
+
+/// Light theme.
+ThemeData buildLightAppTheme(String fontId) => _buildAppTheme(fontId, AppPalette.light);

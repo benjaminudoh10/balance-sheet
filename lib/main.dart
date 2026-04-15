@@ -30,7 +30,9 @@ class MyApp extends StatelessWidget {
     return Obx(
       () => GetMaterialApp(
         title: 'Balanced',
-        theme: buildMidnightAppTheme(app.fontId.value),
+        theme: buildLightAppTheme(app.fontId.value),
+        darkTheme: buildDarkAppTheme(app.fontId.value),
+        themeMode: app.themeMode.value,
         home: Splash(),
         debugShowCheckedModeBanner: false,
       ),

@@ -3,4 +3,6 @@ class AppConstants {
   static const USE_FINGERPRINT = "fingerprint";
   static const PIN_CODE_LENGTH = 4;
   static const APP_FONT_KEY = "app_font_family";
+  /// Values: `system`, `light`, `dark` — see [AppController.themeMode].
+  static const APP_THEME_MODE_KEY = "app_theme_mode";
 }

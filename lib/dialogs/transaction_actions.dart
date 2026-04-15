@@ -1,9 +1,9 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -36,9 +36,10 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
       (transaction.amount / 100).toStringAsFixed(2);
 
   final BuildContext context = Get.context!;
+  final AppPalette p = AppPalette.of(context);
   await showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
-    barrierColor: MidnightTheme.overlay,
+    barrierColor: p.overlay,
     isScrollControlled: true,
     context: context,
     builder: (context) => Wrap(
@@ -58,77 +59,80 @@ void showDeleteModal(Transaction transaction) {
 
   showModalBottomSheet<void>(
     backgroundColor: Colors.transparent,
-    barrierColor: MidnightTheme.overlay,
+    barrierColor: AppPalette.of(context).overlay,
     context: context,
-    builder: (context) => Container(
-      height: 300.0,
-      padding: const EdgeInsets.all(45.0),
-      decoration: BoxDecoration(
-        color: MidnightTheme.surfaceElevated,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(25.0),
-          topRight: Radius.circular(25.0),
+    builder: (context) {
+      final AppPalette p = AppPalette.of(context);
+      return Container(
+        height: 300.0,
+        padding: const EdgeInsets.all(45.0),
+        decoration: BoxDecoration(
+          color: p.surfaceElevated,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25.0),
+            topRight: Radius.circular(25.0),
+          ),
+          border: Border.all(color: p.border),
         ),
-        border: Border.all(color: MidnightTheme.border),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Are you sure you want to delete this transaction?',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              fontWeight: FontWeight.bold,
-              color: MidnightTheme.textPrimary,
+        child: Column(
+          children: [
+            Text(
+              'Are you sure you want to delete this transaction?',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                color: p.textPrimary,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: MidnightTheme.coral,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: p.coral,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                 ),
-              ),
-              onPressed: () =>
-                  transactionController.deleteTransaction(transaction),
-              child: Text(
-                'YES',
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: MidnightTheme.mint,
-                backgroundColor: MidnightTheme.surface,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: MidnightTheme.border),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              onPressed: () => Get.back(),
-              child: Text(
-                'NO',
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: MidnightTheme.mint,
+                onPressed: () =>
+                    transactionController.deleteTransaction(transaction),
+                child: Text(
+                  'YES',
+                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: p.mint,
+                  backgroundColor: p.surface,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: p.border),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                onPressed: () => Get.back(),
+                child: Text(
+                  'NO',
+                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: p.mint,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
   );
 }

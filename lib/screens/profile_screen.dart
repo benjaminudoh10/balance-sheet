@@ -1,7 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
@@ -21,14 +21,15 @@ class ProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
     return Scaffold(
-      backgroundColor: MidnightTheme.background,
+      backgroundColor: p.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0),
+              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -45,7 +46,7 @@ class ProfileView extends StatelessWidget {
                         Text(
                           'Profile',
                           style: textTheme.displayMedium!.copyWith(
-                            color: MidnightTheme.textPrimary,
+                            color: p.textPrimary,
                             letterSpacing: -0.8,
                           ),
                         ),
@@ -53,10 +54,46 @@ class ProfileView extends StatelessWidget {
                         const _ProfileHeroCard(),
                         const SizedBox(height: 28),
                         Text(
+                          'THEME',
+                          style: textTheme.labelMedium!.copyWith(
+                            letterSpacing: 1.4,
+                            color: p.textSecondary.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Obx(() {
+                          final ThemeMode current = _appController.themeMode.value;
+                          return Column(
+                            children: [
+                              _ThemeModeOptionRow(
+                                selected: current == ThemeMode.light,
+                                label: 'Light',
+                                icon: Icons.light_mode_outlined,
+                                onTap: () => _appController.setThemeMode(ThemeMode.light),
+                              ),
+                              const SizedBox(height: 8),
+                              _ThemeModeOptionRow(
+                                selected: current == ThemeMode.dark,
+                                label: 'Dark',
+                                icon: Icons.dark_mode_outlined,
+                                onTap: () => _appController.setThemeMode(ThemeMode.dark),
+                              ),
+                              const SizedBox(height: 8),
+                              _ThemeModeOptionRow(
+                                selected: current == ThemeMode.system,
+                                label: 'System default',
+                                icon: Icons.brightness_auto_outlined,
+                                onTap: () => _appController.setThemeMode(ThemeMode.system),
+                              ),
+                            ],
+                          );
+                        }),
+                        const SizedBox(height: 24),
+                        Text(
                           'APPEARANCE',
                           style: textTheme.labelMedium!.copyWith(
                             letterSpacing: 1.4,
-                            color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                            color: p.textSecondary.withValues(alpha: 0.9),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -76,11 +113,11 @@ class ProfileView extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(16),
-                                        color: MidnightTheme.surface,
+                                        color: p.surface,
                                         border: Border.all(
                                           color: selected
-                                              ? MidnightTheme.mint.withValues(alpha: 0.45)
-                                              : MidnightTheme.border,
+                                              ? p.mint.withValues(alpha: 0.45)
+                                              : p.border,
                                         ),
                                       ),
                                       child: Row(
@@ -90,8 +127,8 @@ class ProfileView extends StatelessWidget {
                                                 ? Icons.radio_button_checked_rounded
                                                 : Icons.radio_button_off_rounded,
                                             color: selected
-                                                ? MidnightTheme.mint
-                                                : MidnightTheme.textSecondary,
+                                                ? p.mint
+                                                : p.textSecondary,
                                             size: 22,
                                           ),
                                           const SizedBox(width: 12),
@@ -99,7 +136,7 @@ class ProfileView extends StatelessWidget {
                                             child: Text(
                                               o.label,
                                               style: textTheme.titleMedium!.copyWith(
-                                                color: MidnightTheme.textPrimary,
+                                                color: p.textPrimary,
                                               ),
                                             ),
                                           ),
@@ -117,7 +154,7 @@ class ProfileView extends StatelessWidget {
                           'SECURITY',
                           style: textTheme.labelMedium!.copyWith(
                             letterSpacing: 1.4,
-                            color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                            color: p.textSecondary.withValues(alpha: 0.9),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -160,7 +197,7 @@ class ProfileView extends StatelessWidget {
                         'Balanced $_kAppVersion',
                         textAlign: TextAlign.center,
                         style: textTheme.bodySmall!.copyWith(
-                          color: MidnightTheme.textSecondary.withValues(alpha: 0.75),
+                          color: p.textSecondary.withValues(alpha: 0.75),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -168,7 +205,7 @@ class ProfileView extends StatelessWidget {
                         'Data stays on this device',
                         textAlign: TextAlign.center,
                         style: textTheme.labelMedium!.copyWith(
-                          color: MidnightTheme.textSecondary.withValues(alpha: 0.55),
+                          color: p.textSecondary.withValues(alpha: 0.55),
                         ),
                       ),
                     ],
@@ -201,18 +238,19 @@ class _ProfileHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_radius),
         boxShadow: [
           BoxShadow(
-            color: MidnightTheme.mint.withValues(alpha: 0.22),
+            color: p.mint.withValues(alpha: 0.22),
             blurRadius: 22,
             spreadRadius: 0,
             offset: const Offset(0, 0),
           ),
           BoxShadow(
-            color: MidnightTheme.mint.withValues(alpha: 0.18),
+            color: p.mint.withValues(alpha: 0.18),
             blurRadius: 36,
             spreadRadius: -2,
             offset: const Offset(0, 8),
@@ -230,7 +268,7 @@ class _ProfileHeroCard extends StatelessWidget {
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.10),
               ),
-              gradient: MidnightTheme.profileHeroGradient,
+              gradient: p.profileHeroGradient,
             ),
             child: Column(
             children: [
@@ -240,12 +278,12 @@ class _ProfileHeroCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: MidnightTheme.mint.withValues(alpha: 0.5),
+                    color: p.mint.withValues(alpha: 0.5),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: MidnightTheme.mint.withValues(alpha: 0.35),
+                      color: p.mint.withValues(alpha: 0.35),
                       blurRadius: 20,
                       spreadRadius: 0,
                     ),
@@ -255,12 +293,12 @@ class _ProfileHeroCard extends StatelessWidget {
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: MidnightTheme.surface.withValues(alpha: 0.92),
+                    color: p.surface.withValues(alpha: 0.92),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.account_balance_wallet_rounded,
                     size: 40,
-                    color: MidnightTheme.mint,
+                    color: p.mint,
                   ),
                 ),
               ),
@@ -268,7 +306,7 @@ class _ProfileHeroCard extends StatelessWidget {
               Text(
                 'Balanced',
                 style: textTheme.headlineSmall!.copyWith(
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                   letterSpacing: -0.4,
                 ),
               ),
@@ -278,7 +316,7 @@ class _ProfileHeroCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium!.copyWith(
                   height: 1.35,
-                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
+                  color: p.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
             ],
@@ -312,6 +350,7 @@ class _SecuritySwitchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -321,8 +360,8 @@ class _SecuritySwitchRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: MidnightTheme.surface,
-            border: Border.all(color: MidnightTheme.border),
+            color: p.surface,
+            border: Border.all(color: p.border),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,16 +371,16 @@ class _SecuritySwitchRow extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: MidnightTheme.mint.withValues(alpha: 0.12),
+                  color: p.mint.withValues(alpha: 0.12),
                   border: Border.all(
-                    color: MidnightTheme.mint.withValues(alpha: 0.22),
+                    color: p.mint.withValues(alpha: 0.22),
                   ),
                 ),
                 child: Icon(
                   icon,
                   color: switchDisabled
-                      ? MidnightTheme.textSecondary
-                      : MidnightTheme.mint,
+                      ? p.textSecondary
+                      : p.mint,
                   size: 22,
                 ),
               ),
@@ -354,8 +393,8 @@ class _SecuritySwitchRow extends StatelessWidget {
                       title,
                       style: textTheme.titleMedium!.copyWith(
                         color: switchDisabled
-                            ? MidnightTheme.textSecondary
-                            : MidnightTheme.textPrimary,
+                            ? p.textSecondary
+                            : p.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -363,7 +402,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                       subtitle,
                       style: textTheme.bodySmall!.copyWith(
                         height: 1.3,
-                        color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                        color: p.textSecondary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -373,9 +412,64 @@ class _SecuritySwitchRow extends StatelessWidget {
                 value: switchValue,
                 onChanged: switchDisabled ? null : onSwitch,
                 activeThumbColor: Colors.black87,
-                activeTrackColor: MidnightTheme.mint.withValues(alpha: 0.55),
-                inactiveThumbColor: MidnightTheme.textSecondary,
-                inactiveTrackColor: MidnightTheme.surfaceElevated,
+                activeTrackColor: p.mint.withValues(alpha: 0.55),
+                inactiveThumbColor: p.textSecondary,
+                inactiveTrackColor: p.surfaceElevated,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeModeOptionRow extends StatelessWidget {
+  const _ThemeModeOptionRow({
+    required this.selected,
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: p.surface,
+            border: Border.all(
+              color: selected ? p.mint.withValues(alpha: 0.45) : p.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                color: selected ? p.mint : p.textSecondary,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Icon(icon, size: 22, color: selected ? p.mint : p.textSecondary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                ),
               ),
             ],
           ),

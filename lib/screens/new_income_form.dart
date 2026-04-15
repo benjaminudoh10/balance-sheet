@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -9,10 +9,10 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 /// Field labels in the income/expense sheet — caps, uses theme scale.
-TextStyle _fieldLabelStyle(TextTheme textTheme) => textTheme.labelMedium!.copyWith(
+TextStyle _fieldLabelStyle(TextTheme textTheme, AppPalette p) => textTheme.labelMedium!.copyWith(
       letterSpacing: 1.15,
       height: 1.2,
-      color: MidnightTheme.textPrimary.withValues(alpha: 0.88),
+      color: p.textPrimary.withValues(alpha: 0.88),
     );
 
 class IncomeForm extends StatelessWidget {
@@ -24,14 +24,14 @@ class IncomeForm extends StatelessWidget {
 
   bool get _isIncome => type == TransactionType.income;
 
-  Color get _accent => _isIncome ? MidnightTheme.mint : MidnightTheme.coral;
-
   String get _verb => transaction != null ? 'Update' : 'Add';
 
   String get _typeLabel => _isIncome ? 'Income' : 'Expense';
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final Color accent = _isIncome ? p.mint : p.coral;
     final double keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
     final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
 
@@ -39,9 +39,9 @@ class IncomeForm extends StatelessWidget {
           constraints: BoxConstraints(maxHeight: maxSheetHeight),
           child: Container(
             decoration: BoxDecoration(
-              color: MidnightTheme.background,
+              color: p.background,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border.all(color: MidnightTheme.border),
+              border: Border.all(color: p.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.35),
@@ -66,7 +66,7 @@ class IncomeForm extends StatelessWidget {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: MidnightTheme.border,
+                          color: p.border,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -79,14 +79,14 @@ class IncomeForm extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
-                            color: _accent.withValues(alpha: 0.12),
-                            border: Border.all(color: _accent.withValues(alpha: 0.28)),
+                            color: accent.withValues(alpha: 0.12),
+                            border: Border.all(color: accent.withValues(alpha: 0.28)),
                           ),
                           child: Icon(
                             _isIncome
                                 ? Icons.trending_up_rounded
                                 : Icons.trending_down_rounded,
-                            color: _accent,
+                            color: accent,
                             size: 26,
                           ),
                         ),
@@ -98,7 +98,7 @@ class IncomeForm extends StatelessWidget {
                               Text(
                                 '$_verb $_typeLabel',
                                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                                  color: MidnightTheme.textPrimary,
+                                  color: p.textPrimary,
                                   letterSpacing: -0.4,
                                 ),
                               ),
@@ -109,7 +109,7 @@ class IncomeForm extends StatelessWidget {
                                     : 'Log a new entry for today.',
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                   height: 1.35,
-                                  color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                                  color: p.textSecondary.withValues(alpha: 0.9),
                                 ),
                               ),
                             ],
@@ -118,8 +118,8 @@ class IncomeForm extends StatelessWidget {
                         IconButton(
                           onPressed: () => Get.back(),
                           style: IconButton.styleFrom(
-                            backgroundColor: MidnightTheme.surface,
-                            foregroundColor: MidnightTheme.textSecondary,
+                            backgroundColor: p.surface,
+                            foregroundColor: p.textSecondary,
                             padding: const EdgeInsets.all(8),
                             minimumSize: const Size(40, 40),
                           ),
@@ -150,8 +150,8 @@ class IncomeForm extends StatelessWidget {
                       height: 52,
                       child: Material(
                         color: validInput()
-                            ? _accent
-                            : MidnightTheme.surfaceElevated,
+                            ? accent
+                            : p.surfaceElevated,
                         borderRadius: BorderRadius.circular(26),
                         child: InkWell(
                           onTap: () async {
@@ -159,10 +159,10 @@ class IncomeForm extends StatelessWidget {
                               Get.snackbar(
                                 'Error',
                                 'All fields are required',
-                                colorText: MidnightTheme.textPrimary,
+                                colorText: p.textPrimary,
                                 snackPosition: SnackPosition.TOP,
                                 backgroundColor:
-                                    MidnightTheme.coral.withValues(alpha: 0.9),
+                                    p.coral.withValues(alpha: 0.9),
                               );
                               return;
                             }
@@ -193,7 +193,7 @@ class IncomeForm extends StatelessWidget {
                                         ? (_isIncome
                                             ? Colors.black87
                                             : Colors.white)
-                                        : MidnightTheme.textSecondary,
+                                        : p.textSecondary,
                                     size: 20,
                                   )
                                 : Text(
@@ -203,7 +203,7 @@ class IncomeForm extends StatelessWidget {
                                           ? (_isIncome
                                               ? Colors.black87
                                               : Colors.white)
-                                          : MidnightTheme.textSecondary,
+                                          : p.textSecondary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -236,6 +236,7 @@ class _FormSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Column(
@@ -243,7 +244,7 @@ class _FormSection extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: _fieldLabelStyle(Theme.of(context).textTheme),
+            style: _fieldLabelStyle(Theme.of(context).textTheme, p),
           ),
           const SizedBox(height: 4),
           child,
@@ -268,6 +269,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     final bool hasContact =
         contactName != null && contactName!.trim().isNotEmpty;
 
@@ -281,7 +283,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
             children: [
               Text(
                 'CATEGORY',
-                style: _fieldLabelStyle(Theme.of(context).textTheme),
+                style: _fieldLabelStyle(Theme.of(context).textTheme, p),
               ),
               if (hasContact)
                 Expanded(
@@ -307,7 +309,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
                 width: 50,
                 height: 50,
                 child: Material(
-                  color: MidnightTheme.surface,
+                  color: p.surface,
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
                     onTap: contactTap,
@@ -316,11 +318,11 @@ class _CategoryAndContactBlock extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: MidnightTheme.border),
+                        border: Border.all(color: p.border),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.contacts_rounded,
-                        color: MidnightTheme.mint,
+                        color: p.mint,
                         size: 22,
                       ),
                     ),
@@ -343,20 +345,21 @@ class _ContactChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           Icons.person_outline_rounded,
           size: 16,
-          color: MidnightTheme.mint.withValues(alpha: 0.9),
+          color: p.mint.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
             name,
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
-              color: MidnightTheme.textPrimary,
+              color: p.textPrimary,
               fontWeight: FontWeight.w600,
             ),
             overflow: TextOverflow.ellipsis,
@@ -369,13 +372,13 @@ class _ContactChip extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: MidnightTheme.border.withValues(alpha: 0.6),
+              color: p.border.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
               size: 14,
-              color: MidnightTheme.textPrimary,
+              color: p.textPrimary,
             ),
           ),
         ),

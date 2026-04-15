@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -42,6 +42,7 @@ class _LockScreenState extends State<LockScreen> {
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final bool turningOffPin = _securityController.fromSettings.value;
 
       final String appBarTitle =
@@ -62,16 +63,16 @@ class _LockScreenState extends State<LockScreen> {
 
       return Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: MidnightTheme.background,
+        backgroundColor: p.background,
         appBar: AppBar(
-          backgroundColor: MidnightTheme.background,
+          backgroundColor: p.background,
           elevation: 0,
           scrolledUnderElevation: 0,
-          iconTheme: const IconThemeData(color: MidnightTheme.textPrimary),
+          iconTheme: IconThemeData(color: p.textPrimary),
           title: Text(
             appBarTitle,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: MidnightTheme.textPrimary,
+              color: p.textPrimary,
             ),
           ),
           centerTitle: true,
@@ -82,7 +83,7 @@ class _LockScreenState extends State<LockScreen> {
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: MidnightGridPainter(heightFraction: 1.0),
+                painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
               ),
             ),
             SafeArea(
@@ -99,7 +100,7 @@ class _LockScreenState extends State<LockScreen> {
                       headline,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        color: MidnightTheme.textPrimary,
+                        color: p.textPrimary,
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -109,7 +110,7 @@ class _LockScreenState extends State<LockScreen> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         height: 1.45,
-                        color: MidnightTheme.textSecondary.withValues(alpha: 0.92),
+                        color: p.textSecondary.withValues(alpha: 0.92),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -143,7 +144,7 @@ class _LockScreenState extends State<LockScreen> {
                                   child: Icon(
                                     Icons.fingerprint_rounded,
                                     size: 48,
-                                    color: MidnightTheme.mint,
+                                    color: p.mint,
                                   ),
                                 ),
                               ),
@@ -154,7 +155,7 @@ class _LockScreenState extends State<LockScreen> {
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                 fontWeight: FontWeight.w500,
-                                color: MidnightTheme.textSecondary.withValues(
+                                color: p.textSecondary.withValues(
                                   alpha: 0.95,
                                 ),
                               ),

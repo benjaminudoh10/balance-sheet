@@ -1,7 +1,7 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/screens/home.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,13 +16,14 @@ class ContactDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          color: MidnightTheme.surfaceElevated,
-          border: Border.all(color: MidnightTheme.border),
+          color: p.surfaceElevated,
+          border: Border.all(color: p.border),
         ),
         padding: EdgeInsets.all(10.0),
         height: 250.0,
@@ -42,20 +43,20 @@ class ContactDialog extends StatelessWidget {
             EmptyState(
               icon: Icon(
                 Icons.person_outline,
-                color: MidnightTheme.mint.withValues(alpha: 0.7),
+                color: p.mint.withValues(alpha: 0.7),
                 size: 48.0,
               ),
               primaryText: Text(
                 'No contact has been added',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                 ),
               ),
               secondaryText: Text(
                 'Click the button below to add a contact',
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: MidnightTheme.textSecondary,
+                  color: p.textSecondary,
                 ),
               ),
             ),
@@ -69,7 +70,7 @@ class ContactDialog extends StatelessWidget {
               child: Text(
                 'Add contact',
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  color: MidnightTheme.mint,
+                  color: p.mint,
                 ),
               ),
             )
@@ -80,6 +81,7 @@ class ContactDialog extends StatelessWidget {
   }
 
   Widget _buildDialogItem(BuildContext context, String text, int index, bool highlight) {
+    final AppPalette p = AppPalette.of(context);
     return GestureDetector(
       onTap: () {
         this.controller.contact.value = _contactController.contacts[index];
@@ -90,9 +92,9 @@ class ContactDialog extends StatelessWidget {
         child: Container(
           width: Get.width,
           decoration: BoxDecoration(
-            color: highlight ? MidnightTheme.mint.withValues(alpha: 0.2) : MidnightTheme.surface,
+            color: highlight ? p.mint.withValues(alpha: 0.2) : p.surface,
             borderRadius: BorderRadius.circular(15.0),
-            border: Border.all(color: MidnightTheme.border),
+            border: Border.all(color: p.border),
           ),
           padding: EdgeInsets.symmetric(
             vertical: 8.0,
@@ -102,7 +104,7 @@ class ContactDialog extends StatelessWidget {
             child: Text(
               text,
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                color: MidnightTheme.textPrimary,
+                color: p.textPrimary,
                 fontWeight: FontWeight.w400,
               ),
             ),

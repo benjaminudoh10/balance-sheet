@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
@@ -130,11 +130,12 @@ class AmountInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: MidnightTheme.border),
+        border: Border.all(color: p.border),
         borderRadius: BorderRadius.circular(10.0),
-        color: MidnightTheme.surface,
+        color: p.surface,
       ),
       margin: EdgeInsets.symmetric(
         vertical: compact ? 0.0 : 10.0,
@@ -144,14 +145,14 @@ class AmountInput extends StatelessWidget {
           contentPadding: EdgeInsets.all(10.0),
           hintText: "0.00",
           hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: MidnightTheme.textSecondary,
+            color: p.textSecondary,
           ),
           border: InputBorder.none,
         ),
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: MidnightTheme.textPrimary,
+          color: p.textPrimary,
         ),
-        cursorColor: MidnightTheme.mint,
+        cursorColor: p.mint,
         controller: _transactionController.amountController.value,
         keyboardType: TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [DecimalTextInputFormatter()],
@@ -174,6 +175,7 @@ class CategoryInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final List<Map<String, Object>> list = Categories.CATEGORIES;
       final List<String> keys =
           list.map((c) => c['key']! as String).toList(growable: false);
@@ -187,9 +189,9 @@ class CategoryInput extends StatelessWidget {
 
       return Container(
         decoration: BoxDecoration(
-          border: Border.all(color: MidnightTheme.border),
+          border: Border.all(color: p.border),
           borderRadius: BorderRadius.circular(10.0),
-          color: MidnightTheme.surface,
+          color: p.surface,
         ),
         width: compact ? double.infinity : Get.width,
         padding: EdgeInsets.fromLTRB(
@@ -206,12 +208,12 @@ class CategoryInput extends StatelessWidget {
             value: value,
             isDense: false,
             isExpanded: true,
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: MidnightTheme.textSecondary,
+              color: p.textSecondary,
               size: 22,
             ),
-            dropdownColor: MidnightTheme.background,
+            dropdownColor: p.background,
             borderRadius: BorderRadius.circular(14.0),
             itemHeight: null,
             menuMaxHeight: 300,
@@ -260,6 +262,7 @@ class ReportCategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final List<Map<String, Object>> list = Categories.CATEGORIES;
       final List<String> keys =
           list.map((c) => c['key']! as String).toList(growable: false);
@@ -273,11 +276,12 @@ class ReportCategoryDropdown extends StatelessWidget {
         });
       }
 
-      final CategoryPillStyle? pill =
-          isPlaceholder ? null : Categories.pillStyleForKey(value!);
+      final CategoryPillStyle? pill = isPlaceholder
+          ? null
+          : Categories.pillStyleForKey(value!, Theme.of(context).brightness);
 
       final Color hintAndIconColor = isPlaceholder
-          ? MidnightTheme.textSecondary
+          ? p.textSecondary
           : pill!.foreground;
 
       final String displayLabel = isPlaceholder
@@ -290,16 +294,16 @@ class ReportCategoryDropdown extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: isPlaceholder ? MidnightTheme.border : pill!.border,
+            color: isPlaceholder ? p.border : pill!.border,
           ),
           borderRadius: BorderRadius.circular(20.0),
-          color: isPlaceholder ? MidnightTheme.surface : pill!.background,
+          color: isPlaceholder ? p.surface : pill!.background,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: PopupMenuButton<String>(
           padding: EdgeInsets.zero,
           splashRadius: 20,
-          color: MidnightTheme.background,
+          color: p.background,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14.0),
           ),
@@ -354,11 +358,12 @@ class DescriptionInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: MidnightTheme.border),
+        border: Border.all(color: p.border),
         borderRadius: BorderRadius.circular(10.0),
-        color: MidnightTheme.surface,
+        color: p.surface,
       ),
       margin: EdgeInsets.symmetric(
         vertical: compact ? 0.0 : 10.0,
@@ -368,14 +373,14 @@ class DescriptionInput extends StatelessWidget {
           contentPadding: EdgeInsets.all(10.0),
           hintText: "e.g. Tomatoes",
           hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: MidnightTheme.textSecondary,
+            color: p.textSecondary,
           ),
           border: InputBorder.none,
         ),
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: MidnightTheme.textPrimary,
+          color: p.textPrimary,
         ),
-        cursorColor: MidnightTheme.mint,
+        cursorColor: p.mint,
         controller: _transactionController.descController.value,
         keyboardType: TextInputType.text,
         textCapitalization: TextCapitalization.sentences,
@@ -398,12 +403,13 @@ class ContactInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     final double radius = compact ? 24.0 : 12.0;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: MidnightTheme.border),
+        border: Border.all(color: p.border),
         borderRadius: BorderRadius.circular(radius),
-        color: MidnightTheme.surface,
+        color: p.surface,
       ),
       margin: compact
           ? EdgeInsets.zero
@@ -417,14 +423,14 @@ class ContactInput extends StatelessWidget {
           isDense: compact,
           hintText: "e.g. Jane Doe",
           hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: MidnightTheme.textSecondary,
+            color: p.textSecondary,
           ),
           border: InputBorder.none,
         ),
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: MidnightTheme.textPrimary,
+          color: p.textPrimary,
         ),
-        cursorColor: MidnightTheme.mint,
+        cursorColor: p.mint,
         controller: _contactController.nameController.value,
         keyboardType: TextInputType.text,
         textCapitalization: TextCapitalization.words,
@@ -487,6 +493,7 @@ class _PinInputState extends State<PinInput> {
   }
 
   PinTheme _pinTheme(BuildContext context, double size, {required bool focused}) {
+    final AppPalette p = AppPalette.of(context);
     final double radius = (size * 0.18).clamp(8.0, 14.0);
     final TextStyle base = Theme.of(context).textTheme.titleLarge!;
     return PinTheme(
@@ -495,12 +502,12 @@ class _PinInputState extends State<PinInput> {
       textStyle: base.copyWith(
         fontWeight: FontWeight.w600,
         fontSize: (size * 0.34).clamp(15.0, 20.0),
-        color: MidnightTheme.textPrimary,
+        color: p.textPrimary,
       ),
       decoration: BoxDecoration(
-        color: focused ? MidnightTheme.surface : MidnightTheme.surfaceElevated,
+        color: focused ? p.surface : p.surfaceElevated,
         border: Border.all(
-          color: focused ? MidnightTheme.mint : MidnightTheme.border,
+          color: focused ? p.mint : p.border,
           width: focused ? 2.0 : 1.0,
         ),
         borderRadius: BorderRadius.circular(radius),

@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -16,14 +16,15 @@ class PlaceholderTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Scaffold(
-      backgroundColor: MidnightTheme.background,
+      backgroundColor: p.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0),
+              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -38,7 +39,7 @@ class PlaceholderTab extends StatelessWidget {
                       child: Icon(
                         Icons.hourglass_empty_rounded,
                         size: 56,
-                        color: MidnightTheme.mint.withValues(alpha: 0.55),
+                        color: p.mint.withValues(alpha: 0.55),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -46,7 +47,7 @@ class PlaceholderTab extends StatelessWidget {
                       title,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        color: MidnightTheme.textPrimary,
+                        color: p.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -54,7 +55,7 @@ class PlaceholderTab extends StatelessWidget {
                       subtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        color: MidnightTheme.textSecondary,
+                        color: p.textSecondary,
                         fontWeight: FontWeight.w400,
                       ),
                     ),

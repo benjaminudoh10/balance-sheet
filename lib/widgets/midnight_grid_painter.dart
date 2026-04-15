@@ -1,17 +1,20 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
 import 'package:flutter/material.dart';
 
-/// Subtle teal grid for dark screens (home, accounts, etc.).
+/// Subtle grid for home, accounts, etc. — line color comes from [AppPalette.gridLine].
 class MidnightGridPainter extends CustomPainter {
-  MidnightGridPainter({this.heightFraction = 1.0});
+  MidnightGridPainter({
+    this.heightFraction = 1.0,
+    required this.gridLineColor,
+  });
 
   /// 1.0 = full height; main screen uses ~0.55 to keep grid in upper area.
   final double heightFraction;
+  final Color gridLineColor;
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = MidnightTheme.gridLine
+      ..color = gridLineColor
       ..strokeWidth = 0.6;
     final double h = size.height * heightFraction.clamp(0.2, 1.0);
     const double step = 28.0;
@@ -25,5 +28,6 @@ class MidnightGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant MidnightGridPainter oldDelegate) =>
-      oldDelegate.heightFraction != heightFraction;
+      oldDelegate.heightFraction != heightFraction ||
+      oldDelegate.gridLineColor != gridLineColor;
 }

@@ -1,6 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
@@ -70,8 +70,9 @@ class _ReportViewState extends State<ReportView> {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Scaffold(
-      backgroundColor: MidnightTheme.background,
+      backgroundColor: p.background,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -79,13 +80,13 @@ class _ReportViewState extends State<ReportView> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          color: MidnightTheme.textPrimary,
+          color: p.textPrimary,
           onPressed: () => Get.back(),
         ),
         title: Text(
           'All transactions',
           style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-            color: MidnightTheme.textPrimary,
+            color: p.textPrimary,
             letterSpacing: -0.4,
           ),
         ),
@@ -96,7 +97,7 @@ class _ReportViewState extends State<ReportView> {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0),
+              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -124,13 +125,13 @@ class _ReportViewState extends State<ReportView> {
                           icon: Icon(
                             Icons.receipt_long_outlined,
                             size: 48,
-                            color: MidnightTheme.mint.withValues(alpha: 0.7),
+                            color: p.mint.withValues(alpha: 0.7),
                           ),
                           primaryText: Text(
                             'No transactions in this period',
                             style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: MidnightTheme.textPrimary,
+                              color: p.textPrimary,
                             ),
                           ),
                           secondaryText: Text(
@@ -138,7 +139,7 @@ class _ReportViewState extends State<ReportView> {
                                 ? 'Try clearing filters or choosing another date range'
                                 : 'Change the period above or add entries from Home',
                             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: MidnightTheme.textSecondary,
+                              color: p.textSecondary,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -208,28 +209,29 @@ class _ReportPeriodDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: MidnightTheme.surfaceElevated,
+          color: p.surfaceElevated,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: MidnightTheme.border),
+          border: Border.all(color: p.border),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<ReportType>(
             value: controller.type.value,
             isExpanded: false,
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: MidnightTheme.textSecondary,
+              color: p.textSecondary,
               size: 22,
             ),
-            dropdownColor: MidnightTheme.background,
+            dropdownColor: p.background,
             borderRadius: BorderRadius.circular(16),
             itemHeight: null,
             menuMaxHeight: 360,
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
-              color: MidnightTheme.textPrimary,
+              color: p.textPrimary,
             ),
             selectedItemBuilder: (BuildContext context) {
               return _kPeriodOrder.map((ReportType t) {
@@ -309,8 +311,9 @@ class _ClearFiltersPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Material(
-      color: MidnightTheme.surface,
+      color: p.surface,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () {
@@ -323,7 +326,7 @@ class _ClearFiltersPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: MidnightTheme.border),
+            border: Border.all(color: p.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -331,13 +334,13 @@ class _ClearFiltersPill extends StatelessWidget {
               Icon(
                 Icons.filter_alt_off_rounded,
                 size: 18,
-                color: MidnightTheme.mint.withValues(alpha: 0.95),
+                color: p.mint.withValues(alpha: 0.95),
               ),
               const SizedBox(width: 6),
               Text(
                 'Clear filters',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: MidnightTheme.mint.withValues(alpha: 0.95),
+                  color: p.mint.withValues(alpha: 0.95),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -356,9 +359,10 @@ class _ContactFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     final bool active = controller.contact.value.id > 0;
     return Material(
-      color: MidnightTheme.surface,
+      color: p.surface,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () => Get.dialog(ContactDialog(controller: controller)),
@@ -368,7 +372,7 @@ class _ContactFilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: MidnightTheme.border),
+            border: Border.all(color: p.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -376,14 +380,14 @@ class _ContactFilterChip extends StatelessWidget {
               Icon(
                 Icons.person_outline_rounded,
                 size: 18,
-                color: active ? MidnightTheme.mint : MidnightTheme.textSecondary,
+                color: active ? p.mint : p.textSecondary,
               ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   controller.contact.value.name,
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: active ? MidnightTheme.textPrimary : MidnightTheme.textSecondary,
+                    color: active ? p.textPrimary : p.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -401,7 +405,7 @@ class _ContactFilterChip extends StatelessWidget {
                     child: Icon(
                       Icons.close_rounded,
                       size: 16,
-                      color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                      color: p.textSecondary.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -422,11 +426,12 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final int income = controller.income.value;
       final int expense = controller.expense.value;
       final int net = income - expense;
       final bool isLoss = net < 0;
-      final Color accent = isLoss ? MidnightTheme.coral : MidnightTheme.mint;
+      final Color accent = isLoss ? p.coral : p.mint;
 
       return ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -437,7 +442,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: accent.withValues(alpha: 0.35)),
-              gradient: MidnightTheme.balanceCardGradient(isLoss),
+              gradient: p.balanceCardGradient(isLoss),
               boxShadow: [
                 BoxShadow(
                   color: accent.withValues(alpha: 0.22),
@@ -462,7 +467,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                   controller.label.value,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: MidnightTheme.textSecondary,
+                    color: p.textSecondary,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.6,
                   ),
@@ -477,7 +482,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           Text(
                             'INCOME',
                             style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                              color: MidnightTheme.textSecondary,
+                              color: p.textSecondary,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.0,
                             ),
@@ -486,7 +491,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           Text(
                             formatAmount(income),
                             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              color: MidnightTheme.mint,
+                              color: p.mint,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -500,7 +505,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           Text(
                             'EXPENSES',
                             style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                              color: MidnightTheme.textSecondary,
+                              color: p.textSecondary,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.0,
                             ),
@@ -509,7 +514,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           Text(
                             formatAmount(expense),
                             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              color: MidnightTheme.coral,
+                              color: p.coral,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -539,6 +544,7 @@ class _DaySectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final bool categoryFilterOn = controller.category.value != 'Category';
 
       return Row(
@@ -548,7 +554,7 @@ class _DaySectionHeader extends StatelessWidget {
             child: Text(
               title,
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: MidnightTheme.textSecondary,
+                color: p.textSecondary,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
               ),

@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -22,13 +22,13 @@ const BorderRadius _contactTileBorderRadius = BorderRadius.only(
 );
 
 /// Avatar / row accent hues derived from name (on-brand variety).
-Color _accentForContactName(String name) {
-  const List<Color> palette = [
-    MidnightTheme.mint,
-    Color(0xFF2DD4BF),
-    Color(0xFF34D399),
-    Color(0xFF5EEAD4),
-    Color(0xFF14B8A6),
+Color _accentForContactName(String name, AppPalette p) {
+  final List<Color> palette = [
+    p.mint,
+    const Color(0xFF2DD4BF),
+    const Color(0xFF34D399),
+    const Color(0xFF5EEAD4),
+    const Color(0xFF14B8A6),
   ];
   if (name.isEmpty) return palette[0];
   return palette[name.hashCode.abs() % palette.length];
@@ -67,17 +67,18 @@ class _ContactViewState extends State<ContactView> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final AppPalette p = AppPalette.of(context);
       final List<Contact> all = _contactController.contacts;
       final List<Contact> shown = _filtered(all);
 
       return Scaffold(
-        backgroundColor: MidnightTheme.background,
+        backgroundColor: p.background,
         body: Stack(
           fit: StackFit.expand,
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: MidnightGridPainter(heightFraction: 1.0),
+                painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
               ),
             ),
             SafeArea(
@@ -116,7 +117,7 @@ class _ContactViewState extends State<ContactView> {
                             itemCount: shown.length,
                             itemBuilder: (context, index) {
                               final Contact contact = shown[index];
-                              final Color accent = _accentForContactName(contact.name);
+                              final Color accent = _accentForContactName(contact.name, p);
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 8),
                                 child: Dismissible(
@@ -126,22 +127,22 @@ class _ContactViewState extends State<ContactView> {
                                     margin: const EdgeInsets.symmetric(vertical: 2),
                                     decoration: BoxDecoration(
                                       borderRadius: _contactTileBorderRadius,
-                                      color: MidnightTheme.coral.withValues(alpha: 0.42),
+                                      color: p.coral.withValues(alpha: 0.42),
                                     ),
                                     alignment: Alignment.centerLeft,
                                     padding: const EdgeInsets.only(left: 20),
                                     child: Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.delete_outline_rounded,
-                                          color: MidnightTheme.textPrimary,
+                                          color: p.textPrimary,
                                           size: 24,
                                         ),
                                         const SizedBox(width: 10),
                                         Text(
                                           'Delete',
                                           style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                            color: MidnightTheme.textPrimary.withValues(alpha: 0.95),
+                                            color: p.textPrimary.withValues(alpha: 0.95),
                                           ),
                                         ),
                                       ],
@@ -173,9 +174,9 @@ class _ContactViewState extends State<ContactView> {
                           Get.snackbar(
                             'Error',
                             'Name is required',
-                            colorText: MidnightTheme.textPrimary,
+                            colorText: p.textPrimary,
                             snackPosition: SnackPosition.TOP,
-                            backgroundColor: MidnightTheme.coral.withValues(alpha: 0.85),
+                            backgroundColor: p.coral.withValues(alpha: 0.85),
                           );
                           return;
                         }
@@ -208,6 +209,7 @@ class _AccountsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -216,14 +218,14 @@ class _AccountsHeader extends StatelessWidget {
           height: 46,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            color: MidnightTheme.mint.withValues(alpha: 0.14),
+            color: p.mint.withValues(alpha: 0.14),
             border: Border.all(
-              color: MidnightTheme.mint.withValues(alpha: 0.28),
+              color: p.mint.withValues(alpha: 0.28),
             ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.groups_rounded,
-            color: MidnightTheme.mint,
+            color: p.mint,
             size: 24,
           ),
         ),
@@ -237,7 +239,7 @@ class _AccountsHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                   letterSpacing: -0.6,
                   height: 1.15,
                 ),
@@ -249,7 +251,7 @@ class _AccountsHeader extends StatelessWidget {
                     : 'Names you attach to income and expenses',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
+                  color: p.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
             ],
@@ -267,30 +269,31 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return TextField(
       controller: controller,
       style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: MidnightTheme.textPrimary,
+        color: p.textPrimary,
       ),
-      cursorColor: MidnightTheme.mint,
+      cursorColor: p.mint,
       decoration: InputDecoration(
         isDense: true,
         filled: true,
-        fillColor: MidnightTheme.surface,
+        fillColor: p.surface,
         hintText: 'Search contacts',
         hintStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-          color: MidnightTheme.textSecondary.withValues(alpha: 0.85),
+          color: p.textSecondary.withValues(alpha: 0.85),
         ),
         prefixIcon: Icon(
           Icons.search_rounded,
-          color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+          color: p.textSecondary.withValues(alpha: 0.9),
           size: 22,
         ),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 icon: Icon(
                   Icons.close_rounded,
-                  color: MidnightTheme.textSecondary,
+                  color: p.textSecondary,
                   size: 20,
                 ),
                 onPressed: () {
@@ -304,15 +307,15 @@ class _SearchField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_searchFieldRadius),
-          borderSide: BorderSide(color: MidnightTheme.border),
+          borderSide: BorderSide(color: p.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_searchFieldRadius),
-          borderSide: BorderSide(color: MidnightTheme.border),
+          borderSide: BorderSide(color: p.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_searchFieldRadius),
-          borderSide: BorderSide(color: MidnightTheme.mint.withValues(alpha: 0.55)),
+          borderSide: BorderSide(color: p.mint.withValues(alpha: 0.55)),
         ),
       ),
     );
@@ -330,6 +333,7 @@ class _ContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -340,8 +344,8 @@ class _ContactTile extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: _contactTileBorderRadius,
-            color: MidnightTheme.surface,
-            border: Border.all(color: MidnightTheme.border),
+            color: p.surface,
+            border: Border.all(color: p.border),
           ),
           child: IntrinsicHeight(
             child: Row(
@@ -388,14 +392,14 @@ class _ContactTile extends StatelessWidget {
                           child: Text(
                             contact.name,
                             style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: MidnightTheme.textPrimary,
+                              color: p.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Icon(
                           Icons.chevron_right_rounded,
-                          color: MidnightTheme.textSecondary.withValues(alpha: 0.85),
+                          color: p.textSecondary.withValues(alpha: 0.85),
                           size: 22,
                         ),
                       ],
@@ -424,12 +428,13 @@ class _ComposerDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: MidnightTheme.surfaceElevated.withValues(alpha: 0.95),
+        color: p.surfaceElevated.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(_composerDockRadius),
-        border: Border.all(color: MidnightTheme.border),
+        border: Border.all(color: p.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
@@ -460,18 +465,18 @@ class _ComposerDock extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: invalid
-                        ? MidnightTheme.surface
-                        : MidnightTheme.mint,
+                        ? p.surface
+                        : p.mint,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: invalid ? MidnightTheme.border : Colors.transparent,
+                      color: invalid ? p.border : Colors.transparent,
                     ),
                   ),
                   child: Icon(
                     Icons.add_rounded,
                     size: 26,
                     color: invalid
-                        ? MidnightTheme.textSecondary
+                        ? p.textSecondary
                         : Colors.black87,
                   ),
                 ),
@@ -491,6 +496,7 @@ class _EmptyContactsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -502,7 +508,7 @@ class _EmptyContactsState extends StatelessWidget {
               padding: const EdgeInsets.all(28),
               child: Icon(
                 hasQuery ? Icons.search_off_rounded : Icons.people_outline_rounded,
-                color: MidnightTheme.mint.withValues(alpha: 0.75),
+                color: p.mint.withValues(alpha: 0.75),
                 size: 56,
               ),
             ),
@@ -512,7 +518,7 @@ class _EmptyContactsState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge!.copyWith(
                 fontWeight: FontWeight.bold,
-                color: MidnightTheme.textPrimary,
+                color: p.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -522,7 +528,7 @@ class _EmptyContactsState extends StatelessWidget {
                   : 'Add someone you split costs or income with',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                color: MidnightTheme.textSecondary,
+                color: p.textSecondary,
                 height: 1.35,
                 fontWeight: FontWeight.w400,
               ),

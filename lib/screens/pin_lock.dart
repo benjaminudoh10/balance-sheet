@@ -1,4 +1,4 @@
-import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -12,20 +12,21 @@ class Pin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
     final bool setNewPin = _securityController.currentStoredPin.value == '';
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: MidnightTheme.background,
+      backgroundColor: p.background,
       appBar: AppBar(
-        backgroundColor: MidnightTheme.background,
+        backgroundColor: p.background,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: MidnightTheme.textPrimary),
+        iconTheme: IconThemeData(color: p.textPrimary),
         title: Text(
           setNewPin ? 'Set up PIN' : 'Change PIN',
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
-            color: MidnightTheme.textPrimary,
+            color: p.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -36,7 +37,7 @@ class Pin extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0),
+              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -86,12 +87,13 @@ class _NewPinScreenState extends State<NewPinScreen> {
   }
 
   Future<void> _setNewPin(SecurityController c) async {
+    final AppPalette p = AppPalette.of(Get.context!);
     if (!_inputIsValid(c)) {
       Get.snackbar(
         'Error',
         'All input is required',
-        backgroundColor: MidnightTheme.coral.withValues(alpha: 0.9),
-        colorText: MidnightTheme.textPrimary,
+        backgroundColor: p.coral.withValues(alpha: 0.9),
+        colorText: p.textPrimary,
       );
       return;
     }
@@ -101,7 +103,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
       Get.snackbar(
         'Success',
         'PIN has been set successfully',
-        backgroundColor: MidnightTheme.mint.withValues(alpha: 0.9),
+        backgroundColor: p.mint.withValues(alpha: 0.9),
         colorText: Colors.black87,
       );
     }
@@ -112,7 +114,9 @@ class _NewPinScreenState extends State<NewPinScreen> {
     final SecurityController c = Get.find();
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return Obx(() => SingleChildScrollView(
+    return Obx(() {
+          final AppPalette p = AppPalette.of(context);
+          return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
@@ -127,7 +131,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
                 'Choose a 4-digit PIN',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                   letterSpacing: -0.4,
                 ),
               ),
@@ -137,7 +141,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
+                  color: p.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
               const SizedBox(height: 28),
@@ -181,8 +185,8 @@ class _NewPinScreenState extends State<NewPinScreen> {
                 height: 52,
                 child: Material(
                   color: _inputIsValid(c)
-                      ? MidnightTheme.mint
-                      : MidnightTheme.surfaceElevated,
+                      ? p.mint
+                      : p.surfaceElevated,
                   borderRadius: BorderRadius.circular(26),
                   child: InkWell(
                     onTap: () => _setNewPin(c),
@@ -194,7 +198,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
                           fontWeight: FontWeight.w600,
                           color: _inputIsValid(c)
                               ? Colors.black87
-                              : MidnightTheme.textSecondary,
+                              : p.textSecondary,
                         ),
                       ),
                     ),
@@ -203,7 +207,8 @@ class _NewPinScreenState extends State<NewPinScreen> {
               ),
             ],
           ),
-        ));
+        );
+        });
   }
 }
 
@@ -253,12 +258,13 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
   }
 
   Future<void> _changePin(SecurityController c) async {
+    final AppPalette p = AppPalette.of(Get.context!);
     if (!_inputIsValid(c)) {
       Get.snackbar(
         'Error',
         'All input is required',
-        backgroundColor: MidnightTheme.coral.withValues(alpha: 0.9),
-        colorText: MidnightTheme.textPrimary,
+        backgroundColor: p.coral.withValues(alpha: 0.9),
+        colorText: p.textPrimary,
       );
       return;
     }
@@ -268,7 +274,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
       Get.snackbar(
         'Success',
         'PIN has been set successfully',
-        backgroundColor: MidnightTheme.mint.withValues(alpha: 0.9),
+        backgroundColor: p.mint.withValues(alpha: 0.9),
         colorText: Colors.black87,
       );
     }
@@ -279,7 +285,9 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     final SecurityController c = Get.find();
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return Obx(() => SingleChildScrollView(
+    return Obx(() {
+          final AppPalette p = AppPalette.of(context);
+          return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
@@ -294,7 +302,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 'Update your PIN',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: MidnightTheme.textPrimary,
+                  color: p.textPrimary,
                   letterSpacing: -0.4,
                 ),
               ),
@@ -304,7 +312,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
+                  color: p.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
               const SizedBox(height: 28),
@@ -371,8 +379,8 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 height: 52,
                 child: Material(
                   color: _inputIsValid(c)
-                      ? MidnightTheme.mint
-                      : MidnightTheme.surfaceElevated,
+                      ? p.mint
+                      : p.surfaceElevated,
                   borderRadius: BorderRadius.circular(26),
                   child: InkWell(
                     onTap: () => _changePin(c),
@@ -384,7 +392,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                           fontWeight: FontWeight.w600,
                           color: _inputIsValid(c)
                               ? Colors.black87
-                              : MidnightTheme.textSecondary,
+                              : p.textSecondary,
                         ),
                       ),
                     ),
@@ -393,6 +401,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
               ),
             ],
           ),
-        ));
+        );
+        });
   }
 }
