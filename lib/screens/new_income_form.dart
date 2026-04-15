@@ -8,10 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
-/// Field labels in the income/expense sheet — slightly larger, near-white caps.
-TextStyle _fieldLabelStyle() => TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
+/// Field labels in the income/expense sheet — caps, uses theme scale.
+TextStyle _fieldLabelStyle(TextTheme textTheme) => textTheme.labelMedium!.copyWith(
       letterSpacing: 1.15,
       height: 1.2,
       color: MidnightTheme.textPrimary.withValues(alpha: 0.88),
@@ -99,9 +97,7 @@ class IncomeForm extends StatelessWidget {
                             children: [
                               Text(
                                 '$_verb $_typeLabel',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
+                                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                                   color: MidnightTheme.textPrimary,
                                   letterSpacing: -0.4,
                                 ),
@@ -111,8 +107,7 @@ class IncomeForm extends StatelessWidget {
                                 transaction != null
                                     ? 'Edit the details below.'
                                     : 'Log a new entry for today.',
-                                style: TextStyle(
-                                  fontSize: 14,
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                   height: 1.35,
                                   color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                                 ),
@@ -203,13 +198,12 @@ class IncomeForm extends StatelessWidget {
                                   )
                                 : Text(
                                     '$_verb $_typeLabel',
-                                    style: TextStyle(
+                                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
                                       color: validInput()
                                           ? (_isIncome
                                               ? Colors.black87
                                               : Colors.white)
                                           : MidnightTheme.textSecondary,
-                                      fontSize: 17,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -249,7 +243,7 @@ class _FormSection extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: _fieldLabelStyle(),
+            style: _fieldLabelStyle(Theme.of(context).textTheme),
           ),
           const SizedBox(height: 4),
           child,
@@ -287,7 +281,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
             children: [
               Text(
                 'CATEGORY',
-                style: _fieldLabelStyle(),
+                style: _fieldLabelStyle(Theme.of(context).textTheme),
               ),
               if (hasContact)
                 Expanded(
@@ -361,10 +355,9 @@ class _ContactChip extends StatelessWidget {
         Flexible(
           child: Text(
             name,
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
               color: MidnightTheme.textPrimary,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,

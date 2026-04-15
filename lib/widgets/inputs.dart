@@ -143,13 +143,12 @@ class AmountInput extends StatelessWidget {
         decoration: InputDecoration(
           contentPadding: EdgeInsets.all(10.0),
           hintText: "0.00",
-          hintStyle: TextStyle(
-            fontSize: 14.0,
+          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
             color: MidnightTheme.textSecondary,
           ),
           border: InputBorder.none,
         ),
-        style: TextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
           color: MidnightTheme.textPrimary,
         ),
         cursorColor: MidnightTheme.mint,
@@ -216,8 +215,7 @@ class CategoryInput extends StatelessWidget {
             borderRadius: BorderRadius.circular(14.0),
             itemHeight: null,
             menuMaxHeight: 300,
-            style: const TextStyle(
-              fontSize: 11,
+            style: Theme.of(context).textTheme.labelSmall!.copyWith(
               fontWeight: FontWeight.w600,
             ),
             selectedItemBuilder: (BuildContext context) {
@@ -333,8 +331,7 @@ class ReportCategoryDropdown extends StatelessWidget {
               Text(
                 displayLabel,
                 maxLines: 1,
-                style: TextStyle(
-                  fontSize: 13,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   fontWeight: FontWeight.w600,
                   color: hintAndIconColor,
                 ),
@@ -370,13 +367,12 @@ class DescriptionInput extends StatelessWidget {
         decoration: InputDecoration(
           contentPadding: EdgeInsets.all(10.0),
           hintText: "e.g. Tomatoes",
-          hintStyle: TextStyle(
-            fontSize: 14.0,
+          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
             color: MidnightTheme.textSecondary,
           ),
           border: InputBorder.none,
         ),
-        style: TextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
           color: MidnightTheme.textPrimary,
         ),
         cursorColor: MidnightTheme.mint,
@@ -420,13 +416,12 @@ class ContactInput extends StatelessWidget {
               : const EdgeInsets.all(10.0),
           isDense: compact,
           hintText: "e.g. Jane Doe",
-          hintStyle: TextStyle(
-            fontSize: 14.0,
+          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
             color: MidnightTheme.textSecondary,
           ),
           border: InputBorder.none,
         ),
-        style: TextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
           color: MidnightTheme.textPrimary,
         ),
         cursorColor: MidnightTheme.mint,
@@ -491,12 +486,13 @@ class _PinInputState extends State<PinInput> {
     super.dispose();
   }
 
-  PinTheme _pinTheme(double size, {required bool focused}) {
+  PinTheme _pinTheme(BuildContext context, double size, {required bool focused}) {
     final double radius = (size * 0.18).clamp(8.0, 14.0);
+    final TextStyle base = Theme.of(context).textTheme.titleLarge!;
     return PinTheme(
       width: size,
       height: size,
-      textStyle: TextStyle(
+      textStyle: base.copyWith(
         fontWeight: FontWeight.w600,
         fontSize: (size * 0.34).clamp(15.0, 20.0),
         color: MidnightTheme.textPrimary,
@@ -513,8 +509,8 @@ class _PinInputState extends State<PinInput> {
   }
 
   Widget _buildPinput(BuildContext context, double cellSize) {
-    final PinTheme following = _pinTheme(cellSize, focused: false);
-    final PinTheme focused = _pinTheme(cellSize, focused: true);
+    final PinTheme following = _pinTheme(context, cellSize, focused: false);
+    final PinTheme focused = _pinTheme(context, cellSize, focused: true);
 
     final double keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
     return Pinput(

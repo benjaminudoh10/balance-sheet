@@ -24,9 +24,7 @@ class Pin extends StatelessWidget {
         iconTheme: const IconThemeData(color: MidnightTheme.textPrimary),
         title: Text(
           setNewPin ? 'Set up PIN' : 'Change PIN',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          style: Theme.of(context).textTheme.titleLarge!.copyWith(
             color: MidnightTheme.textPrimary,
           ),
         ),
@@ -125,12 +123,10 @@ class _NewPinScreenState extends State<NewPinScreen> {
                 child: PinHeroIcon(icon: Icons.pin_rounded),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Choose a 4-digit PIN',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                   color: MidnightTheme.textPrimary,
                   letterSpacing: -0.4,
                 ),
@@ -139,8 +135,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
               Text(
                 'You’ll use this to unlock Balanced. Pick something you’ll remember.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   height: 1.4,
                   color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
@@ -195,8 +190,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
                     child: Center(
                       child: Text(
                         'Save PIN',
-                        style: TextStyle(
-                          fontSize: 17,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           fontWeight: FontWeight.w600,
                           color: _inputIsValid(c)
                               ? Colors.black87
@@ -296,12 +290,10 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 child: PinHeroIcon(icon: Icons.lock_reset_rounded),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Update your PIN',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                   color: MidnightTheme.textPrimary,
                   letterSpacing: -0.4,
                 ),
@@ -310,8 +302,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
               Text(
                 'Enter your current PIN, then choose a new one.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   height: 1.4,
                   color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
@@ -389,8 +380,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                     child: Center(
                       child: Text(
                         'Update PIN',
-                        style: TextStyle(
-                          fontSize: 17,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           fontWeight: FontWeight.w600,
                           color: _inputIsValid(c)
                               ? Colors.black87

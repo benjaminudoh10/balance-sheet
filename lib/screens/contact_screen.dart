@@ -140,10 +140,8 @@ class _ContactViewState extends State<ContactView> {
                                         const SizedBox(width: 10),
                                         Text(
                                           'Delete',
-                                          style: TextStyle(
+                                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
                                             color: MidnightTheme.textPrimary.withValues(alpha: 0.95),
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 15,
                                           ),
                                         ),
                                       ],
@@ -234,13 +232,11 @@ class _AccountsHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Accounts',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                   color: MidnightTheme.textPrimary,
                   letterSpacing: -0.6,
                   height: 1.15,
@@ -251,8 +247,7 @@ class _AccountsHeader extends StatelessWidget {
                 isFiltering
                     ? 'Showing matches in your network'
                     : 'Names you attach to income and expenses',
-                style: TextStyle(
-                  fontSize: 13,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   height: 1.4,
                   color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
@@ -274,9 +269,8 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      style: const TextStyle(
+      style: Theme.of(context).textTheme.titleSmall!.copyWith(
         color: MidnightTheme.textPrimary,
-        fontSize: 15,
       ),
       cursorColor: MidnightTheme.mint,
       decoration: InputDecoration(
@@ -284,9 +278,8 @@ class _SearchField extends StatelessWidget {
         filled: true,
         fillColor: MidnightTheme.surface,
         hintText: 'Search contacts',
-        hintStyle: TextStyle(
+        hintStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
           color: MidnightTheme.textSecondary.withValues(alpha: 0.85),
-          fontSize: 15,
         ),
         prefixIcon: Icon(
           Icons.search_rounded,
@@ -383,9 +376,8 @@ class _ContactTile extends StatelessWidget {
                               contact.name.isNotEmpty
                                   ? contact.name.substring(0, 1).toUpperCase()
                                   : '?',
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.titleLarge!.copyWith(
                                 color: accent,
-                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -395,10 +387,8 @@ class _ContactTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             contact.name,
-                            style: const TextStyle(
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: MidnightTheme.textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -520,9 +510,8 @@ class _EmptyContactsState extends StatelessWidget {
             Text(
               hasQuery ? 'No matches' : 'No contacts yet',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
                 color: MidnightTheme.textPrimary,
               ),
             ),
@@ -532,10 +521,10 @@ class _EmptyContactsState extends StatelessWidget {
                   ? 'Try a different search'
                   : 'Add someone you split costs or income with',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                 color: MidnightTheme.textSecondary,
-                fontSize: 15,
                 height: 1.35,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],

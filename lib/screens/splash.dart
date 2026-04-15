@@ -45,10 +45,8 @@ class Splash extends StatelessWidget {
                           const SizedBox(width: 15.0),
                           Text(
                             'Balanced',
-                            style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                            style: Theme.of(context).textTheme.displayLarge!.copyWith(
                               color: MidnightTheme.textPrimary,
-                              fontSize: 36.0,
-                              fontWeight: FontWeight.w600,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -57,10 +55,10 @@ class Splash extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         '...know where your money goes',
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
                           color: MidnightTheme.textSecondary,
-                          fontSize: 18.0,
                           height: 1.35,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],

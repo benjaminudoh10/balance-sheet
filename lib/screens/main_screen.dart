@@ -37,12 +37,10 @@ class MainView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Balanced',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                           color: MidnightTheme.textPrimary,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -78,14 +76,12 @@ class MainView extends StatelessWidget {
                               const SizedBox(height: 18),
                               _IncomeExpenseRow(),
                               const SizedBox(height: 28),
-                              const Align(
+                              Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Recent Transactions',
-                                  style: TextStyle(
+                                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
                                     color: MidnightTheme.textPrimary,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -103,16 +99,16 @@ class MainView extends StatelessWidget {
                               size: 48,
                               color: MidnightTheme.mint.withValues(alpha: 0.7),
                             ),
-                            primaryText: const Text(
+                            primaryText: Text(
                               'Add your first transaction today',
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: MidnightTheme.textPrimary,
                               ),
                             ),
-                            secondaryText: const Text(
+                            secondaryText: Text(
                               'Tap Income or Expense above.',
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                 color: MidnightTheme.textSecondary,
                               ),
                             ),
@@ -126,7 +122,7 @@ class MainView extends StatelessWidget {
                               (context, index) {
                                 return Padding(
                                   padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : 10),
-                                  child: singleTransactionContainer(list[index]),
+                                  child: singleTransactionContainer(context, list[index]),
                                 );
                               },
                               childCount: list.length,
@@ -187,10 +183,8 @@ class _GlassBalanceCard extends StatelessWidget {
               Text(
                 formatSignedNet(total),
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: Theme.of(context).textTheme.displaySmall!.copyWith(
                   color: MidnightTheme.textPrimary,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w600,
                   letterSpacing: -0.6,
                 ),
               ),
@@ -202,10 +196,8 @@ class _GlassBalanceCard extends StatelessWidget {
                   Text(
                     formatSignedNet(todayNet),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
                       color: netColor,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -213,12 +205,11 @@ class _GlassBalanceCard extends StatelessWidget {
                   Text(
                     'Today',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.labelMedium!.copyWith(
                       color: MidnightTheme.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
                       letterSpacing: 0.8,
                       height: 1.0,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -238,13 +229,15 @@ class _GlassBalanceCard extends StatelessWidget {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Text(
                         'All transactions',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      SizedBox(width: 6),
-                      Icon(Icons.chevron_right_rounded, size: 22),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_right_rounded, size: 22),
                     ],
                   ),
                 ),
@@ -333,10 +326,9 @@ class _ActionPill extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 label,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   color: accent,
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
                 ),
               ),
             ],

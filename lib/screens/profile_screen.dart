@@ -1,9 +1,11 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/midnight_theme.dart';
+import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
+import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,9 +16,11 @@ const String _kAppVersion = '1.3.0';
 /// Profile tab — identity-style header plus security controls (replaces flat settings list).
 class ProfileView extends StatelessWidget {
   final SecurityController _securityController = Get.find();
+  final AppController _appController = Get.find();
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: MidnightTheme.background,
       body: Stack(
@@ -38,11 +42,9 @@ class ProfileView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Profile',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
+                          style: textTheme.displayMedium!.copyWith(
                             color: MidnightTheme.textPrimary,
                             letterSpacing: -0.8,
                           ),
@@ -51,10 +53,69 @@ class ProfileView extends StatelessWidget {
                         const _ProfileHeroCard(),
                         const SizedBox(height: 28),
                         Text(
+                          'APPEARANCE',
+                          style: textTheme.labelMedium!.copyWith(
+                            letterSpacing: 1.4,
+                            color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Obx(() {
+                          final String current = _appController.fontId.value;
+                          return Column(
+                            children: AppFontIds.choices.map((AppFontOption o) {
+                              final bool selected = current == o.id;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _appController.setAppFont(o.id),
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Ink(
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        color: MidnightTheme.surface,
+                                        border: Border.all(
+                                          color: selected
+                                              ? MidnightTheme.mint.withValues(alpha: 0.45)
+                                              : MidnightTheme.border,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            selected
+                                                ? Icons.radio_button_checked_rounded
+                                                : Icons.radio_button_off_rounded,
+                                            color: selected
+                                                ? MidnightTheme.mint
+                                                : MidnightTheme.textSecondary,
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              o.label,
+                                              style: textTheme.titleMedium!.copyWith(
+                                                color: MidnightTheme.textPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        }),
+                        const SizedBox(height: 20),
+                        Text(
                           'SECURITY',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                          style: textTheme.labelMedium!.copyWith(
                             letterSpacing: 1.4,
                             color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                           ),
@@ -98,8 +159,7 @@ class ProfileView extends StatelessWidget {
                       Text(
                         'Balanced $_kAppVersion',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: textTheme.bodySmall!.copyWith(
                           color: MidnightTheme.textSecondary.withValues(alpha: 0.75),
                         ),
                       ),
@@ -107,8 +167,7 @@ class ProfileView extends StatelessWidget {
                       Text(
                         'Data stays on this device',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: textTheme.labelMedium!.copyWith(
                           color: MidnightTheme.textSecondary.withValues(alpha: 0.55),
                         ),
                       ),
@@ -141,6 +200,7 @@ class _ProfileHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_radius),
@@ -205,11 +265,9 @@ class _ProfileHeroCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Balanced',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                style: textTheme.headlineSmall!.copyWith(
                   color: MidnightTheme.textPrimary,
                   letterSpacing: -0.4,
                 ),
@@ -218,8 +276,7 @@ class _ProfileHeroCard extends StatelessWidget {
               Text(
                 'Income & expenses on your phone',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
+                style: textTheme.bodyMedium!.copyWith(
                   height: 1.35,
                   color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
@@ -254,6 +311,7 @@ class _SecuritySwitchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -294,9 +352,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      style: textTheme.titleMedium!.copyWith(
                         color: switchDisabled
                             ? MidnightTheme.textSecondary
                             : MidnightTheme.textPrimary,
@@ -305,8 +361,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: textTheme.bodySmall!.copyWith(
                         height: 1.3,
                         color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                       ),

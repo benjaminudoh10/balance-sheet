@@ -22,7 +22,9 @@ class CategoryPillLabel extends StatelessWidget {
     final EdgeInsets pad = compact
         ? const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0)
         : const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0);
-    final double fontSize = compact ? 9.5 : 11.0;
+    final TextStyle base = Theme.of(context).textTheme.labelSmall!;
+    final double fontSize =
+        compact ? (base.fontSize ?? 11) * 0.9 : (base.fontSize ?? 11);
     return Container(
       padding: pad,
       decoration: BoxDecoration(
@@ -34,7 +36,7 @@ class CategoryPillLabel extends StatelessWidget {
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
+        style: base.copyWith(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
           color: style.foreground,

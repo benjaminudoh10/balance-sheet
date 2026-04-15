@@ -31,6 +31,7 @@ class ContactDialog extends StatelessWidget {
           itemCount: _contactController.contacts.length,
           itemBuilder: (context, index) {
             return _buildDialogItem(
+              context,
               _contactController.contacts[index].name,
               index,
               this.controller.contact.value?.id == _contactController.contacts[index].id
@@ -46,14 +47,16 @@ class ContactDialog extends StatelessWidget {
               ),
               primaryText: Text(
                 'No contact has been added',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   fontWeight: FontWeight.bold,
                   color: MidnightTheme.textPrimary,
                 ),
               ),
               secondaryText: Text(
                 'Click the button below to add a contact',
-                style: TextStyle(color: MidnightTheme.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: MidnightTheme.textSecondary,
+                ),
               ),
             ),
             TextButton(
@@ -63,7 +66,12 @@ class ContactDialog extends StatelessWidget {
                 Get.to(Home());
                 _appController.setIndex(1);
               },
-              child: Text('Add contact', style: TextStyle(color: MidnightTheme.mint)),
+              child: Text(
+                'Add contact',
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  color: MidnightTheme.mint,
+                ),
+              ),
             )
           ],
         ),
@@ -71,7 +79,7 @@ class ContactDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDialogItem(String text, int index, bool highlight) {
+  Widget _buildDialogItem(BuildContext context, String text, int index, bool highlight) {
     return GestureDetector(
       onTap: () {
         this.controller.contact.value = _contactController.contacts[index];
@@ -93,9 +101,9 @@ class ContactDialog extends StatelessWidget {
           child: Center(
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: 16.0,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
                 color: MidnightTheme.textPrimary,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),

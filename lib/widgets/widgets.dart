@@ -36,7 +36,8 @@ void _openEditModalFor(Transaction transaction) {
   );
 }
 
-Widget singleTransactionContainer(Transaction transaction) {
+Widget singleTransactionContainer(BuildContext context, Transaction transaction) {
+  final TextTheme textTheme = Theme.of(context).textTheme;
   final bool isIncome = transaction.type == TransactionType.income;
   final Color accent = isIncome ? MidnightTheme.mint : MidnightTheme.coral;
   final String categoryLabel = _categoryLabelForTransaction(transaction);
@@ -124,9 +125,8 @@ Widget singleTransactionContainer(Transaction transaction) {
                               transaction.description,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                              style: const TextStyle(
+                              style: textTheme.titleSmall!.copyWith(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 15.0,
                                 color: MidnightTheme.textPrimary,
                               ),
                             ),
@@ -145,9 +145,8 @@ Widget singleTransactionContainer(Transaction transaction) {
                                 ],
                                 Text(
                                   DateFormat.jm().format(transaction.date),
-                                  style: const TextStyle(
+                                  style: textTheme.bodySmall!.copyWith(
                                     color: MidnightTheme.textSecondary,
-                                    fontSize: 13.0,
                                   ),
                                 ),
                               ],
@@ -157,10 +156,9 @@ Widget singleTransactionContainer(Transaction transaction) {
                       ),
                       Text(
                         formatAmount(transaction.amount),
-                        style: const TextStyle(
+                        style: textTheme.titleSmall!.copyWith(
                           color: MidnightTheme.textPrimary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 15.0,
                         ),
                       ),
                     ],

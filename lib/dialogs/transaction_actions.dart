@@ -73,10 +73,9 @@ void showDeleteModal(Transaction transaction) {
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'Are you sure you want to delete this transaction?',
-            style: TextStyle(
-              fontSize: 16.0,
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
               fontWeight: FontWeight.bold,
               color: MidnightTheme.textPrimary,
             ),
@@ -96,9 +95,12 @@ void showDeleteModal(Transaction transaction) {
               ),
               onPressed: () =>
                   transactionController.deleteTransaction(transaction),
-              child: const Text(
+              child: Text(
                 'YES',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -116,9 +118,12 @@ void showDeleteModal(Transaction transaction) {
                 ),
               ),
               onPressed: () => Get.back(),
-              child: const Text(
+              child: Text(
                 'NO',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: MidnightTheme.mint,
+                ),
               ),
             ),
           ),

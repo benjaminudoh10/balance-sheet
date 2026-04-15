@@ -82,12 +82,10 @@ class _ReportViewState extends State<ReportView> {
           color: MidnightTheme.textPrimary,
           onPressed: () => Get.back(),
         ),
-        title: const Text(
+        title: Text(
           'All transactions',
-          style: TextStyle(
+          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
             color: MidnightTheme.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
             letterSpacing: -0.4,
           ),
         ),
@@ -128,9 +126,9 @@ class _ReportViewState extends State<ReportView> {
                             size: 48,
                             color: MidnightTheme.mint.withValues(alpha: 0.7),
                           ),
-                          primaryText: const Text(
+                          primaryText: Text(
                             'No transactions in this period',
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               fontWeight: FontWeight.bold,
                               color: MidnightTheme.textPrimary,
                             ),
@@ -139,7 +137,9 @@ class _ReportViewState extends State<ReportView> {
                             _hasActiveFilters(_reportController)
                                 ? 'Try clearing filters or choosing another date range'
                                 : 'Change the period above or add entries from Home',
-                            style: const TextStyle(color: MidnightTheme.textSecondary),
+                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              color: MidnightTheme.textSecondary,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -149,7 +149,7 @@ class _ReportViewState extends State<ReportView> {
                         padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 28),
                         sliver: SliverList(
                           delegate: SliverChildListDelegate(
-                            _buildGroupedTransactionSlivers(_reportController),
+                            _buildGroupedTransactionSlivers(context, _reportController),
                           ),
                         ),
                       ),
@@ -168,7 +168,7 @@ bool _hasActiveFilters(ReportController c) {
   return cat || contact;
 }
 
-List<Widget> _buildGroupedTransactionSlivers(ReportController c) {
+List<Widget> _buildGroupedTransactionSlivers(BuildContext context, ReportController c) {
   final Map<int, List<Transaction>> map = c.splitTransactions;
   final List<int> keys = map.keys.toList()..sort((a, b) => b.compareTo(a));
   final List<Widget> out = [];
@@ -191,7 +191,7 @@ List<Widget> _buildGroupedTransactionSlivers(ReportController c) {
       out.add(
         Padding(
           padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
-          child: singleTransactionContainer(dayTx[i]),
+          child: singleTransactionContainer(context, dayTx[i]),
         ),
       );
     }
@@ -228,10 +228,8 @@ class _ReportPeriodDropdown extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             itemHeight: null,
             menuMaxHeight: 360,
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
               color: MidnightTheme.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
             ),
             selectedItemBuilder: (BuildContext context) {
               return _kPeriodOrder.map((ReportType t) {
@@ -338,10 +336,9 @@ class _ClearFiltersPill extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 'Clear filters',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: MidnightTheme.mint.withValues(alpha: 0.95),
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
                 ),
               ),
             ],
@@ -385,10 +382,9 @@ class _ContactFilterChip extends StatelessWidget {
               Flexible(
                 child: Text(
                   controller.contact.value.name,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: active ? MidnightTheme.textPrimary : MidnightTheme.textSecondary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -456,10 +452,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                 Text(
                   formatSignedNet(net),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.displayMedium!.copyWith(
                     color: accent,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w600,
                     letterSpacing: -0.6,
                   ),
                 ),
@@ -467,9 +461,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                 Text(
                   controller.label.value,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     color: MidnightTheme.textSecondary,
-                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.6,
                   ),
@@ -483,9 +476,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                         children: [
                           Text(
                             'INCOME',
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
                               color: MidnightTheme.textSecondary,
-                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.0,
                             ),
@@ -493,9 +485,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             formatAmount(income),
-                            style: const TextStyle(
+                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
                               color: MidnightTheme.mint,
-                              fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -508,9 +499,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                         children: [
                           Text(
                             'EXPENSES',
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
                               color: MidnightTheme.textSecondary,
-                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 1.0,
                             ),
@@ -518,9 +508,8 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             formatAmount(expense),
-                            style: const TextStyle(
+                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
                               color: MidnightTheme.coral,
-                              fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -558,9 +547,8 @@ class _DaySectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: MidnightTheme.textSecondary,
-                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
               ),

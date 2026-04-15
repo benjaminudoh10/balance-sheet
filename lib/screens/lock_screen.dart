@@ -70,9 +70,7 @@ class _LockScreenState extends State<LockScreen> {
           iconTheme: const IconThemeData(color: MidnightTheme.textPrimary),
           title: Text(
             appBarTitle,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
               color: MidnightTheme.textPrimary,
             ),
           ),
@@ -100,9 +98,7 @@ class _LockScreenState extends State<LockScreen> {
                     Text(
                       headline,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                         color: MidnightTheme.textPrimary,
                         letterSpacing: -0.4,
                       ),
@@ -111,8 +107,7 @@ class _LockScreenState extends State<LockScreen> {
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         height: 1.45,
                         color: MidnightTheme.textSecondary.withValues(alpha: 0.92),
                       ),
@@ -157,8 +152,7 @@ class _LockScreenState extends State<LockScreen> {
                             Text(
                               'Use fingerprint',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: MidnightTheme.textSecondary.withValues(
                                   alpha: 0.95,

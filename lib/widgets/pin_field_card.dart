@@ -30,9 +30,7 @@ class PinFieldCard extends StatelessWidget {
           Text(
             label.toUpperCase(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(
               letterSpacing: 1.35,
               height: 1.25,
               color: MidnightTheme.textPrimary,
@@ -42,8 +40,7 @@ class PinFieldCard extends StatelessWidget {
           Text(
             hint,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
               fontWeight: FontWeight.w400,
               height: 1.45,
               color: MidnightTheme.textSecondary.withValues(alpha: 0.78),

@@ -45,19 +45,17 @@ class PlaceholderTab extends StatelessWidget {
                     Text(
                       title,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                         color: MidnightTheme.textPrimary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
                         color: MidnightTheme.textSecondary,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
