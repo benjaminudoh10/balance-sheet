@@ -105,8 +105,8 @@ Widget singleTransactionContainer(Transaction transaction) {
                         height: 44,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(color: accent.withOpacity(0.55)),
-                          color: accent.withOpacity(0.12),
+                          border: Border.all(color: accent.withValues(alpha: 0.55)),
+                          color: accent.withValues(alpha: 0.12),
                         ),
                         child: Icon(
                           Categories.iconForKey(transaction.category),
@@ -192,19 +192,19 @@ class EmptyStateIconFrame extends StatelessWidget {
 
   List<BoxShadow> get _mintGlow => [
         BoxShadow(
-          color: MidnightTheme.mint.withOpacity(0.38),
+          color: MidnightTheme.mint.withValues(alpha: 0.38),
           blurRadius: 26,
           spreadRadius: 0,
           offset: Offset.zero,
         ),
         BoxShadow(
-          color: MidnightTheme.mint.withOpacity(0.22),
+          color: MidnightTheme.mint.withValues(alpha: 0.22),
           blurRadius: 44,
           spreadRadius: -4,
           offset: const Offset(0, 6),
         ),
         BoxShadow(
-          color: MidnightTheme.mint.withOpacity(0.12),
+          color: MidnightTheme.mint.withValues(alpha: 0.12),
           blurRadius: 56,
           spreadRadius: 2,
           offset: Offset.zero,
@@ -216,17 +216,17 @@ class EmptyStateIconFrame extends StatelessWidget {
     final BoxDecoration innerDeco = circular
         ? BoxDecoration(
             shape: BoxShape.circle,
-            color: MidnightTheme.surfaceElevated.withOpacity(0.42),
+            color: MidnightTheme.surfaceElevated.withValues(alpha: 0.42),
             border: Border.all(
-              color: Colors.white.withOpacity(0.14),
+              color: Colors.white.withValues(alpha: 0.14),
               width: 1,
             ),
           )
         : BoxDecoration(
             borderRadius: BorderRadius.circular(_radius),
-            color: MidnightTheme.surfaceElevated.withOpacity(0.42),
+            color: MidnightTheme.surfaceElevated.withValues(alpha: 0.42),
             border: Border.all(
-              color: Colors.white.withOpacity(0.14),
+              color: Colors.white.withValues(alpha: 0.14),
               width: 1,
             ),
           );

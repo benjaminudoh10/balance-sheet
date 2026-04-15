@@ -14,7 +14,7 @@ TextStyle _fieldLabelStyle() => TextStyle(
       fontWeight: FontWeight.w600,
       letterSpacing: 1.15,
       height: 1.2,
-      color: MidnightTheme.textPrimary.withOpacity(0.88),
+      color: MidnightTheme.textPrimary.withValues(alpha: 0.88),
     );
 
 class IncomeForm extends StatelessWidget {
@@ -46,7 +46,7 @@ class IncomeForm extends StatelessWidget {
               border: Border.all(color: MidnightTheme.border),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
+                  color: Colors.black.withValues(alpha: 0.35),
                   blurRadius: 24,
                   offset: const Offset(0, -4),
                 ),
@@ -81,8 +81,8 @@ class IncomeForm extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
-                            color: _accent.withOpacity(0.12),
-                            border: Border.all(color: _accent.withOpacity(0.28)),
+                            color: _accent.withValues(alpha: 0.12),
+                            border: Border.all(color: _accent.withValues(alpha: 0.28)),
                           ),
                           child: Icon(
                             _isIncome
@@ -114,7 +114,7 @@ class IncomeForm extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 14,
                                   height: 1.35,
-                                  color: MidnightTheme.textSecondary.withOpacity(0.9),
+                                  color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                                 ),
                               ),
                             ],
@@ -167,7 +167,7 @@ class IncomeForm extends StatelessWidget {
                                 colorText: MidnightTheme.textPrimary,
                                 snackPosition: SnackPosition.TOP,
                                 backgroundColor:
-                                    MidnightTheme.coral.withOpacity(0.9),
+                                    MidnightTheme.coral.withValues(alpha: 0.9),
                               );
                               return;
                             }
@@ -355,7 +355,7 @@ class _ContactChip extends StatelessWidget {
         Icon(
           Icons.person_outline_rounded,
           size: 16,
-          color: MidnightTheme.mint.withOpacity(0.9),
+          color: MidnightTheme.mint.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 6),
         Flexible(
@@ -376,7 +376,7 @@ class _ContactChip extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: MidnightTheme.border.withOpacity(0.6),
+              color: MidnightTheme.border.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(

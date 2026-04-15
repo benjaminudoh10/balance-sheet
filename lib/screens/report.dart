@@ -126,7 +126,7 @@ class _ReportViewState extends State<ReportView> {
                           icon: Icon(
                             Icons.receipt_long_outlined,
                             size: 48,
-                            color: MidnightTheme.mint.withOpacity(0.7),
+                            color: MidnightTheme.mint.withValues(alpha: 0.7),
                           ),
                           primaryText: const Text(
                             'No transactions in this period',
@@ -333,13 +333,13 @@ class _ClearFiltersPill extends StatelessWidget {
               Icon(
                 Icons.filter_alt_off_rounded,
                 size: 18,
-                color: MidnightTheme.mint.withOpacity(0.95),
+                color: MidnightTheme.mint.withValues(alpha: 0.95),
               ),
               const SizedBox(width: 6),
               Text(
                 'Clear filters',
                 style: TextStyle(
-                  color: MidnightTheme.mint.withOpacity(0.95),
+                  color: MidnightTheme.mint.withValues(alpha: 0.95),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -405,7 +405,7 @@ class _ContactFilterChip extends StatelessWidget {
                     child: Icon(
                       Icons.close_rounded,
                       size: 16,
-                      color: MidnightTheme.textSecondary.withOpacity(0.9),
+                      color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -440,11 +440,11 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: accent.withOpacity(0.35)),
+              border: Border.all(color: accent.withValues(alpha: 0.35)),
               gradient: MidnightTheme.balanceCardGradient(isLoss),
               boxShadow: [
                 BoxShadow(
-                  color: accent.withOpacity(0.22),
+                  color: accent.withValues(alpha: 0.22),
                   blurRadius: 24,
                   offset: const Offset(0, 10),
                 ),

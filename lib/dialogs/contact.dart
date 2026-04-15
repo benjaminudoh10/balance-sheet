@@ -41,7 +41,7 @@ class ContactDialog extends StatelessWidget {
             EmptyState(
               icon: Icon(
                 Icons.person_outline,
-                color: MidnightTheme.mint.withOpacity(0.7),
+                color: MidnightTheme.mint.withValues(alpha: 0.7),
                 size: 48.0,
               ),
               primaryText: Text(
@@ -82,7 +82,7 @@ class ContactDialog extends StatelessWidget {
         child: Container(
           width: Get.width,
           decoration: BoxDecoration(
-            color: highlight ? MidnightTheme.mint.withOpacity(0.2) : MidnightTheme.surface,
+            color: highlight ? MidnightTheme.mint.withValues(alpha: 0.2) : MidnightTheme.surface,
             borderRadius: BorderRadius.circular(15.0),
             border: Border.all(color: MidnightTheme.border),
           ),

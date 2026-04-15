@@ -51,7 +51,7 @@ class MainView extends StatelessWidget {
                         icon: const Icon(Icons.settings_outlined),
                         color: MidnightTheme.textPrimary,
                         style: IconButton.styleFrom(
-                          backgroundColor: MidnightTheme.surface.withOpacity(0.9),
+                          backgroundColor: MidnightTheme.surface.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -101,7 +101,7 @@ class MainView extends StatelessWidget {
                             icon: Icon(
                               Icons.receipt_long_outlined,
                               size: 48,
-                              color: MidnightTheme.mint.withOpacity(0.7),
+                              color: MidnightTheme.mint.withValues(alpha: 0.7),
                             ),
                             primaryText: const Text(
                               'Add your first transaction today',
@@ -172,11 +172,11 @@ class _GlassBalanceCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: cardAccent.withOpacity(0.35)),
+            border: Border.all(color: cardAccent.withValues(alpha: 0.35)),
             gradient: MidnightTheme.balanceCardGradient(isDailyLoss),
             boxShadow: [
               BoxShadow(
-                color: cardAccent.withOpacity(0.28),
+                color: cardAccent.withValues(alpha: 0.28),
                 blurRadius: 28,
                 offset: const Offset(0, 12),
               ),
@@ -230,7 +230,7 @@ class _GlassBalanceCard extends StatelessWidget {
                   onPressed: () => Get.to(() => const ReportView()),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: cardAccent,
-                    side: BorderSide(color: cardAccent.withOpacity(0.45)),
+                    side: BorderSide(color: cardAccent.withValues(alpha: 0.45)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
@@ -267,7 +267,7 @@ class _IncomeExpenseRow extends StatelessWidget {
             label: 'Income',
             icon: Icons.add,
             accent: MidnightTheme.mint,
-            glow: MidnightTheme.mint.withOpacity(0.35),
+            glow: MidnightTheme.mint.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.income),
           ),
         ),
@@ -277,7 +277,7 @@ class _IncomeExpenseRow extends StatelessWidget {
             label: 'Expense',
             icon: Icons.remove,
             accent: MidnightTheme.coral,
-            glow: MidnightTheme.coral.withOpacity(0.35),
+            glow: MidnightTheme.coral.withValues(alpha: 0.35),
             onTap: () => showNewTransactionModal(TransactionType.expenditure),
           ),
         ),
@@ -309,14 +309,14 @@ class _ActionPill extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
-        splashColor: accent.withOpacity(0.12),
-        highlightColor: accent.withOpacity(0.06),
+        splashColor: accent.withValues(alpha: 0.12),
+        highlightColor: accent.withValues(alpha: 0.06),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: accent.withOpacity(0.55)),
-            color: accent.withOpacity(0.08),
+            border: Border.all(color: accent.withValues(alpha: 0.55)),
+            color: accent.withValues(alpha: 0.08),
             boxShadow: [
               BoxShadow(
                 color: glow,

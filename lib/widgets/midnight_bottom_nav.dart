@@ -21,7 +21,7 @@ class MidnightBottomNav extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: MidnightTheme.border.withOpacity(0.6)),
+                top: BorderSide(color: MidnightTheme.border.withValues(alpha: 0.6)),
               ),
             ),
             child: Row(
@@ -94,7 +94,7 @@ class _NavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        splashColor: active.withOpacity(0.12),
+        splashColor: active.withValues(alpha: 0.12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(

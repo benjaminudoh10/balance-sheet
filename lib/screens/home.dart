@@ -12,19 +12,18 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => WillPopScope(
-      onWillPop: () async {
-        if (_appController.index.value != 0) {
-          _appController.setIndex(0);
-          return false;
-        }
-        return true;
-      },
-      child: Scaffold(
-        body: _bodyForIndex(_appController.index.value),
-        bottomNavigationBar: const MidnightBottomNav(),
-      ),
-    ));
+    return Obx(() => PopScope(
+          canPop: _appController.index.value == 0,
+          onPopInvokedWithResult: (bool didPop, Object? result) {
+            if (!didPop && _appController.index.value != 0) {
+              _appController.setIndex(0);
+            }
+          },
+          child: Scaffold(
+            body: _bodyForIndex(_appController.index.value),
+            bottomNavigationBar: const MidnightBottomNav(),
+          ),
+        ));
   }
 
   Widget _bodyForIndex(int index) {

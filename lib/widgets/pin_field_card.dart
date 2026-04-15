@@ -46,7 +46,7 @@ class PinFieldCard extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w400,
               height: 1.45,
-              color: MidnightTheme.textSecondary.withOpacity(0.78),
+              color: MidnightTheme.textSecondary.withValues(alpha: 0.78),
             ),
           ),
           const SizedBox(height: 18),

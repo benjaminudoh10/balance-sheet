@@ -56,7 +56,7 @@ class ProfileView extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.4,
-                            color: MidnightTheme.textSecondary.withOpacity(0.9),
+                            color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -100,7 +100,7 @@ class ProfileView extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
-                          color: MidnightTheme.textSecondary.withOpacity(0.75),
+                          color: MidnightTheme.textSecondary.withValues(alpha: 0.75),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -109,7 +109,7 @@ class ProfileView extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
-                          color: MidnightTheme.textSecondary.withOpacity(0.55),
+                          color: MidnightTheme.textSecondary.withValues(alpha: 0.55),
                         ),
                       ),
                     ],
@@ -146,13 +146,13 @@ class _ProfileHeroCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         boxShadow: [
           BoxShadow(
-            color: MidnightTheme.mint.withOpacity(0.22),
+            color: MidnightTheme.mint.withValues(alpha: 0.22),
             blurRadius: 22,
             spreadRadius: 0,
             offset: const Offset(0, 0),
           ),
           BoxShadow(
-            color: MidnightTheme.mint.withOpacity(0.18),
+            color: MidnightTheme.mint.withValues(alpha: 0.18),
             blurRadius: 36,
             spreadRadius: -2,
             offset: const Offset(0, 8),
@@ -168,7 +168,7 @@ class _ProfileHeroCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_radius),
               border: Border.all(
-                color: Colors.white.withOpacity(0.10),
+                color: Colors.white.withValues(alpha: 0.10),
               ),
               gradient: MidnightTheme.profileHeroGradient,
             ),
@@ -180,12 +180,12 @@ class _ProfileHeroCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: MidnightTheme.mint.withOpacity(0.5),
+                    color: MidnightTheme.mint.withValues(alpha: 0.5),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: MidnightTheme.mint.withOpacity(0.35),
+                      color: MidnightTheme.mint.withValues(alpha: 0.35),
                       blurRadius: 20,
                       spreadRadius: 0,
                     ),
@@ -195,7 +195,7 @@ class _ProfileHeroCard extends StatelessWidget {
                   margin: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: MidnightTheme.surface.withOpacity(0.92),
+                    color: MidnightTheme.surface.withValues(alpha: 0.92),
                   ),
                   child: const Icon(
                     Icons.account_balance_wallet_rounded,
@@ -221,7 +221,7 @@ class _ProfileHeroCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.35,
-                  color: MidnightTheme.textSecondary.withOpacity(0.95),
+                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
             ],
@@ -274,9 +274,9 @@ class _SecuritySwitchRow extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: MidnightTheme.mint.withOpacity(0.12),
+                  color: MidnightTheme.mint.withValues(alpha: 0.12),
                   border: Border.all(
-                    color: MidnightTheme.mint.withOpacity(0.22),
+                    color: MidnightTheme.mint.withValues(alpha: 0.22),
                   ),
                 ),
                 child: Icon(
@@ -308,7 +308,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.3,
-                        color: MidnightTheme.textSecondary.withOpacity(0.9),
+                        color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -318,7 +318,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                 value: switchValue,
                 onChanged: switchDisabled ? null : onSwitch,
                 activeThumbColor: Colors.black87,
-                activeTrackColor: MidnightTheme.mint.withOpacity(0.55),
+                activeTrackColor: MidnightTheme.mint.withValues(alpha: 0.55),
                 inactiveThumbColor: MidnightTheme.textSecondary,
                 inactiveTrackColor: MidnightTheme.surfaceElevated,
               ),

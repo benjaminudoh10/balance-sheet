@@ -114,7 +114,7 @@ class _LockScreenState extends State<LockScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.45,
-                        color: MidnightTheme.textSecondary.withOpacity(0.92),
+                        color: MidnightTheme.textSecondary.withValues(alpha: 0.92),
                       ),
                     ),
                     if (!turningOffPin && _securityController.fingerprintInUse.value) ...[
@@ -125,7 +125,7 @@ class _LockScreenState extends State<LockScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           height: 1.35,
-                          color: MidnightTheme.mint.withOpacity(0.85),
+                          color: MidnightTheme.mint.withValues(alpha: 0.85),
                           fontWeight: FontWeight.w500,
                         ),
                       ),

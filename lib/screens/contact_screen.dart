@@ -126,7 +126,7 @@ class _ContactViewState extends State<ContactView> {
                                     margin: const EdgeInsets.symmetric(vertical: 2),
                                     decoration: BoxDecoration(
                                       borderRadius: _contactTileBorderRadius,
-                                      color: MidnightTheme.coral.withOpacity(0.42),
+                                      color: MidnightTheme.coral.withValues(alpha: 0.42),
                                     ),
                                     alignment: Alignment.centerLeft,
                                     padding: const EdgeInsets.only(left: 20),
@@ -141,7 +141,7 @@ class _ContactViewState extends State<ContactView> {
                                         Text(
                                           'Delete',
                                           style: TextStyle(
-                                            color: MidnightTheme.textPrimary.withOpacity(0.95),
+                                            color: MidnightTheme.textPrimary.withValues(alpha: 0.95),
                                             fontWeight: FontWeight.w600,
                                             fontSize: 15,
                                           ),
@@ -177,7 +177,7 @@ class _ContactViewState extends State<ContactView> {
                             'Name is required',
                             colorText: MidnightTheme.textPrimary,
                             snackPosition: SnackPosition.TOP,
-                            backgroundColor: MidnightTheme.coral.withOpacity(0.85),
+                            backgroundColor: MidnightTheme.coral.withValues(alpha: 0.85),
                           );
                           return;
                         }
@@ -218,9 +218,9 @@ class _AccountsHeader extends StatelessWidget {
           height: 46,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            color: MidnightTheme.mint.withOpacity(0.14),
+            color: MidnightTheme.mint.withValues(alpha: 0.14),
             border: Border.all(
-              color: MidnightTheme.mint.withOpacity(0.28),
+              color: MidnightTheme.mint.withValues(alpha: 0.28),
             ),
           ),
           child: const Icon(
@@ -254,7 +254,7 @@ class _AccountsHeader extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withOpacity(0.95),
+                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
             ],
@@ -285,12 +285,12 @@ class _SearchField extends StatelessWidget {
         fillColor: MidnightTheme.surface,
         hintText: 'Search contacts',
         hintStyle: TextStyle(
-          color: MidnightTheme.textSecondary.withOpacity(0.85),
+          color: MidnightTheme.textSecondary.withValues(alpha: 0.85),
           fontSize: 15,
         ),
         prefixIcon: Icon(
           Icons.search_rounded,
-          color: MidnightTheme.textSecondary.withOpacity(0.9),
+          color: MidnightTheme.textSecondary.withValues(alpha: 0.9),
           size: 22,
         ),
         suffixIcon: controller.text.isNotEmpty
@@ -319,7 +319,7 @@ class _SearchField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_searchFieldRadius),
-          borderSide: BorderSide(color: MidnightTheme.mint.withOpacity(0.55)),
+          borderSide: BorderSide(color: MidnightTheme.mint.withValues(alpha: 0.55)),
         ),
       ),
     );
@@ -342,8 +342,8 @@ class _ContactTile extends StatelessWidget {
       child: InkWell(
         onTap: () {},
         borderRadius: _contactTileBorderRadius,
-        splashColor: accent.withOpacity(0.12),
-        highlightColor: accent.withOpacity(0.06),
+        splashColor: accent.withValues(alpha: 0.12),
+        highlightColor: accent.withValues(alpha: 0.06),
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: _contactTileBorderRadius,
@@ -373,9 +373,9 @@ class _ContactTile extends StatelessWidget {
                           height: 44,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: accent.withOpacity(0.22),
+                            color: accent.withValues(alpha: 0.22),
                             border: Border.all(
-                              color: accent.withOpacity(0.45),
+                              color: accent.withValues(alpha: 0.45),
                             ),
                           ),
                           child: Center(
@@ -405,7 +405,7 @@ class _ContactTile extends StatelessWidget {
                         ),
                         Icon(
                           Icons.chevron_right_rounded,
-                          color: MidnightTheme.textSecondary.withOpacity(0.85),
+                          color: MidnightTheme.textSecondary.withValues(alpha: 0.85),
                           size: 22,
                         ),
                       ],
@@ -437,12 +437,12 @@ class _ComposerDock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: MidnightTheme.surfaceElevated.withOpacity(0.95),
+        color: MidnightTheme.surfaceElevated.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(_composerDockRadius),
         border: Border.all(color: MidnightTheme.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Colors.black.withValues(alpha: 0.35),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -512,7 +512,7 @@ class _EmptyContactsState extends StatelessWidget {
               padding: const EdgeInsets.all(28),
               child: Icon(
                 hasQuery ? Icons.search_off_rounded : Icons.people_outline_rounded,
-                color: MidnightTheme.mint.withOpacity(0.75),
+                color: MidnightTheme.mint.withValues(alpha: 0.75),
                 size: 56,
               ),
             ),

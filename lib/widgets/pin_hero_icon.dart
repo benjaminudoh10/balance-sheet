@@ -16,19 +16,19 @@ class PinHeroIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radius),
         boxShadow: [
           BoxShadow(
-            color: MidnightTheme.mint.withOpacity(0.38),
+            color: MidnightTheme.mint.withValues(alpha: 0.38),
             blurRadius: 26,
             spreadRadius: 0,
             offset: Offset.zero,
           ),
           BoxShadow(
-            color: MidnightTheme.mint.withOpacity(0.22),
+            color: MidnightTheme.mint.withValues(alpha: 0.22),
             blurRadius: 44,
             spreadRadius: -4,
             offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: MidnightTheme.mint.withOpacity(0.12),
+            color: MidnightTheme.mint.withValues(alpha: 0.12),
             blurRadius: 56,
             spreadRadius: 2,
             offset: Offset.zero,
@@ -39,9 +39,9 @@ class PinHeroIcon extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(_radius),
-          color: MidnightTheme.mint.withOpacity(0.12),
+          color: MidnightTheme.mint.withValues(alpha: 0.12),
           border: Border.all(
-            color: MidnightTheme.mint.withOpacity(0.28),
+            color: MidnightTheme.mint.withValues(alpha: 0.28),
           ),
         ),
         child: Icon(

@@ -92,7 +92,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
       Get.snackbar(
         'Error',
         'All input is required',
-        backgroundColor: MidnightTheme.coral.withOpacity(0.9),
+        backgroundColor: MidnightTheme.coral.withValues(alpha: 0.9),
         colorText: MidnightTheme.textPrimary,
       );
       return;
@@ -103,7 +103,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
       Get.snackbar(
         'Success',
         'PIN has been set successfully',
-        backgroundColor: MidnightTheme.mint.withOpacity(0.9),
+        backgroundColor: MidnightTheme.mint.withValues(alpha: 0.9),
         colorText: Colors.black87,
       );
     }
@@ -142,7 +142,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withOpacity(0.95),
+                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
               const SizedBox(height: 28),
@@ -263,7 +263,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
       Get.snackbar(
         'Error',
         'All input is required',
-        backgroundColor: MidnightTheme.coral.withOpacity(0.9),
+        backgroundColor: MidnightTheme.coral.withValues(alpha: 0.9),
         colorText: MidnightTheme.textPrimary,
       );
       return;
@@ -274,7 +274,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
       Get.snackbar(
         'Success',
         'PIN has been set successfully',
-        backgroundColor: MidnightTheme.mint.withOpacity(0.9),
+        backgroundColor: MidnightTheme.mint.withValues(alpha: 0.9),
         colorText: Colors.black87,
       );
     }
@@ -313,7 +313,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
-                  color: MidnightTheme.textSecondary.withOpacity(0.95),
+                  color: MidnightTheme.textSecondary.withValues(alpha: 0.95),
                 ),
               ),
               const SizedBox(height: 28),
