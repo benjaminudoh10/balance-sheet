@@ -42,7 +42,8 @@ class BackupService {
       AppConstants.APP_FONT_KEY: box.read(AppConstants.APP_FONT_KEY),
       AppConstants.APP_THEME_MODE_KEY: box.read(AppConstants.APP_THEME_MODE_KEY),
       AppConstants.USE_FINGERPRINT: box.read(AppConstants.USE_FINGERPRINT) ?? false,
-      AppConstants.USER_PIN_KEY: box.read(AppConstants.USER_PIN_KEY) ?? '',
+      AppConstants.USER_PIN_HASH_KEY: box.read(AppConstants.USER_PIN_HASH_KEY),
+      AppConstants.USER_PIN_SALT_KEY: box.read(AppConstants.USER_PIN_SALT_KEY),
     };
 
     final Map<String, Object?> payload = <String, Object?>{
@@ -159,11 +160,20 @@ class BackupService {
       await writeKey(AppConstants.APP_THEME_MODE_KEY, prefs[AppConstants.APP_THEME_MODE_KEY]);
       await writeKey(AppConstants.USE_FINGERPRINT, prefs[AppConstants.USE_FINGERPRINT] ?? false);
 
-      final Object? pin = prefs[AppConstants.USER_PIN_KEY];
-      if (pin == null || pin == '') {
+      final Object? hash = prefs[AppConstants.USER_PIN_HASH_KEY];
+      final Object? salt = prefs[AppConstants.USER_PIN_SALT_KEY];
+      final bool hasPinMaterial = hash is String &&
+          salt is String &&
+          hash.isNotEmpty &&
+          salt.isNotEmpty;
+      if (!hasPinMaterial) {
+        await box.remove(AppConstants.USER_PIN_HASH_KEY);
+        await box.remove(AppConstants.USER_PIN_SALT_KEY);
         await box.remove(AppConstants.USER_PIN_KEY);
       } else {
-        box.write(AppConstants.USER_PIN_KEY, pin);
+        box.write(AppConstants.USER_PIN_HASH_KEY, hash);
+        box.write(AppConstants.USER_PIN_SALT_KEY, salt);
+        await box.remove(AppConstants.USER_PIN_KEY);
       }
     }
   }

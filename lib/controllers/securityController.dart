@@ -3,13 +3,15 @@ import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/screens/home.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
+import 'package:balance_sheet/security/pin_hash.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
 class SecurityController extends GetxController {
-  RxString currentStoredPin = "".obs;
+  /// True when a PIN is configured (hash + salt in storage).
+  final RxBool pinIsSet = false.obs;
   RxString currentPinEnteredByUser = "".obs;
   RxString newPin = "".obs;
   RxString verifyPin = "".obs;
@@ -33,10 +35,10 @@ class SecurityController extends GetxController {
     reloadFromStorage();
   }
 
-  /// Reloads PIN and fingerprint flags from [GetStorage] (e.g. after backup import).
+  /// Reloads PIN state and fingerprint flags from [GetStorage] (e.g. after backup import).
   void reloadFromStorage() {
     final GetStorage box = GetStorage();
-    currentStoredPin.value = box.read(AppConstants.USER_PIN_KEY) ?? "";
+    pinIsSet.value = PinHash.hasPin(box);
     fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
   }
 
@@ -70,8 +72,9 @@ class SecurityController extends GetxController {
       return false;
     }
 
-    setValueInStorage(AppConstants.USER_PIN_KEY, newPin.value);
-    currentStoredPin.value = newPin.value;
+    final GetStorage box = GetStorage();
+    await PinHash.persistPin(box, newPin.value);
+    pinIsSet.value = true;
     setValueInStorage(AppConstants.USE_FINGERPRINT, false);
     fingerprintInUse.value = false;
 
@@ -82,7 +85,8 @@ class SecurityController extends GetxController {
   }
 
   Future<bool> changePin() async {
-    if (currentPinEnteredByUser.value != currentStoredPin.value) {
+    final GetStorage box = GetStorage();
+    if (!PinHash.verify(box, currentPinEnteredByUser.value)) {
       reset();
       /* this is a hack. find a better solution by understanding why reset does not work */
       Get.back();
@@ -114,16 +118,17 @@ class SecurityController extends GetxController {
       return false;
     }
 
-    setValueInStorage(AppConstants.USER_PIN_KEY, newPin.value);
-    currentStoredPin.value = newPin.value;
+    await PinHash.persistPin(box, newPin.value);
+    pinIsSet.value = true;
     reset();
     Get.back();
 
     return true;
   }
 
-  confirmPin(String value) {
-    if (currentStoredPin.value != value) {
+  Future<void> confirmPin(String value) async {
+    final GetStorage box = GetStorage();
+    if (!PinHash.verify(box, value)) {
       /* this is a hack. find a better solution by understanding why reset does not work */
       if (fromSettings.value) {
         Get.back();
@@ -139,8 +144,8 @@ class SecurityController extends GetxController {
       );
     } else {
       if (fromSettings.value) {
-        setValueInStorage(AppConstants.USER_PIN_KEY, null);
-        currentStoredPin.value = "";
+        await PinHash.clearPin(box);
+        pinIsSet.value = false;
         Get.back();
         Get.snackbar(
           "Success",
@@ -157,7 +162,7 @@ class SecurityController extends GetxController {
   }
 
   activateFingerPrint(bool value) {
-    if (currentStoredPin.value == "" && value) {
+    if (!pinIsSet.value && value) {
       Get.snackbar(
         "Error",
         "Setup PIN to make use of fingerprint lock",
@@ -185,8 +190,9 @@ class SecurityController extends GetxController {
         );
         if (didAuthenticate) {
           if (fromSettings.value) {
-            setValueInStorage(AppConstants.USER_PIN_KEY, null);
-            currentStoredPin.value = "";
+            final GetStorage box = GetStorage();
+            await PinHash.clearPin(box);
+            pinIsSet.value = false;
             Get.back();
             Get.snackbar(
               "Success",

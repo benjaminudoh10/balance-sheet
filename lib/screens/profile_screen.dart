@@ -164,14 +164,14 @@ class ProfileView extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Obx(() => _SecuritySwitchRow(
-                              title: _securityController.currentStoredPin.value == ''
+                              title: !_securityController.pinIsSet.value
                                   ? 'Access PIN'
                                   : 'Change access PIN',
-                              subtitle: _securityController.currentStoredPin.value == ''
+                              subtitle: !_securityController.pinIsSet.value
                                   ? 'Protect the app with a 4-digit PIN'
                                   : 'PIN is enabled for this device',
                               icon: Icons.lock_rounded,
-                              switchValue: _securityController.currentStoredPin.value != '',
+                              switchValue: _securityController.pinIsSet.value,
                               switchDisabled: false,
                               onSwitch: (v) => _goToPinView(v),
                               onRowTap: () => Get.to(() => Pin()),
@@ -181,12 +181,12 @@ class ProfileView extends StatelessWidget {
                               title: _securityController.fingerprintInUse.value
                                   ? 'Fingerprint unlock'
                                   : 'Use fingerprint',
-                              subtitle: _securityController.currentStoredPin.value == ''
+                              subtitle: !_securityController.pinIsSet.value
                                   ? 'Set a PIN first to use fingerprint'
                                   : 'Unlock with Face ID / fingerprint when available',
                               icon: Icons.fingerprint_rounded,
                               switchValue: _securityController.fingerprintInUse.value,
-                              switchDisabled: _securityController.currentStoredPin.value == '',
+                              switchDisabled: !_securityController.pinIsSet.value,
                               onSwitch: (v) => _securityController.activateFingerPrint(v),
                             )),
                         const SizedBox(height: 20),
@@ -201,7 +201,7 @@ class ProfileView extends StatelessWidget {
                         _BackupActionRow(
                           label: 'Export backup',
                           subtitle:
-                              'Choose where to save a JSON file (e.g. Files or Downloads). PIN included if set — keep the file private.',
+                              'Choose where to save a JSON file (e.g. Files or Downloads). PIN is stored as hash + salt only — keep the file private.',
                           icon: Icons.save_alt_rounded,
                           onTap: () => _exportBackup(context),
                         ),

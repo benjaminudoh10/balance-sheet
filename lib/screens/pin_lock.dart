@@ -13,7 +13,7 @@ class Pin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    final bool setNewPin = _securityController.currentStoredPin.value == '';
+    final bool setNewPin = !_securityController.pinIsSet.value;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
