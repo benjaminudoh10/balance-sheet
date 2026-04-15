@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
           onPrimary: Colors.black87,
           onSecondary: Colors.white,
           onSurface: MidnightTheme.textPrimary,
-        ),
+        ).copyWith(surfaceTint: Colors.transparent),
         appBarTheme: const AppBarTheme(
           backgroundColor: MidnightTheme.background,
           foregroundColor: MidnightTheme.textPrimary,
