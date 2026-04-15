@@ -16,6 +16,15 @@ class AppDb {
     return _db!;
   }
 
+  /// Closes the singleton so the next [db] access opens a fresh database file.
+  /// Used by tests that reset SQLite state between cases.
+  Future<void> closeForTesting() async {
+    if (_db != null) {
+      await _db!.close();
+      _db = null;
+    }
+  }
+
   AppDb.internal();
 
   initDb() async {

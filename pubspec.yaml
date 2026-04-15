@@ -50,6 +50,7 @@ dev_dependencies:
     sdk: flutter
   flutter_native_splash: ^2.4.7
   flutter_launcher_icons: ^0.14.4
+  sqflite_common_ffi: ^2.3.4
 
 # Transitive pins for current Flutter / Dart SDK (AGP 8, dart:io API changes).
 dependency_overrides:
