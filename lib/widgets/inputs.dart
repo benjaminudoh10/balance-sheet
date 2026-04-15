@@ -17,33 +17,96 @@ class DecimalTextInputFormatter extends TextInputFormatter {
 
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    String truncated = newValue.text;
-    String value = newValue.text;
-    // String afterDecimal = value.substring(value.indexOf(".") + 1);
+    final String value = newValue.text;
+    String truncated = value;
 
-    // if (afterDecimal.length < 2) {
-    //   truncated = "${value}0";
-    //   newSelection = oldValue.selection;
     if (value.startsWith(".")) {
       truncated = "0$value";
     } else if (".".allMatches(value).length == 2) {
       // catch double fullstop
       truncated = value.replaceFirst(RegExp('.'), '', value.lastIndexOf("."));
     } else if (value.contains(".") &&
-      value.substring(value.indexOf(".") + 1).length > decimalRange) {
-      truncated = this.formatNewValue(newValue.text);
+        value.substring(value.indexOf(".") + 1).length > decimalRange) {
+      truncated = formatNewValue(value);
     } else if (value == ".") {
       truncated = "0.";
     }
 
+    late TextSelection selection;
+    late TextRange composing;
+
+    if (truncated == value) {
+      // No transform: keep caret / selection where the user put it.
+      final sel = newValue.selection;
+      final int len = truncated.length;
+      selection = TextSelection(
+        baseOffset: sel.baseOffset.clamp(0, len),
+        extentOffset: sel.extentOffset.clamp(0, len),
+      );
+      composing = newValue.composing;
+    } else if (value.startsWith(".") && truncated == "0$value") {
+      // Inserted one leading zero: shift selection by +1.
+      final sel = newValue.selection;
+      final int len = truncated.length;
+      selection = TextSelection(
+        baseOffset: (sel.baseOffset + 1).clamp(0, len),
+        extentOffset: (sel.extentOffset + 1).clamp(0, len),
+      );
+      composing = TextRange.empty;
+    } else if (value == "." && truncated == "0.") {
+      selection = const TextSelection.collapsed(offset: 2);
+      composing = TextRange.empty;
+    } else {
+      // Text length changed (duplicate dot, formatNewValue, etc.): nudge caret by length delta.
+      final int len = truncated.length;
+      int base = newValue.selection.baseOffset;
+      final int delta = len - value.length;
+      base = (base + delta).clamp(0, len);
+      selection = TextSelection.collapsed(offset: base);
+      composing = TextRange.empty;
+    }
+
+    final stripped = _stripLeadingZerosFromAmount(truncated);
+    String out = stripped.$1;
+    final int removedPrefix = stripped.$2;
+    if (removedPrefix > 0) {
+      final int len = out.length;
+      selection = TextSelection(
+        baseOffset: (selection.baseOffset - removedPrefix).clamp(0, len),
+        extentOffset: (selection.extentOffset - removedPrefix).clamp(0, len),
+      );
+      composing = TextRange.empty;
+    }
+
     return TextEditingValue(
-      text: truncated,
-      selection: TextSelection( // previously newSelection
-        baseOffset: truncated.length,
-        extentOffset: truncated.length
-      ),
-      composing: TextRange.empty,
+      text: out,
+      selection: selection,
+      composing: composing,
     );
+  }
+
+  /// Drops redundant leading zeros (e.g. `012` → `12`, `00.5` → `0.5`); keeps a single `0` before `.` for values &lt; 1.
+  (String, int) _stripLeadingZerosFromAmount(String input) {
+    if (input.isEmpty) return ('', 0);
+    final int dot = input.indexOf('.');
+    late final String result;
+    late final int removed;
+    if (dot >= 0) {
+      String intPart = input.substring(0, dot);
+      final String frac = input.substring(dot);
+      final int origIntLen = intPart.length;
+      intPart = intPart.replaceFirst(RegExp(r'^0+'), '');
+      if (intPart.isEmpty) intPart = '0';
+      removed = origIntLen - intPart.length;
+      result = '$intPart$frac';
+    } else {
+      final int origLen = input.length;
+      String s = input.replaceFirst(RegExp(r'^0+'), '');
+      if (s.isEmpty) s = '0';
+      removed = origLen - s.length;
+      result = s;
+    }
+    return (result, removed);
   }
 
   String formatNewValue(String newValue) {
