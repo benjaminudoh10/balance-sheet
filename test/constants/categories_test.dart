@@ -47,7 +47,7 @@ void main() {
     });
 
     test('CATEGORIES list has keys matching known set', () {
-      final Set<String> keys = Categories.CATEGORIES.map((e) => e['key']! as String).toSet();
+      final Set<String> keys = Categories.CATEGORIES.map((e) => e['key']!).toSet();
       expect(keys, knownKeys);
     });
   });

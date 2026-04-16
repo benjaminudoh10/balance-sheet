@@ -1,7 +1,6 @@
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/db.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Call once in [setUpAll] before any code touches [AppDb].

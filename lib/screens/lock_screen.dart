@@ -20,9 +20,10 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   late final TextEditingController _pinController;
   late final FocusNode _pinFocus;
 
-  /// One automatic biometric + PIN focus per [LockScreen] instance. Without this, each
-  /// [AppLifecycleState.resumed] after the system fingerprint sheet fires again (endless loop).
-  /// Manual "Use fingerprint" still calls [SecurityController.unlockWithFingerprint] directly.
+  /// One automatic biometric (or PIN focus when biometrics off) per [LockScreen] instance.
+  /// Without this, each [AppLifecycleState.resumed] after the system fingerprint sheet fires
+  /// again (endless loop). Manual "Use fingerprint" still calls
+  /// [SecurityController.unlockWithFingerprint] directly.
   bool _didRunAutoResumeUnlock = false;
 
   @override
@@ -39,8 +40,10 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
     return SchedulerBinding.instance.lifecycleState == AppLifecycleState.resumed;
   }
 
-  /// Fingerprint + PIN focus only after [AppLifecycleState.resumed], not while this route
+  /// Biometric prompt or PIN focus only after [AppLifecycleState.resumed], not while this route
   /// builds during backgrounding. Runs at most once per lock screen (see [_didRunAutoResumeUnlock]).
+  /// When fingerprint is on, do not auto-focus the PIN field — that briefly opens the keyboard
+  /// and flickers behind the system biometric sheet.
   void _runUnlockPrompt() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -50,8 +53,9 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
       if (_securityController.fingerprintInUse.value) {
         _securityController.unlockWithFingerprint();
+      } else {
+        _pinFocus.requestFocus();
       }
-      _pinFocus.requestFocus();
     });
   }
 
