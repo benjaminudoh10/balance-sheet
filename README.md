@@ -9,7 +9,7 @@
 - **Home (main tab)** — Shows total balance, today’s net (income minus expense for the current day), and a **Recent transactions** list. Add entries via **Income** and **Expense** actions; open **All transactions** for the full report view.
 - **Contacts** — Manage people or entities you attach to transactions (optional linkage from the transaction form).
 - **Profile** — Theme (light / dark / system), font family, app lock (PIN and optional biometrics), and **backup** export/import.
-- **Placeholder tabs** — **Activity** and **Insights** are reserved for future work; the shell and bottom navigation are in place.
+- **Insights** — Period summary (today vs yesterday, this week, this month, last month): total expenses vs the comparison window, category donut + horizontal category bars, weekly income vs expense grouped bars, daily net line chart, and short takeaways. **Activity** remains a placeholder; the shell and bottom navigation are in place.
 
 Money is stored and calculated in **minor units** (integer cents/kobo-style amounts). Display formatting in [`lib/utils.dart`](lib/utils.dart) uses **Nigerian Naira (NGN)** via `intl`; adjust there if you target another currency.
 
@@ -23,7 +23,7 @@ Money is stored and calculated in **minor units** (integer cents/kobo-style amou
 | State & navigation | [GetX](https://pub.dev/packages/get) (`GetMaterialApp`, `Obx`, controllers, `Get.to` / `Get.offAll`) |
 | Local database | [sqflite](https://pub.dev/packages/sqflite) — SQLite file on device |
 | Key-value preferences | [get_storage](https://pub.dev/packages/get_storage) — PIN metadata, theme, font, fingerprint flag |
-| UI | Material 3 (`useMaterial3: true`), [google_fonts](https://pub.dev/packages/google_fonts), [modal_bottom_sheet](https://pub.dev/packages/modal_bottom_sheet), [pinput](https://pub.dev/packages/pinput), [flutter_slidable](https://pub.dev/packages/flutter_slidable) |
+| UI | Material 3 (`useMaterial3: true`), [google_fonts](https://pub.dev/packages/google_fonts), [modal_bottom_sheet](https://pub.dev/packages/modal_bottom_sheet), [pinput](https://pub.dev/packages/pinput), [flutter_slidable](https://pub.dev/packages/flutter_slidable), [fl_chart](https://pub.dev/packages/fl_chart) (Insights) |
 | Security | [crypto](https://pub.dev/packages/crypto) (salted PIN hash), [local_auth](https://pub.dev/packages/local_auth) |
 | Backup | JSON file via [file_picker](https://pub.dev/packages/file_picker) |
 
@@ -56,6 +56,7 @@ lib/
 │   ├── transactionController.dart
 │   ├── contactController.dart
 │   ├── reportController.dart # Period filters, report list state (scoped to report screen lifecycle)
+│   ├── insights_controller.dart # Insights tab aggregates and period bounds
 │   └── securityController.dart
 │
 ├── models/
@@ -100,7 +101,7 @@ Platform folders (`android/`, `ios/`) contain standard Flutter embedding; launch
 
 1. **`Splash`** is the initial `home` route (branding + short delay).
 2. **`AppController.onReady`** routes to **`LockScreen`** if a PIN is configured, otherwise **`Home`**.
-3. **`Home`** is a **5-tab** scaffold: Main, Contacts, Activity (placeholder), Insights (placeholder), Profile. [`PopScope`](lib/screens/home.dart) sends Android back to tab 0 when not on the first tab.
+3. **`Home`** is a **5-tab** scaffold: Main, Contacts, Activity (placeholder), Insights, Profile. [`PopScope`](lib/screens/home.dart) sends Android back to tab 0 when not on the first tab.
 
 ### Forms and sheets
 

@@ -43,6 +43,7 @@ dependencies:
   flutter_slidable: ^4.0.3
   file_picker: ^11.0.2
   crypto: ^3.0.7
+  fl_chart: ^1.2.0
   # charts_flutter: ^0.10.0
 
 dev_dependencies:

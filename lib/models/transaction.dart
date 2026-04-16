@@ -37,6 +37,12 @@ class Transaction {
   }
 
   factory Transaction.fromJson(Map<String, dynamic> data) {
+    final dynamic rawContact = data['contactId'];
+    final int contactId = rawContact is int
+        ? rawContact
+        : rawContact is num
+            ? rawContact.toInt()
+            : int.tryParse('$rawContact') ?? 0;
     return Transaction(
       id: data['id'] as int? ?? 0,
       amount: data['amount'] as int? ?? 0,
@@ -44,7 +50,7 @@ class Transaction {
       type: data['type'] == "income" ? TransactionType.income : TransactionType.expenditure,
       date: DateTime.fromMillisecondsSinceEpoch(data['date'] as int? ?? 0),
       category: data['category'] as String? ?? '',
-      contactId: data['contactId'] as int? ?? 0,
+      contactId: contactId,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/models/contact.dart';
@@ -50,6 +51,9 @@ class TransactionController extends GetxController {
     final int end = DateTime(now.year, now.month, now.day, 23, 59, 59, 999)
         .millisecondsSinceEpoch;
     await getTransactions(start, end);
+    if (Get.isRegistered<InsightsController>()) {
+      Get.find<InsightsController>().load();
+    }
   }
 
   resetContact() {
@@ -115,6 +119,9 @@ class TransactionController extends GetxController {
       // remove txn from UI
       transactions.value = transactions.where((txn) => transaction.id != txn.id).toList();
       updateControllerDataAfterDeletion(transaction);
+      if (Get.isRegistered<InsightsController>()) {
+        Get.find<InsightsController>().load();
+      }
 
       Get.snackbar(
         "Successful",

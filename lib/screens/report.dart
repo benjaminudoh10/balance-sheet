@@ -455,7 +455,7 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  formatSignedNet(net),
+                  formatNetWithoutSign(net),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.displayMedium!.copyWith(
                     color: accent,

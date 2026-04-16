@@ -13,3 +13,8 @@ String formatSignedNet(int netMinor) {
   final sign = netMinor > 0 ? '+' : '−';
   return '$sign ${formatAmount(netMinor.abs())}';
 }
+
+/// Net without +/-; use UI color for sign (amounts in minor units).
+String formatNetWithoutSign(int netMinor) {
+  return formatAmount(netMinor.abs());
+}

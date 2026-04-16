@@ -160,9 +160,10 @@ class _GlassBalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final int todayNet = todayIncome - todayExpense;
+    final bool isTotalLoss = total < 0;
     final bool isDailyLoss = todayNet < 0;
     final Color netColor = isDailyLoss ? p.coral : p.mint;
-    final Color cardAccent = isDailyLoss ? p.coral : p.mint;
+    final Color cardAccent = isTotalLoss ? p.coral : p.mint;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -173,7 +174,7 @@ class _GlassBalanceCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: cardAccent.withValues(alpha: 0.35)),
-            gradient: p.balanceCardGradient(isDailyLoss),
+            gradient: p.balanceCardGradient(isTotalLoss),
             boxShadow: [
               BoxShadow(
                 color: cardAccent.withValues(alpha: 0.28),
@@ -185,7 +186,7 @@ class _GlassBalanceCard extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                formatSignedNet(total),
+                formatNetWithoutSign(total),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall!.copyWith(
                   color: p.textPrimary,

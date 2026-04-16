@@ -214,6 +214,74 @@ void main() {
       expect(totals['expenses'], 40);
       expect(totals['income'], 0);
     });
+
+    test('getExpenseTotalsByCategory sums only expenditures in range', () async {
+      final DateTime ts = DateTime(2025, 12, 5);
+      final int start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
+      final int end = DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
+      await db_ops.addTransaction(Transaction(
+        description: 'food',
+        type: TransactionType.expenditure,
+        amount: 3000,
+        date: ts,
+        category: 'food',
+        contactId: 0,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'food2',
+        type: TransactionType.expenditure,
+        amount: 1000,
+        date: ts,
+        category: 'food',
+        contactId: 0,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'sal',
+        type: TransactionType.income,
+        amount: 50000,
+        date: ts,
+        category: 'salary',
+        contactId: 0,
+      ));
+      final Map<String, int> byCat = await db_ops.getExpenseTotalsByCategory(start, end);
+      expect(byCat['food'], 4000);
+      expect(byCat.containsKey('salary'), isFalse);
+    });
+
+    test('getContactById returns contact by primary key', () async {
+      final int id = await db_ops.addContact(Contact(name: 'Ada'));
+      expect(id, greaterThan(0));
+      final Contact? found = await db_ops.getContactById(id);
+      expect(found, isNotNull);
+      expect(found!.name, 'Ada');
+      expect(await db_ops.getContactById(999999), isNull);
+    });
+
+    test('getTopExpenditures returns largest expense rows first', () async {
+      final DateTime ts = DateTime(2025, 12, 8);
+      final int start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
+      final int end = DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
+      await db_ops.addTransaction(Transaction(
+        description: 'small',
+        type: TransactionType.expenditure,
+        amount: 100,
+        date: ts,
+        category: 'misc',
+        contactId: 0,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'big',
+        type: TransactionType.expenditure,
+        amount: 9999,
+        date: ts,
+        category: 'rent',
+        contactId: 0,
+      ));
+      final List<Transaction> top = await db_ops.getTopExpenditures(start, end, 2);
+      expect(top.length, 2);
+      expect(top.first.amount, 9999);
+      expect(top.first.description, 'big');
+    });
   });
 
   group('contacts', () {

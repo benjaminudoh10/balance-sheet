@@ -1,5 +1,6 @@
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
@@ -17,6 +18,7 @@ void main() async {
   Get.put(SecurityController());
   Get.put(AppController());
   Get.put(ContactController());
+  Get.put(InsightsController());
   Get.config(
     // enableLog: true,
     // defaultPopGesture: true,

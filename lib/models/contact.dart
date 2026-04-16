@@ -20,8 +20,14 @@ class Contact {
   }
 
   factory Contact.fromJson(Map<String, dynamic> data) {
+    final dynamic rawId = data['id'];
+    final int id = rawId is int
+        ? rawId
+        : rawId is num
+            ? rawId.toInt()
+            : int.tryParse('$rawId') ?? 0;
     return Contact(
-      id: data['id'] as int? ?? 0,
+      id: id,
       name: data['name'] as String? ?? '',
     );
   }

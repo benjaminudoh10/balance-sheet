@@ -1,6 +1,7 @@
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
+import 'package:balance_sheet/screens/insights_screen.dart';
 import 'package:balance_sheet/screens/placeholder_tab.dart';
 import 'package:balance_sheet/screens/profile_screen.dart';
 import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
@@ -35,7 +36,7 @@ class Home extends StatelessWidget {
       case 2:
         return const PlaceholderTab(title: 'Activity');
       case 3:
-        return const PlaceholderTab(title: 'Insights');
+        return const InsightsView();
       case 4:
         return ProfileView();
       default:

@@ -129,3 +129,57 @@ Future<List<Contact>> getContacts() async {
 
   return contacts.map((contact) => Contact.fromJson(contact)).toList();
 }
+
+/// Single contact by primary key (for lookups when only an id is known, e.g. insights).
+Future<Contact?> getContactById(int id) async {
+  if (id <= 0) {
+    return null;
+  }
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.query(
+    DBConstants.CONTACT,
+    where: 'id = ?',
+    whereArgs: <Object>[id],
+    limit: 1,
+  );
+  if (rows.isEmpty) {
+    return null;
+  }
+  return Contact.fromJson(rows.first);
+}
+
+/// Sum of expenditure amounts per category for the inclusive date range (ms).
+Future<Map<String, int>> getExpenseTotalsByCategory(int startMs, int endMs) async {
+  final dbClient = await AppDb().db;
+  final rows = await dbClient.rawQuery(
+    '''
+    SELECT category, SUM(amount) AS total
+    FROM ${DBConstants.TRANSACTION}
+    WHERE type = 'expenditure' AND date >= ? AND date <= ?
+    GROUP BY category
+    ORDER BY total DESC
+    ''',
+    [startMs, endMs],
+  );
+  final Map<String, int> out = {};
+  for (final row in rows) {
+    final String key = row['category'] as String? ?? 'misc';
+    out[key] = (row['total'] as int?) ?? 0;
+  }
+  return out;
+}
+
+/// Largest single expense rows in the range (minor units), newest first on ties.
+Future<List<Transaction>> getTopExpenditures(int startMs, int endMs, int limit) async {
+  final dbClient = await AppDb().db;
+  final rows = await dbClient.rawQuery(
+    '''
+    SELECT * FROM ${DBConstants.TRANSACTION}
+    WHERE type = 'expenditure' AND date >= ? AND date <= ?
+    ORDER BY amount DESC, date DESC
+    LIMIT ?
+    ''',
+    [startMs, endMs, limit],
+  );
+  return rows.map((e) => Transaction.fromJson(e)).toList();
+}

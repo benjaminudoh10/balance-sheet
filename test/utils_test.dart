@@ -35,4 +35,19 @@ void main() {
       expect(formatSignedNet(-100), contains(formatAmount(100)));
     });
   });
+
+  group('formatNetWithoutSign', () {
+    test('matches unsigned amount for zero', () {
+      expect(formatNetWithoutSign(0), formatAmount(0));
+    });
+
+    test('uses magnitude without sign for positive', () {
+      expect(formatNetWithoutSign(500), formatAmount(500));
+      expect(formatNetWithoutSign(500), isNot(contains('+')));
+    });
+
+    test('uses magnitude without sign for negative', () {
+      expect(formatNetWithoutSign(-300), formatAmount(300));
+    });
+  });
 }
