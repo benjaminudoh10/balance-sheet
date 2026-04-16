@@ -21,6 +21,10 @@ class SecurityController extends GetxController {
   RxBool fromSettings = false.obs;
   RxBool fingerprintInUse = false.obs;
 
+  /// When [pinIsSet] is true: user has unlocked to main content this session, until
+  /// [onRequireScreenLock] or app backgrounding.
+  final RxBool sessionUnlocked = false.obs;
+
   @override
   void onReady() {
     super.onReady();
@@ -40,6 +44,17 @@ class SecurityController extends GetxController {
     final GetStorage box = GetStorage();
     pinIsSet.value = PinHash.hasPin(box);
     fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
+    sessionUnlocked.value = false;
+  }
+
+  void onRequireScreenLock() {
+    sessionUnlocked.value = false;
+  }
+
+  /// Call when the user may see [Home] while a PIN is configured (unlock or in-app PIN flows).
+  void markSessionUnlocked() {
+    if (!pinIsSet.value) return;
+    sessionUnlocked.value = true;
   }
 
   reset() {
@@ -77,6 +92,7 @@ class SecurityController extends GetxController {
     pinIsSet.value = true;
     setValueInStorage(AppConstants.USE_FINGERPRINT, false);
     fingerprintInUse.value = false;
+    markSessionUnlocked();
 
     reset();
     Get.back();
@@ -120,6 +136,7 @@ class SecurityController extends GetxController {
 
     await PinHash.persistPin(box, newPin.value);
     pinIsSet.value = true;
+    markSessionUnlocked();
     reset();
     Get.back();
 
@@ -146,6 +163,7 @@ class SecurityController extends GetxController {
       if (fromSettings.value) {
         await PinHash.clearPin(box);
         pinIsSet.value = false;
+        sessionUnlocked.value = false;
         Get.back();
         Get.snackbar(
           "Success",
@@ -156,6 +174,7 @@ class SecurityController extends GetxController {
         );
         fromSettings.value = false;
       } else {
+        markSessionUnlocked();
         Get.offAll(Home());
       }
     }
@@ -193,6 +212,7 @@ class SecurityController extends GetxController {
             final GetStorage box = GetStorage();
             await PinHash.clearPin(box);
             pinIsSet.value = false;
+            sessionUnlocked.value = false;
             Get.back();
             Get.snackbar(
               "Success",
@@ -202,7 +222,10 @@ class SecurityController extends GetxController {
               snackPosition: SnackPosition.TOP,
             );
             fromSettings.value = false;
-          } else Get.offAll(Home());
+          } else {
+            markSessionUnlocked();
+            Get.offAll(Home());
+          }
         } else {
           Get.snackbar(
             "Error",

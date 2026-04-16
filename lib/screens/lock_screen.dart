@@ -5,6 +5,7 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/pin_field_card.dart';
 import 'package:balance_sheet/widgets/pin_hero_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 /// PIN entry when unlocking the app, or when confirming removal of the access PIN from Profile.
@@ -13,25 +14,57 @@ class LockScreen extends StatefulWidget {
   State<LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends State<LockScreen> {
+class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   final SecurityController _securityController = Get.find();
 
   late final TextEditingController _pinController;
   late final FocusNode _pinFocus;
 
+  /// One automatic biometric + PIN focus per [LockScreen] instance. Without this, each
+  /// [AppLifecycleState.resumed] after the system fingerprint sheet fires again (endless loop).
+  /// Manual "Use fingerprint" still calls [SecurityController.unlockWithFingerprint] directly.
+  bool _didRunAutoResumeUnlock = false;
+
   @override
   void initState() {
     super.initState();
+    _securityController.onRequireScreenLock();
     _pinController = TextEditingController();
     _pinFocus = FocusNode();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runUnlockPrompt());
+  }
+
+  bool _lifecycleIsResumed() {
+    return SchedulerBinding.instance.lifecycleState == AppLifecycleState.resumed;
+  }
+
+  /// Fingerprint + PIN focus only after [AppLifecycleState.resumed], not while this route
+  /// builds during backgrounding. Runs at most once per lock screen (see [_didRunAutoResumeUnlock]).
+  void _runUnlockPrompt() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _securityController.unlockWithFingerprint();
+      if (!_lifecycleIsResumed()) return;
+      if (_didRunAutoResumeUnlock) return;
+      _didRunAutoResumeUnlock = true;
+
+      if (_securityController.fingerprintInUse.value) {
+        _securityController.unlockWithFingerprint();
+      }
+      _pinFocus.requestFocus();
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _runUnlockPrompt();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pinController.dispose();
     _pinFocus.dispose();
     super.dispose();
@@ -120,7 +153,7 @@ class _LockScreenState extends State<LockScreen> {
                       field: PinInput(
                         fullWidth: true,
                         focusNode: _pinFocus,
-                        autofocus: true,
+                        autofocus: false,
                         onCompleted: (value) =>
                             _securityController.confirmPin(value),
                         onChanged: (_) {},

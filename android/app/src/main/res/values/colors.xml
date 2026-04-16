@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches AppPalette.light.background — native window behind Flutter / task snapshot base. -->
+    <color name="app_window_background">#F5F3FA</color>
+</resources>
