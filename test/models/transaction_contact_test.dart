@@ -24,6 +24,8 @@ void main() {
       expect(back.date.millisecondsSinceEpoch, d.millisecondsSinceEpoch);
       expect(back.category, 'food');
       expect(back.contactId, 2);
+      expect(back.entryIsFcy, false);
+      expect(back.entryAmountMinor, 1500);
     });
 
     test('fromJson maps income type', () {

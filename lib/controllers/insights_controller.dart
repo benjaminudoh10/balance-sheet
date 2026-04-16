@@ -460,12 +460,12 @@ class InsightsController extends GetxController {
 
     if (topExpenses.isNotEmpty) {
       final Transaction t = topExpenses.first;
-      lines.add('Largest expense: ${formatAmount(t.amount)} · ${t.description}.');
+      lines.add('Largest expense: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
     }
 
     if (_largestIncomeInRange != null && inc > 0) {
       final Transaction t = _largestIncomeInRange!;
-      lines.add('Largest income: ${formatAmount(t.amount)} · ${t.description}.');
+      lines.add('Largest income: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
     }
 
     if (_topContactExpense != null && _topContactExpense!.value > 0) {

@@ -299,9 +299,12 @@ Future<int> insertBudgetLine({
   required int plannedAmount,
   int contactId = 0,
   String categoryKey = '',
+  bool planEntryIsFcy = false,
+  int planEntryAmountMinor = 0,
 }) async {
   final dbClient = await AppDb().db;
   final int sortOrder = await nextBudgetLineSortOrder(budgetMonthId);
+  final int entryAmt = planEntryAmountMinor > 0 ? planEntryAmountMinor : plannedAmount;
   return dbClient.insert(DBConstants.BUDGET_LINE, <String, Object?>{
     'budget_month_id': budgetMonthId,
     'description': description,
@@ -309,6 +312,8 @@ Future<int> insertBudgetLine({
     'contact_id': contactId <= 0 ? null : contactId,
     'category': categoryKey,
     'sort_order': sortOrder,
+    'entryCurrency': planEntryIsFcy ? 'fcy' : 'lcy',
+    'entryAmount': entryAmt,
   });
 }
 
@@ -322,6 +327,8 @@ Future<void> updateBudgetLine(BudgetLine line) async {
       'contact_id': line.contactId <= 0 ? null : line.contactId,
       'category': line.categoryKey,
       'sort_order': line.sortOrder,
+      'entryCurrency': line.planEntryIsFcy ? 'fcy' : 'lcy',
+      'entryAmount': line.planEntryAmountMinor > 0 ? line.planEntryAmountMinor : line.plannedAmount,
     },
     where: 'id = ?',
     whereArgs: <Object>[line.id],

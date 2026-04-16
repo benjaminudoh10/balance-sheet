@@ -9,6 +9,8 @@ class Transaction {
     required this.date,
     required this.category,
     required this.contactId,
+    this.entryIsFcy = false,
+    this.entryAmountMinor = 0,
   });
 
   @override
@@ -19,10 +21,17 @@ class Transaction {
   int id;
   final String description;
   final TransactionType type;
+  /// Canonical value in **LCY minor units** (for sums and balance).
   final int amount;
   final DateTime date;
   final String category;
   final int contactId;
+
+  /// When true, the user entered [entryAmountMinor] in FCY; [amount] is the LCY equivalent.
+  final bool entryIsFcy;
+
+  /// Minor units in the **entry** currency (LCY or FCY) for display on line items.
+  final int entryAmountMinor;
 
   Map<String, dynamic> toJson() {
     return {
@@ -33,6 +42,8 @@ class Transaction {
       "date": this.date.millisecondsSinceEpoch,
       "category": this.category,
       "contactId": this.contactId,
+      "entryCurrency": entryIsFcy ? "fcy" : "lcy",
+      "entryAmount": entryAmountMinor,
     };
   }
 
@@ -43,14 +54,20 @@ class Transaction {
         : rawContact is num
             ? rawContact.toInt()
             : int.tryParse('$rawContact') ?? 0;
+    final int amount = data['amount'] as int? ?? 0;
+    final String? ec = data['entryCurrency'] as String?;
+    final bool isFcy = ec == 'fcy';
+    final int rawEntry = data['entryAmount'] as int? ?? 0;
     return Transaction(
       id: data['id'] as int? ?? 0,
-      amount: data['amount'] as int? ?? 0,
+      amount: amount,
       description: data['description'] as String? ?? '',
       type: data['type'] == "income" ? TransactionType.income : TransactionType.expenditure,
       date: DateTime.fromMillisecondsSinceEpoch(data['date'] as int? ?? 0),
       category: data['category'] as String? ?? '',
       contactId: contactId,
+      entryIsFcy: isFcy,
+      entryAmountMinor: isFcy ? rawEntry : amount,
     );
   }
 }

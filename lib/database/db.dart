@@ -43,6 +43,8 @@ class AppDb {
             date INTEGER NOT NULL,
             category TEXT NOT NULL,
             contactId INTEGER,
+            entryCurrency TEXT NOT NULL DEFAULT 'lcy',
+            entryAmount INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
           )"""
         );
@@ -88,6 +90,26 @@ class AppDb {
             "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN category TEXT NOT NULL DEFAULT ''",
           );
         }
+        if (oldVersion < 6) {
+          await db.execute(
+            "ALTER TABLE ${DBConstants.TRANSACTION} ADD COLUMN entryCurrency TEXT NOT NULL DEFAULT 'lcy'",
+          );
+          await db.execute(
+            "ALTER TABLE ${DBConstants.TRANSACTION} ADD COLUMN entryAmount INTEGER NOT NULL DEFAULT 0",
+          );
+          await db.execute(
+            "UPDATE ${DBConstants.TRANSACTION} SET entryAmount = amount WHERE entryAmount = 0 OR entryAmount IS NULL",
+          );
+          await db.execute(
+            "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN entryCurrency TEXT NOT NULL DEFAULT 'lcy'",
+          );
+          await db.execute(
+            "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN entryAmount INTEGER NOT NULL DEFAULT 0",
+          );
+          await db.execute(
+            "UPDATE ${DBConstants.BUDGET_LINE} SET entryAmount = planned_amount WHERE entryAmount = 0 OR entryAmount IS NULL",
+          );
+        }
       },
     );
     return taskDb;
@@ -112,6 +134,8 @@ CREATE TABLE ${DBConstants.BUDGET_LINE}(
   contact_id INTEGER,
   category TEXT NOT NULL DEFAULT '',
   sort_order INTEGER NOT NULL DEFAULT 0,
+  entryCurrency TEXT NOT NULL DEFAULT 'lcy',
+  entryAmount INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY(budget_month_id) REFERENCES ${DBConstants.BUDGET_MONTH}(id) ON DELETE CASCADE,
   FOREIGN KEY(contact_id) REFERENCES ${DBConstants.CONTACT}(id) ON DELETE SET NULL
 )

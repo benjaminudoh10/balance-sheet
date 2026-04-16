@@ -4,7 +4,9 @@ import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -358,11 +360,16 @@ class _SummaryCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 4),
-          Text(
-            formatAmount(plannedMinor),
-            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+          DualCurrencyTotal(
+            lcyMinor: plannedMinor,
+            textAlign: TextAlign.start,
+            primaryStyle: Theme.of(context).textTheme.headlineSmall!.copyWith(
                   color: p.textPrimary,
                   fontWeight: FontWeight.w700,
+                ),
+            secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: p.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
           ),
           const SizedBox(height: 14),
@@ -377,11 +384,17 @@ class _SummaryCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      formatAmount(trackedSpentMinor),
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    DualCurrencyTotal(
+                      lcyMinor: trackedSpentMinor,
+                      textAlign: TextAlign.start,
+                      compactSecondary: true,
+                      primaryStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: p.mint,
                             fontWeight: FontWeight.w600,
+                          ),
+                      secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                     ),
                   ],
@@ -396,11 +409,16 @@ class _SummaryCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      formatSignedNet(remaining),
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    DualCurrencySignedNet(
+                      netMinor: remaining,
+                      textAlign: TextAlign.end,
+                      primaryStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: over ? p.coral : p.textPrimary,
                             fontWeight: FontWeight.w600,
+                          ),
+                      secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                     ),
                   ],
@@ -553,7 +571,7 @@ class _BudgetLineTile extends StatelessWidget {
                   Row(
                     children: <Widget>[
                       Text(
-                        'Plan ${formatAmount(line.plannedAmount)}',
+                        'Plan ${formatBudgetPlannedDisplay(line)}',
                         style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
                       ),
                       const Spacer(),
@@ -610,16 +628,23 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   late final TextEditingController _amount;
   int _contactId = 0;
   String _categoryKey = '';
+  bool _planEntryIsFcy = false;
   final BudgetController _budget = Get.find<BudgetController>();
   final ContactController _contacts = Get.find<ContactController>();
+  final CurrencyController _currency = Get.find<CurrencyController>();
 
   @override
   void initState() {
     super.initState();
     final BudgetLine? e = widget.existing;
     _desc = TextEditingController(text: e?.description ?? '');
-    final int minor = e?.plannedAmount ?? 0;
-    _amount = TextEditingController(text: minor > 0 ? (minor / 100).toStringAsFixed(2) : '');
+    _planEntryIsFcy = e?.planEntryIsFcy ?? false;
+    final int showMinor = e != null
+        ? (e.planEntryIsFcy ? e.planEntryAmountMinor : e.plannedAmount)
+        : 0;
+    _amount = TextEditingController(
+      text: showMinor > 0 ? (showMinor / 100).toStringAsFixed(2) : '',
+    );
     _contactId = e?.contactId ?? 0;
     _categoryKey = e?.categoryKey ?? '';
   }
@@ -637,26 +662,33 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
       Get.snackbar('Missing description', 'Add a short label for this planned item.');
       return;
     }
-    final int minor = _minorFromAmountText(_amount.text);
-    if (minor <= 0) {
+    final int entryMinor = _minorFromAmountText(_amount.text);
+    if (entryMinor <= 0) {
       Get.snackbar('Amount', 'Enter a planned amount greater than zero.');
       return;
     }
+    final int plannedLcyMinor = _planEntryIsFcy
+        ? _currency.lcyMinorFromFcyMinor(entryMinor)
+        : entryMinor;
     final BudgetLine? e = widget.existing;
     if (e == null) {
       await _budget.addLine(
         description: d,
-        plannedAmountMinor: minor,
+        plannedAmountMinor: plannedLcyMinor,
         contactId: _contactId,
         categoryKey: _categoryKey,
+        planEntryIsFcy: _planEntryIsFcy,
+        planEntryAmountMinor: _planEntryIsFcy ? entryMinor : plannedLcyMinor,
       );
     } else {
       await _budget.updateLine(
         e.copyWith(
           description: d,
-          plannedAmount: minor,
+          plannedAmount: plannedLcyMinor,
           contactId: _contactId,
           categoryKey: _categoryKey,
+          planEntryIsFcy: _planEntryIsFcy,
+          planEntryAmountMinor: _planEntryIsFcy ? entryMinor : plannedLcyMinor,
         ),
       );
     }
@@ -721,12 +753,72 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                 textCapitalization: TextCapitalization.sentences,
               ),
               const SizedBox(height: 12),
+              Obx(() {
+                final String lCode = _currency.lcyCode.value;
+                final String fCode = _currency.fcyCode.value;
+                return Row(
+                  children: <Widget>[
+                    Text(
+                      'Currency',
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                            color: p.textSecondary,
+                            letterSpacing: 0.3,
+                          ),
+                    ),
+                    const Spacer(),
+                    SegmentedButton<bool>(
+                      segments: <ButtonSegment<bool>>[
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: Text(lCode),
+                        ),
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: Text(fCode),
+                        ),
+                      ],
+                      selected: <bool>{_planEntryIsFcy},
+                      onSelectionChanged: (Set<bool> next) {
+                        if (next.isEmpty) return;
+                        final bool toFcy = next.single;
+                        if (toFcy == _planEntryIsFcy) return;
+                        setState(() {
+                          final int cur = _minorFromAmountText(_amount.text);
+                          if (cur <= 0) {
+                            _planEntryIsFcy = toFcy;
+                            return;
+                          }
+                          if (toFcy) {
+                            final int fcy = _currency.fcyMinorFromLcyMinor(cur);
+                            _planEntryIsFcy = true;
+                            _amount.text = (fcy / 100).toStringAsFixed(2);
+                          } else {
+                            final int lcy = _currency.lcyMinorFromFcyMinor(cur);
+                            _planEntryIsFcy = false;
+                            _amount.text = (lcy / 100).toStringAsFixed(2);
+                          }
+                        });
+                      },
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: p.surface,
+                        foregroundColor: p.textPrimary,
+                        side: BorderSide(color: p.border),
+                        selectedBackgroundColor: p.coral,
+                        selectedForegroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              const SizedBox(height: 8),
               TextField(
                 controller: _amount,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
                 decoration: InputDecoration(
-                  labelText: 'Planned amount',
+                  labelText: 'Planned amount (${_planEntryIsFcy ? _currency.fcyCode.value : _currency.lcyCode.value})',
                   hintText: '0.00',
                   labelStyle: TextStyle(color: p.textSecondary),
                   enabledBorder: OutlineInputBorder(

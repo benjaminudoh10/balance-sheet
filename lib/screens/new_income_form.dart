@@ -1,4 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -219,10 +220,15 @@ class IncomeForm extends StatelessWidget {
                       label: 'Description',
                       child: DescriptionInput(compact: true),
                     ),
-                    _FormSection(
-                      label: 'Amount (₦)',
-                      child: AmountInput(compact: true),
-                    ),
+                    Obx(() {
+                      final String code = _transactionController.amountEntryIsFcy.value
+                          ? Get.find<CurrencyController>().fcyCode.value
+                          : Get.find<CurrencyController>().lcyCode.value;
+                      return _FormSection(
+                        label: 'Amount ($code)',
+                        child: AmountInput(compact: true, isIncome: _isIncome),
+                      );
+                    }),
                     _FormSection(
                       label: 'Date & time',
                       child: _EntryDateTimeField(
@@ -267,6 +273,10 @@ class IncomeForm extends StatelessWidget {
                               return;
                             }
 
+                            final bool isFcy = _transactionController.amountEntryIsFcy.value;
+                            final int entryMinor = isFcy
+                                ? _transactionController.entryAmountMinor.value
+                                : _transactionController.amount.value;
                             final Transaction tx = Transaction(
                               description: _transactionController.description.value,
                               type: type,
@@ -275,6 +285,8 @@ class IncomeForm extends StatelessWidget {
                               contactId:
                                   _transactionController.contact.value?.id ?? 0,
                               date: _transactionController.entryDateTime.value,
+                              entryIsFcy: isFcy,
+                              entryAmountMinor: entryMinor,
                             );
                             if (transaction != null) {
                               await _transactionController.updateTransaction(

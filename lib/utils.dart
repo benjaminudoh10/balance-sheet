@@ -1,8 +1,45 @@
+import 'package:balance_sheet/controllers/currency_controller.dart';
+import 'package:balance_sheet/models/budget_line.dart';
+import 'package:balance_sheet/models/transaction.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-String formatAmount(kobo) {
-  final formatCurrency = new NumberFormat.simpleCurrency(name: 'NGN');
-  return formatCurrency.format(kobo / 100);
+String formatMinorUnits(int minor, String iso4217Code) {
+  final String code = iso4217Code.trim().toUpperCase();
+  if (code.isEmpty) {
+    return NumberFormat.currency(locale: 'en_US', symbol: '').format(minor / 100).trim();
+  }
+  try {
+    return NumberFormat.simpleCurrency(name: code).format(minor / 100);
+  } catch (_) {
+    return '${minor / 100} $code';
+  }
+}
+
+/// Primary formatting for amounts stored in **LCY minor units** when no transaction context exists.
+String formatAmount(int kobo) {
+  if (Get.isRegistered<CurrencyController>()) {
+    return formatMinorUnits(kobo, Get.find<CurrencyController>().lcyCode.value);
+  }
+  return NumberFormat.simpleCurrency(name: 'NGN').format(kobo / 100);
+}
+
+/// How a single ledger row should read: entered currency only ([Transaction.entryAmountMinor]).
+String formatTransactionDisplayAmount(Transaction t) {
+  final CurrencyController c = Get.find<CurrencyController>();
+  if (t.entryIsFcy) {
+    return formatMinorUnits(t.entryAmountMinor, c.fcyCode.value);
+  }
+  return formatMinorUnits(t.amount, c.lcyCode.value);
+}
+
+/// Planned budget line — show the currency the user chose when entering the plan.
+String formatBudgetPlannedDisplay(BudgetLine line) {
+  final CurrencyController c = Get.find<CurrencyController>();
+  if (line.planEntryIsFcy) {
+    return formatMinorUnits(line.planEntryAmountMinor, c.fcyCode.value);
+  }
+  return formatMinorUnits(line.plannedAmount, c.lcyCode.value);
 }
 
 /// Signed net for “today” line (amounts in minor units, same as [formatAmount]).
@@ -10,7 +47,7 @@ String formatSignedNet(int netMinor) {
   if (netMinor == 0) {
     return formatAmount(0);
   }
-  final sign = netMinor > 0 ? '+' : '−';
+  final String sign = netMinor > 0 ? '+' : '−';
   return '$sign ${formatAmount(netMinor.abs())}';
 }
 

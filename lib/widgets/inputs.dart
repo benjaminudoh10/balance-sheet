@@ -6,6 +6,7 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,45 +122,110 @@ class DecimalTextInputFormatter extends TextInputFormatter {
 }
 
 class AmountInput extends StatelessWidget {
-  AmountInput({super.key, this.compact = false});
+  AmountInput({
+    super.key,
+    this.compact = false,
+    this.isIncome,
+  });
 
   /// When true, removes vertical margin for stacked forms (e.g. bottom sheet).
   final bool compact;
+
+  /// `true` = income (mint), `false` = expense (coral). `null` = outflow-only styling (coral), e.g. budget.
+  final bool? isIncome;
 
   final TransactionController _transactionController = Get.find();
 
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: p.border),
-        borderRadius: BorderRadius.circular(10.0),
-        color: p.surface,
-      ),
-      margin: EdgeInsets.symmetric(
-        vertical: compact ? 0.0 : 10.0,
-      ),
-      child: TextField(
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.all(10.0),
-          hintText: "0.00",
-          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: p.textSecondary,
+    final CurrencyController currency = Get.find<CurrencyController>();
+    final Color flowAccent = isIncome == null
+        ? p.coral
+        : (isIncome! ? p.mint : p.coral);
+    final Color selectedOnAccent =
+        isIncome == null ? Colors.white : (isIncome! ? const Color(0xFF0D1117) : Colors.white);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Obx(() {
+          final bool fcy = _transactionController.amountEntryIsFcy.value;
+          final String lCode = currency.lcyCode.value;
+          final String fCode = currency.fcyCode.value;
+          return Padding(
+            padding: EdgeInsets.only(bottom: compact ? 6 : 8),
+            child: Row(
+              children: [
+                Text(
+                  'Currency',
+                  style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                        color: p.textSecondary,
+                        letterSpacing: 0.3,
+                      ),
+                ),
+                const Spacer(),
+                SegmentedButton<bool>(
+                  segments: <ButtonSegment<bool>>[
+                    ButtonSegment<bool>(
+                      value: false,
+                      label: Text(lCode),
+                    ),
+                    ButtonSegment<bool>(
+                      value: true,
+                      label: Text(fCode),
+                    ),
+                  ],
+                  selected: <bool>{fcy},
+                  onSelectionChanged: (Set<bool> next) {
+                    if (next.isEmpty) return;
+                    final bool toFcy = next.single;
+                    if (toFcy == fcy) return;
+                    _transactionController.toggleAmountEntryCurrency();
+                  },
+                  style: SegmentedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    backgroundColor: p.surface,
+                    foregroundColor: p.textPrimary,
+                    side: BorderSide(color: p.border),
+                    selectedBackgroundColor: flowAccent,
+                    selectedForegroundColor: selectedOnAccent,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: p.border),
+            borderRadius: BorderRadius.circular(10.0),
+            color: p.surface,
           ),
-          border: InputBorder.none,
+          margin: EdgeInsets.symmetric(
+            vertical: compact ? 0.0 : 10.0,
+          ),
+          child: TextField(
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.all(10.0),
+              hintText: "0.00",
+              hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: p.textSecondary,
+                  ),
+              border: InputBorder.none,
+            ),
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: p.textPrimary,
+                ),
+            cursorColor: flowAccent,
+            controller: _transactionController.amountController.value,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [DecimalTextInputFormatter()],
+            onChanged: _transactionController.applyAmountFieldText,
+          ),
         ),
-        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: p.textPrimary,
-        ),
-        cursorColor: p.mint,
-        controller: _transactionController.amountController.value,
-        keyboardType: TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [DecimalTextInputFormatter()],
-        onChanged: (value) {
-          _transactionController.amount.value = double.parse(value) * 1000 ~/ 10;
-        },
-      ),
+      ],
     );
   }
 }

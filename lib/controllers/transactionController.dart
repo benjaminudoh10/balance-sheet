@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
@@ -17,6 +18,10 @@ class TransactionController extends GetxController {
 
   RxInt amount = 0.obs;
   var amountController = TextEditingController(text: "0.00").obs;
+
+  /// When true, the amount field is in FCY; [amount] stays LCY minor (canonical).
+  final RxBool amountEntryIsFcy = false.obs;
+  final RxInt entryAmountMinor = 0.obs;
 
   RxInt total = 0.obs;
   RxInt todaysExpense = 0.obs;
@@ -90,15 +95,17 @@ class TransactionController extends GetxController {
   }
 
   updateTransaction(Transaction transaction, Transaction previousTransaction) async {
-    Transaction update = Transaction.fromJson({
-      "id": previousTransaction.id,
-      "type": previousTransaction.type == TransactionType.expenditure ? 'expenditure' : 'income',
-      "amount": transaction.amount,
-      "category": transaction.category,
-      "contactId": transaction.contactId,
-      "date": transaction.date.millisecondsSinceEpoch,
-      "description": transaction.description,
-    });
+    final Transaction update = Transaction(
+      id: previousTransaction.id,
+      description: transaction.description,
+      type: transaction.type,
+      amount: transaction.amount,
+      date: transaction.date,
+      category: transaction.category,
+      contactId: transaction.contactId,
+      entryIsFcy: transaction.entryIsFcy,
+      entryAmountMinor: transaction.entryAmountMinor,
+    );
 
     await db.updateTransaction(update);
     await loadHomeScreenData();
@@ -246,7 +253,51 @@ class TransactionController extends GetxController {
     descController.value.text = "";
     amount.value = 0;
     amountController.value.text = "0.00";
+    amountEntryIsFcy.value = false;
+    entryAmountMinor.value = 0;
     entryDateTime.value = DateTime.now();
     resetContact();
+  }
+
+  /// Parses the amount field into minor units of the selected entry currency and updates [amount] (LCY).
+  void applyAmountFieldText(String raw) {
+    final String t = raw.trim();
+    if (t.isEmpty || t == '.') {
+      amount.value = 0;
+      entryAmountMinor.value = 0;
+      return;
+    }
+    final double? d = double.tryParse(t);
+    if (d == null) {
+      amount.value = 0;
+      entryAmountMinor.value = 0;
+      return;
+    }
+    final int minor = (d * 1000).floor() ~/ 10;
+    entryAmountMinor.value = minor;
+    final CurrencyController c = Get.find<CurrencyController>();
+    if (amountEntryIsFcy.value) {
+      amount.value = c.lcyMinorFromFcyMinor(minor);
+    } else {
+      amount.value = minor;
+    }
+  }
+
+  void toggleAmountEntryCurrency() {
+    final CurrencyController c = Get.find<CurrencyController>();
+    final int curMinor = entryAmountMinor.value;
+    if (amountEntryIsFcy.value) {
+      final int lcy = c.lcyMinorFromFcyMinor(curMinor);
+      amountEntryIsFcy.value = false;
+      amount.value = lcy;
+      entryAmountMinor.value = lcy;
+      amountController.value.text = (lcy / 100).toStringAsFixed(2);
+    } else {
+      final int fcy = c.fcyMinorFromLcyMinor(curMinor);
+      amountEntryIsFcy.value = true;
+      amount.value = curMinor;
+      entryAmountMinor.value = fcy;
+      amountController.value.text = (fcy / 100).toStringAsFixed(2);
+    }
   }
 }

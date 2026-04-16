@@ -156,7 +156,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
                         ),
                       ),
                       Text(
-                        formatAmount(transaction.amount),
+                        formatTransactionDisplayAmount(transaction),
                         style: textTheme.titleSmall!.copyWith(
                           color: p.textPrimary,
                           fontWeight: FontWeight.w600,

@@ -12,6 +12,8 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
   transactionController.description.value = transaction.description;
   transactionController.descController.value.text = transaction.description;
   transactionController.amount.value = transaction.amount;
+  transactionController.amountEntryIsFcy.value = transaction.entryIsFcy;
+  transactionController.entryAmountMinor.value = transaction.entryAmountMinor;
   transactionController.category.value = transaction.category;
 
   // Must preserve contact id so save keeps contactId; name-only Contact() had id 0 and cleared DB.
@@ -32,9 +34,15 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
   } else {
     transactionController.contact.value = null;
   }
-  transactionController.amountController.value.text =
-      (transaction.amount / 100).toStringAsFixed(2);
+  if (transaction.entryIsFcy) {
+    transactionController.amountController.value.text =
+        (transaction.entryAmountMinor / 100).toStringAsFixed(2);
+  } else {
+    transactionController.amountController.value.text =
+        (transaction.amount / 100).toStringAsFixed(2);
+  }
   transactionController.entryDateTime.value = transaction.date;
+  transactionController.applyAmountFieldText(transactionController.amountController.value.text);
 
   final BuildContext context = Get.context!;
   final AppPalette p = AppPalette.of(context);

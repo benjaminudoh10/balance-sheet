@@ -3,13 +3,16 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/backup/backup_service.dart';
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/constants/currency_catalog.dart';
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
@@ -154,6 +157,24 @@ class ProfileView extends StatelessWidget {
                             }).toList(),
                           );
                         }),
+                        const SizedBox(height: 24),
+                        Text(
+                          'CURRENCIES',
+                          style: textTheme.labelMedium!.copyWith(
+                            letterSpacing: 1.4,
+                            color: p.textSecondary.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Ledger totals use local currency (LCY). Entries can be in LCY or foreign (FCY). Set how many LCY units equal 1 FCY.',
+                          style: textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary.withValues(alpha: 0.9),
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const _CurrencySettingsBlock(),
                         const SizedBox(height: 20),
                         Text(
                           'SECURITY',
@@ -681,5 +702,178 @@ class _ThemeModeOptionRow extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _CurrencySettingsBlock extends StatefulWidget {
+  const _CurrencySettingsBlock();
+
+  @override
+  State<_CurrencySettingsBlock> createState() => _CurrencySettingsBlockState();
+}
+
+class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
+  late final TextEditingController _rate;
+  late final FocusNode _rateFocusNode;
+  Worker? _rateWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    final CurrencyController c = Get.find<CurrencyController>();
+    _rate = TextEditingController(text: _formatRate(c.rate.value));
+    _rateFocusNode = FocusNode();
+    _rateWorker = ever<double>(c.rate, (_) {
+      if (!mounted) return;
+      if (_rateFocusNode.hasFocus) return;
+      final String t = _formatRate(c.rate.value);
+      if (_rate.text != t) {
+        _rate.text = t;
+      }
+    });
+  }
+
+  static String _formatRate(double r) {
+    if (r == r.roundToDouble()) return r.round().toString();
+    return r.toString();
+  }
+
+  @override
+  void dispose() {
+    _rateWorker?.dispose();
+    _rateFocusNode.dispose();
+    _rate.dispose();
+    super.dispose();
+  }
+
+  void _commitRate() {
+    final double? d = CurrencyController.parseRateUserInput(_rate.text);
+    if (d == null || d <= 0) {
+      Get.snackbar(
+        'Invalid rate',
+        'Enter a number greater than zero.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    final CurrencyController c = Get.find<CurrencyController>();
+    c.setRate(d);
+    _rate.text = _formatRate(c.rate.value);
+    FocusManager.instance.primaryFocus?.unfocus();
+    Get.snackbar(
+      'Saved',
+      'Exchange rate updated.',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+      colorText: Colors.white,
+    );
+  }
+
+  static List<Iso4217Currency> _codesWithFallback(String code) {
+    final String u = code.trim().toUpperCase();
+    final List<Iso4217Currency> list = List<Iso4217Currency>.from(kCurrencyPickerOptions);
+    if (CurrencyController.isValidCurrencyCode(u) && !list.any((Iso4217Currency e) => e.code == u)) {
+      list.insert(0, Iso4217Currency(u, 'Custom'));
+    }
+    return list;
+  }
+
+  static String? _valueForDropdown(String code, List<Iso4217Currency> items) {
+    final String u = code.trim().toUpperCase();
+    if (items.any((Iso4217Currency e) => e.code == u)) return u;
+    return items.isEmpty ? null : items.first.code;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
+    return Obx(() {
+      final CurrencyController c = Get.find<CurrencyController>();
+      final String hint =
+          '1 ${c.fcyCode.value} = ${c.rate.value == c.rate.value.roundToDouble() ? c.rate.value.round() : c.rate.value} ${c.lcyCode.value}';
+      final List<Iso4217Currency> lcyItems = _codesWithFallback(c.lcyCode.value);
+      final List<Iso4217Currency> fcyItems = _codesWithFallback(c.fcyCode.value);
+      final String? lcyVal = _valueForDropdown(c.lcyCode.value, lcyItems);
+      final String? fcyVal = _valueForDropdown(c.fcyCode.value, fcyItems);
+      InputBorder border(Color color) => OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: color),
+          );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<String>(
+            key: ValueKey<String>('lcy-$lcyVal'),
+            isExpanded: true,
+            initialValue: lcyVal,
+            decoration: InputDecoration(
+              labelText: 'Local (LCY)',
+              labelStyle: TextStyle(color: p.textSecondary),
+              enabledBorder: border(p.border),
+              focusedBorder: border(p.mint.withValues(alpha: 0.8)),
+            ),
+            dropdownColor: p.surfaceElevated,
+            menuMaxHeight: 360,
+            items: lcyItems
+                .map(
+                  (Iso4217Currency e) => DropdownMenuItem<String>(
+                    value: e.code,
+                    child: Text(
+                      '${e.code} — ${e.name}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (String? v) {
+              if (v != null) c.setLcyCode(v);
+            },
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            key: ValueKey<String>('fcy-$fcyVal'),
+            isExpanded: true,
+            initialValue: fcyVal,
+            decoration: InputDecoration(
+              labelText: 'Foreign (FCY)',
+              labelStyle: TextStyle(color: p.textSecondary),
+              enabledBorder: border(p.border),
+              focusedBorder: border(p.mint.withValues(alpha: 0.8)),
+            ),
+            dropdownColor: p.surfaceElevated,
+            menuMaxHeight: 360,
+            items: fcyItems
+                .map(
+                  (Iso4217Currency e) => DropdownMenuItem<String>(
+                    value: e.code,
+                    child: Text(
+                      '${e.code} — ${e.name}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (String? v) {
+              if (v != null) c.setFcyCode(v);
+            },
+          ),
+          const SizedBox(height: 10),
+          RateFieldWithSaveButton(
+            controller: _rate,
+            focusNode: _rateFocusNode,
+            labelText: 'LCY per 1 FCY',
+            helperText: hint,
+            onSave: _commitRate,
+          ),
+        ],
+      );
+    });
   }
 }

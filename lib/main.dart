@@ -1,4 +1,5 @@
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
@@ -15,6 +16,7 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  Get.put(CurrencyController());
   Get.put(TransactionController());
   Get.put(SecurityController());
   Get.put(AppController());

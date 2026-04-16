@@ -5,6 +5,7 @@ import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
@@ -51,6 +52,9 @@ class BackupService {
       AppConstants.USE_FINGERPRINT: box.read(AppConstants.USE_FINGERPRINT) ?? false,
       AppConstants.USER_PIN_HASH_KEY: box.read(AppConstants.USER_PIN_HASH_KEY),
       AppConstants.USER_PIN_SALT_KEY: box.read(AppConstants.USER_PIN_SALT_KEY),
+      AppConstants.CURRENCY_LCY_KEY: box.read(AppConstants.CURRENCY_LCY_KEY),
+      AppConstants.CURRENCY_FCY_KEY: box.read(AppConstants.CURRENCY_FCY_KEY),
+      AppConstants.CURRENCY_RATE_KEY: box.read(AppConstants.CURRENCY_RATE_KEY),
     };
 
     final Map<String, Object?> payload = <String, Object?>{
@@ -180,6 +184,8 @@ class BackupService {
           'date': row['date'],
           'category': row['category'],
           'contactId': t.contactId == 0 ? null : t.contactId,
+          'entryCurrency': row['entryCurrency'] ?? 'lcy',
+          'entryAmount': row['entryAmount'] ?? row['amount'],
         });
       }
       for (final BudgetMonth b in budgetMonths) {
@@ -198,6 +204,8 @@ class BackupService {
           'contact_id': bl.contactId <= 0 ? null : bl.contactId,
           'category': bl.categoryKey,
           'sort_order': bl.sortOrder,
+          'entryCurrency': bl.planEntryIsFcy ? 'fcy' : 'lcy',
+          'entryAmount': bl.planEntryAmountMinor > 0 ? bl.planEntryAmountMinor : bl.plannedAmount,
         });
       }
     });
@@ -217,6 +225,9 @@ class BackupService {
       await writeKey(AppConstants.APP_FONT_KEY, prefs[AppConstants.APP_FONT_KEY]);
       await writeKey(AppConstants.APP_THEME_MODE_KEY, prefs[AppConstants.APP_THEME_MODE_KEY]);
       await writeKey(AppConstants.USE_FINGERPRINT, prefs[AppConstants.USE_FINGERPRINT] ?? false);
+      await writeKey(AppConstants.CURRENCY_LCY_KEY, prefs[AppConstants.CURRENCY_LCY_KEY]);
+      await writeKey(AppConstants.CURRENCY_FCY_KEY, prefs[AppConstants.CURRENCY_FCY_KEY]);
+      await writeKey(AppConstants.CURRENCY_RATE_KEY, prefs[AppConstants.CURRENCY_RATE_KEY]);
 
       final Object? hash = prefs[AppConstants.USER_PIN_HASH_KEY];
       final Object? salt = prefs[AppConstants.USER_PIN_SALT_KEY];
@@ -239,6 +250,10 @@ class BackupService {
   static Future<void> refreshControllersAfterImport() async {
     final AppController app = Get.find<AppController>();
     app.syncFromStorage();
+
+    if (Get.isRegistered<CurrencyController>()) {
+      Get.find<CurrencyController>().syncFromStorage();
+    }
 
     final SecurityController security = Get.find<SecurityController>();
     security.reloadFromStorage();

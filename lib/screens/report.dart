@@ -6,7 +6,7 @@ import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
-import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -454,12 +454,16 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  formatNetWithoutSign(net),
+                DualCurrencyTotal(
+                  lcyMinor: net,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                  primaryStyle: Theme.of(context).textTheme.displayMedium!.copyWith(
                     color: accent,
                     letterSpacing: -0.6,
+                  ),
+                  secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: p.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -488,11 +492,18 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            formatAmount(income),
-                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          DualCurrencyTotal(
+                            lcyMinor: income,
+                            textAlign: TextAlign.start,
+                            compactSecondary: true,
+                            showFcyEquivalent: false,
+                            primaryStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
                               color: p.mint,
                               fontWeight: FontWeight.w700,
+                            ),
+                            secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              color: p.textSecondary,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -511,11 +522,18 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            formatAmount(expense),
-                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          DualCurrencyTotal(
+                            lcyMinor: expense,
+                            textAlign: TextAlign.end,
+                            compactSecondary: true,
+                            showFcyEquivalent: false,
+                            primaryStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
                               color: p.coral,
                               fontWeight: FontWeight.w700,
+                            ),
+                            secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              color: p.textSecondary,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],

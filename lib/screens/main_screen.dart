@@ -7,6 +7,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -185,10 +186,10 @@ class _GlassBalanceCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Text(
-                formatNetWithoutSign(total),
+              DualCurrencyTotal(
+                lcyMinor: total,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
                   color: p.textPrimary,
                   letterSpacing: -0.6,
                 ),

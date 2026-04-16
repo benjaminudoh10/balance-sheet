@@ -1,3 +1,4 @@
+import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
@@ -29,6 +30,9 @@ void main() {
   });
 
   Future<TransactionController> pumpController() async {
+    if (!Get.isRegistered<CurrencyController>()) {
+      Get.put(CurrencyController());
+    }
     if (!Get.isRegistered<ReportController>()) {
       Get.put(ReportController(), permanent: true);
     }

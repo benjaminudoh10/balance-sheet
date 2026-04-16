@@ -63,6 +63,8 @@ class BudgetController extends GetxController {
     required int plannedAmountMinor,
     int contactId = 0,
     String categoryKey = '',
+    bool planEntryIsFcy = false,
+    int planEntryAmountMinor = 0,
   }) async {
     final BudgetMonth? bm = activeBudgetMonth.value;
     if (bm == null) return;
@@ -72,6 +74,8 @@ class BudgetController extends GetxController {
       plannedAmount: plannedAmountMinor,
       contactId: contactId,
       categoryKey: categoryKey,
+      planEntryIsFcy: planEntryIsFcy,
+      planEntryAmountMinor: planEntryAmountMinor > 0 ? planEntryAmountMinor : plannedAmountMinor,
     );
     await reloadFocusMonth();
   }

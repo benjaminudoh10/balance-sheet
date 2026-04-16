@@ -6,6 +6,7 @@ import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -251,11 +252,16 @@ class _ExpenseHeroCard extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  formatAmount(exp),
-                  style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                DualCurrencyTotal(
+                  lcyMinor: exp,
+                  textAlign: TextAlign.start,
+                  primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
                         color: p.textPrimary,
                         letterSpacing: -0.6,
+                      ),
+                  secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: p.textSecondary,
+                        fontWeight: FontWeight.w500,
                       ),
                 ),
                 if (pct != null && prev > 0) ...[
