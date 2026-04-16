@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
@@ -53,6 +54,9 @@ class TransactionController extends GetxController {
     await getTransactions(start, end);
     if (Get.isRegistered<InsightsController>()) {
       Get.find<InsightsController>().load();
+    }
+    if (Get.isRegistered<BudgetController>()) {
+      Get.find<BudgetController>().reloadFocusMonth();
     }
   }
 
@@ -121,6 +125,9 @@ class TransactionController extends GetxController {
       updateControllerDataAfterDeletion(transaction);
       if (Get.isRegistered<InsightsController>()) {
         Get.find<InsightsController>().load();
+      }
+      if (Get.isRegistered<BudgetController>()) {
+        Get.find<BudgetController>().reloadFocusMonth();
       }
 
       Get.snackbar(

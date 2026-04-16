@@ -3,6 +3,7 @@ import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -164,7 +165,7 @@ class _ContactViewState extends State<ContactView> {
                     padding: const EdgeInsets.fromLTRB(
                       _horizontalPad,
                       6,
-                      _horizontalPad,
+                      _horizontalPad + kPlanHubFabTrailingClearance,
                       10,
                     ),
                     child: _ComposerDock(

@@ -1,4 +1,5 @@
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
@@ -18,6 +19,7 @@ void main() async {
   Get.put(SecurityController());
   Get.put(AppController());
   Get.put(ContactController());
+  Get.put(BudgetController());
   Get.put(InsightsController());
   Get.config(
     // enableLog: true,

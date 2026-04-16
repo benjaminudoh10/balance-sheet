@@ -2,6 +2,8 @@ import 'package:balance_sheet/backup/backup_service.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/operations.dart' as db_ops;
+import 'package:balance_sheet/models/budget_line.dart';
+import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_storage/get_storage.dart';
@@ -121,6 +123,33 @@ void main() {
       expect(json, contains(BackupConstants.formatId));
       expect(json, contains('"version": ${BackupConstants.formatVersion}'));
       expect(json, contains('Bob'));
+      expect(json, contains('"budgetMonths"'));
+      expect(json, contains('"budgetLines"'));
+    });
+
+    test('roundtrip preserves budget months and lines', () async {
+      final int cid = await db_ops.addContact(Contact(name: 'Vendor'));
+      final BudgetMonth bm = await db_ops.ensureBudgetMonth(2026, 2);
+      await db_ops.insertBudgetLine(
+        budgetMonthId: bm.id,
+        description: 'Supplies',
+        plannedAmount: 4200,
+        contactId: cid,
+        categoryKey: 'misc',
+      );
+
+      final String exported = await BackupService.exportJsonString();
+      await resetAppDatabaseFile();
+      await BackupService.importFromJsonString(exported);
+
+      final BudgetMonth? loaded = await db_ops.getBudgetMonth(2026, 2);
+      expect(loaded, isNotNull);
+      final List<BudgetLine> lines = await db_ops.getBudgetLinesForMonth(loaded!.id);
+      expect(lines.length, 1);
+      expect(lines.single.description, 'Supplies');
+      expect(lines.single.plannedAmount, 4200);
+      expect(lines.single.contactId, cid);
+      expect(lines.single.categoryKey, 'misc');
     });
   });
 }

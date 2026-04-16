@@ -1,5 +1,7 @@
 import 'package:balance_sheet/database/operations.dart' as db_ops;
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/budget_line.dart';
+import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -302,6 +304,99 @@ void main() {
       final int id = await db_ops.addContact(Contact(name: 'Temp'));
       await db_ops.deleteContact(Contact(id: id, name: 'Temp'));
       expect(await db_ops.getContacts(), isEmpty);
+    });
+  });
+
+  group('budget', () {
+    test('ensureBudgetMonth getOrCreate and budget lines CRUD', () async {
+      final BudgetMonth m = await db_ops.ensureBudgetMonth(2026, 4);
+      expect(m.year, 2026);
+      expect(m.month, 4);
+      expect(m.id, greaterThan(0));
+
+      final BudgetMonth? again = await db_ops.getBudgetMonth(2026, 4);
+      expect(again!.id, m.id);
+      expect(await db_ops.getBudgetLinesForMonth(m.id), isEmpty);
+
+      final int cid = await db_ops.addContact(Contact(name: 'Landlord'));
+      final int lid = await db_ops.insertBudgetLine(
+        budgetMonthId: m.id,
+        description: 'Rent',
+        plannedAmount: 150000,
+        contactId: cid,
+        categoryKey: 'rent',
+      );
+      expect(lid, greaterThan(0));
+
+      final List<BudgetLine> lines = await db_ops.getBudgetLinesForMonth(m.id);
+      expect(lines.length, 1);
+      expect(lines.first.description, 'Rent');
+      expect(lines.first.plannedAmount, 150000);
+      expect(lines.first.contactId, cid);
+      expect(lines.first.categoryKey, 'rent');
+
+      await db_ops.updateBudgetLine(
+        lines.first.copyWith(description: 'Rent updated', plannedAmount: 160000, categoryKey: 'utilities'),
+      );
+      final List<BudgetLine> after = await db_ops.getBudgetLinesForMonth(m.id);
+      expect(after.single.description, 'Rent updated');
+      expect(after.single.plannedAmount, 160000);
+      expect(after.single.categoryKey, 'utilities');
+
+      await db_ops.deleteBudgetLine(lid);
+      expect(await db_ops.getBudgetLinesForMonth(m.id), isEmpty);
+    });
+
+    test('getExpenditureTotalsByContact sums expenditure in range', () async {
+      final int cid = await db_ops.addContact(Contact(name: 'Shop'));
+      final ({int startMs, int endMs}) r = db_ops.calendarMonthEpochRange(2026, 3);
+      await db_ops.addTransaction(Transaction(
+        description: 'a',
+        type: TransactionType.expenditure,
+        amount: 5000,
+        date: DateTime(2026, 3, 15),
+        category: 'food',
+        contactId: cid,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'b',
+        type: TransactionType.income,
+        amount: 100000,
+        date: DateTime(2026, 3, 16),
+        category: 'salary',
+        contactId: cid,
+      ));
+      final Map<int, int> map = await db_ops.getExpenditureTotalsByContact(r.startMs, r.endMs);
+      expect(map[cid], 5000);
+    });
+
+    test('getExpenditureTotalFiltered matches category and/or contact', () async {
+      final int cid = await db_ops.addContact(Contact(name: 'Shop'));
+      final ({int startMs, int endMs}) r = db_ops.calendarMonthEpochRange(2026, 5);
+      await db_ops.addTransaction(Transaction(
+        description: 'lunch',
+        type: TransactionType.expenditure,
+        amount: 1000,
+        date: DateTime(2026, 5, 2),
+        category: 'food',
+        contactId: cid,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'bus',
+        type: TransactionType.expenditure,
+        amount: 2500,
+        date: DateTime(2026, 5, 3),
+        category: 'transport',
+        contactId: cid,
+      ));
+      // Food ∪ contact Shop: lunch (food+Shop) + bus (transport+Shop) — union, not intersection.
+      expect(
+        await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'food', contactId: cid),
+        3500,
+      );
+      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'food'), 1000);
+      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, contactId: cid), 3500);
+      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'transport'), 2500);
     });
   });
 }

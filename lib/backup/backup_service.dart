@@ -8,8 +8,11 @@ import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/database/db.dart';
+import 'package:balance_sheet/models/budget_line.dart';
+import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart' as txn_model;
 import 'package:file_picker/file_picker.dart';
@@ -36,6 +39,10 @@ class BackupService {
         await dbClient.query(DBConstants.CONTACT, orderBy: 'id ASC');
     final List<Map<String, dynamic>> txnRows =
         await dbClient.query(DBConstants.TRANSACTION, orderBy: 'date DESC');
+    final List<Map<String, dynamic>> budgetMonthRows =
+        await dbClient.query(DBConstants.BUDGET_MONTH, orderBy: 'id ASC');
+    final List<Map<String, dynamic>> budgetLineRows =
+        await dbClient.query(DBConstants.BUDGET_LINE, orderBy: 'id ASC');
 
     final GetStorage box = GetStorage();
     final Map<String, dynamic> preferences = <String, dynamic>{
@@ -53,6 +60,8 @@ class BackupService {
       'exportedAt': DateTime.now().toUtc().toIso8601String(),
       'contacts': contactRows.map((Map<String, dynamic> r) => Contact.fromJson(r).toJson()).toList(),
       'transactions': txnRows.map((Map<String, dynamic> r) => txn_model.Transaction.fromJson(r).toJson()).toList(),
+      'budgetMonths': budgetMonthRows.map((Map<String, dynamic> r) => BudgetMonth.fromJson(r).toJson()).toList(),
+      'budgetLines': budgetLineRows.map((Map<String, dynamic> r) => BudgetLine.fromJson(r).toJson()).toList(),
       'preferences': preferences,
     };
 
@@ -109,6 +118,21 @@ class BackupService {
         .map((dynamic e) => txn_model.Transaction.fromJson(Map<String, dynamic>.from(e as Map<dynamic, dynamic>)))
         .toList();
 
+    final List<BudgetMonth> budgetMonths = <BudgetMonth>[];
+    final List<BudgetLine> budgetLines = <BudgetLine>[];
+    final List<dynamic>? bmList = map['budgetMonths'] as List<dynamic>?;
+    final List<dynamic>? blList = map['budgetLines'] as List<dynamic>?;
+    if (bmList != null) {
+      for (final dynamic e in bmList) {
+        budgetMonths.add(BudgetMonth.fromJson(Map<String, dynamic>.from(e as Map<dynamic, dynamic>)));
+      }
+    }
+    if (blList != null) {
+      for (final dynamic e in blList) {
+        budgetLines.add(BudgetLine.fromJson(Map<String, dynamic>.from(e as Map<dynamic, dynamic>)));
+      }
+    }
+
     final Set<int> contactIds = contacts.map((Contact c) => c.id).toSet();
     for (final txn_model.Transaction t in transactions) {
       final int cid = t.contactId;
@@ -119,9 +143,25 @@ class BackupService {
       }
     }
 
+    final Set<int> budgetMonthIds = budgetMonths.map((BudgetMonth b) => b.id).toSet();
+    for (final BudgetLine bl in budgetLines) {
+      if (!budgetMonthIds.contains(bl.budgetMonthId)) {
+        throw BackupException(
+          'Backup is inconsistent: a budget line references a missing budget month (id ${bl.budgetMonthId}).',
+        );
+      }
+      if (bl.contactId > 0 && !contactIds.contains(bl.contactId)) {
+        throw BackupException(
+          'Backup is inconsistent: a budget line references a missing contact (id ${bl.contactId}).',
+        );
+      }
+    }
+
     final Database dbClient = await AppDb().db;
     await dbClient.transaction((Transaction sqlTxn) async {
       await sqlTxn.delete(DBConstants.TRANSACTION);
+      await sqlTxn.delete(DBConstants.BUDGET_LINE);
+      await sqlTxn.delete(DBConstants.BUDGET_MONTH);
       await sqlTxn.delete(DBConstants.CONTACT);
 
       for (final Contact c in contacts) {
@@ -140,6 +180,24 @@ class BackupService {
           'date': row['date'],
           'category': row['category'],
           'contactId': t.contactId == 0 ? null : t.contactId,
+        });
+      }
+      for (final BudgetMonth b in budgetMonths) {
+        await sqlTxn.insert(DBConstants.BUDGET_MONTH, <String, Object?>{
+          'id': b.id,
+          'year': b.year,
+          'month': b.month,
+        });
+      }
+      for (final BudgetLine bl in budgetLines) {
+        await sqlTxn.insert(DBConstants.BUDGET_LINE, <String, Object?>{
+          'id': bl.id,
+          'budget_month_id': bl.budgetMonthId,
+          'description': bl.description,
+          'planned_amount': bl.plannedAmount,
+          'contact_id': bl.contactId <= 0 ? null : bl.contactId,
+          'category': bl.categoryKey,
+          'sort_order': bl.sortOrder,
         });
       }
     });
@@ -195,6 +253,11 @@ class BackupService {
       final ReportController report = Get.find<ReportController>();
       await report.getTransactions();
       await report.getTransactionTotal();
+    }
+
+    if (Get.isRegistered<BudgetController>()) {
+      final BudgetController budget = Get.find<BudgetController>();
+      await budget.reloadFocusMonth();
     }
   }
 }

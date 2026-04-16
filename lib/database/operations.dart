@@ -1,5 +1,7 @@
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/db.dart';
+import 'package:balance_sheet/models/budget_line.dart';
+import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 
@@ -169,6 +171,47 @@ Future<Map<String, int>> getExpenseTotalsByCategory(int startMs, int endMs) asyn
   return out;
 }
 
+/// Sum of expenditures in [startMs]..[endMs] (inclusive) matching optional [categoryKey] and/or [contactId].
+/// Omit a filter by passing null or empty category / non-positive contact.
+///
+/// When **both** are set, matches the **union**: transactions with that category **or** that contact
+/// (each row counted once in the sum).
+Future<int> getExpenditureTotalFiltered(
+  int startMs,
+  int endMs, {
+  String? categoryKey,
+  int? contactId,
+}) async {
+  final String catTrim = categoryKey?.trim() ?? '';
+  final bool useCat = catTrim.isNotEmpty;
+  final bool useContact = contactId != null && contactId > 0;
+  if (!useCat && !useContact) {
+    return 0;
+  }
+  final dbClient = await AppDb().db;
+  final StringBuffer where = StringBuffer("type = 'expenditure' AND date >= ? AND date <= ?");
+  final List<Object?> args = <Object?>[startMs, endMs];
+  if (useCat && useContact) {
+    where.write(' AND (category = ? OR contactId = ?)');
+    args.add(catTrim);
+    args.add(contactId);
+  } else if (useCat) {
+    where.write(' AND category = ?');
+    args.add(catTrim);
+  } else {
+    where.write(' AND contactId = ?');
+    args.add(contactId);
+  }
+  final List<Map<String, dynamic>> rows = await dbClient.rawQuery(
+    'SELECT COALESCE(SUM(amount), 0) AS total FROM ${DBConstants.TRANSACTION} WHERE ${where.toString()}',
+    args,
+  );
+  final Object? t = rows.first['total'];
+  if (t is int) return t;
+  if (t is num) return t.toInt();
+  return int.tryParse('$t') ?? 0;
+}
+
 /// Largest single expense rows in the range (minor units), newest first on ties.
 Future<List<Transaction>> getTopExpenditures(int startMs, int endMs, int limit) async {
   final dbClient = await AppDb().db;
@@ -182,4 +225,150 @@ Future<List<Transaction>> getTopExpenditures(int startMs, int endMs, int limit) 
     [startMs, endMs, limit],
   );
   return rows.map((e) => Transaction.fromJson(e)).toList();
+}
+
+/// Local calendar month bounds in epoch milliseconds (inclusive).
+({int startMs, int endMs}) calendarMonthEpochRange(int year, int month) {
+  final int startMs = DateTime(year, month, 1).millisecondsSinceEpoch;
+  final int endMs = DateTime(year, month + 1, 0, 23, 59, 59, 999).millisecondsSinceEpoch;
+  return (startMs: startMs, endMs: endMs);
+}
+
+Future<BudgetMonth?> getBudgetMonth(int year, int month) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.query(
+    DBConstants.BUDGET_MONTH,
+    where: 'year = ? AND month = ?',
+    whereArgs: <Object>[year, month],
+    limit: 1,
+  );
+  if (rows.isEmpty) {
+    return null;
+  }
+  return BudgetMonth.fromJson(rows.first);
+}
+
+Future<BudgetMonth> ensureBudgetMonth(int year, int month) async {
+  final BudgetMonth? existing = await getBudgetMonth(year, month);
+  if (existing != null) {
+    return existing;
+  }
+  final dbClient = await AppDb().db;
+  final int id = await dbClient.insert(DBConstants.BUDGET_MONTH, <String, Object?>{
+    'year': year,
+    'month': month,
+  });
+  return BudgetMonth(id: id, year: year, month: month);
+}
+
+Future<List<BudgetMonth>> getAllBudgetMonths() async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.query(
+    DBConstants.BUDGET_MONTH,
+    orderBy: 'year DESC, month DESC',
+  );
+  return rows.map(BudgetMonth.fromJson).toList();
+}
+
+Future<List<BudgetLine>> getBudgetLinesForMonth(int budgetMonthId) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.query(
+    DBConstants.BUDGET_LINE,
+    where: 'budget_month_id = ?',
+    whereArgs: <Object>[budgetMonthId],
+    orderBy: 'sort_order ASC, id ASC',
+  );
+  return rows.map(BudgetLine.fromJson).toList();
+}
+
+Future<int> nextBudgetLineSortOrder(int budgetMonthId) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.rawQuery(
+    'SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM ${DBConstants.BUDGET_LINE} WHERE budget_month_id = ?',
+    <Object>[budgetMonthId],
+  );
+  final Object? n = rows.first['n'];
+  if (n is int) return n;
+  if (n is num) return n.toInt();
+  return 0;
+}
+
+Future<int> insertBudgetLine({
+  required int budgetMonthId,
+  required String description,
+  required int plannedAmount,
+  int contactId = 0,
+  String categoryKey = '',
+}) async {
+  final dbClient = await AppDb().db;
+  final int sortOrder = await nextBudgetLineSortOrder(budgetMonthId);
+  return dbClient.insert(DBConstants.BUDGET_LINE, <String, Object?>{
+    'budget_month_id': budgetMonthId,
+    'description': description,
+    'planned_amount': plannedAmount,
+    'contact_id': contactId <= 0 ? null : contactId,
+    'category': categoryKey,
+    'sort_order': sortOrder,
+  });
+}
+
+Future<void> updateBudgetLine(BudgetLine line) async {
+  final dbClient = await AppDb().db;
+  await dbClient.update(
+    DBConstants.BUDGET_LINE,
+    <String, Object?>{
+      'description': line.description,
+      'planned_amount': line.plannedAmount,
+      'contact_id': line.contactId <= 0 ? null : line.contactId,
+      'category': line.categoryKey,
+      'sort_order': line.sortOrder,
+    },
+    where: 'id = ?',
+    whereArgs: <Object>[line.id],
+  );
+}
+
+Future<void> deleteBudgetLine(int lineId) async {
+  final dbClient = await AppDb().db;
+  await dbClient.delete(
+    DBConstants.BUDGET_LINE,
+    where: 'id = ?',
+    whereArgs: <Object>[lineId],
+  );
+}
+
+/// Sum of expenditure amounts per contact for the inclusive date range (minor units).
+Future<Map<int, int>> getExpenditureTotalsByContact(int startMs, int endMs) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> rows = await dbClient.rawQuery(
+    '''
+    SELECT contactId AS cid, SUM(amount) AS total
+    FROM ${DBConstants.TRANSACTION}
+    WHERE type = 'expenditure' AND date >= ? AND date <= ?
+      AND contactId IS NOT NULL AND contactId > 0
+    GROUP BY contactId
+    ''',
+    <Object>[startMs, endMs],
+  );
+  final Map<int, int> out = <int, int>{};
+  for (final Map<String, dynamic> row in rows) {
+    final Object? rawCid = row['cid'];
+    final int cid = rawCid is int ? rawCid : (rawCid is num ? rawCid.toInt() : int.tryParse('$rawCid') ?? 0);
+    final Object? t = row['total'];
+    final int total = t is int ? t : (t is num ? t.toInt() : int.tryParse('$t') ?? 0);
+    if (cid > 0) {
+      out[cid] = total;
+    }
+  }
+  return out;
+}
+
+Future<List<Map<String, dynamic>>> queryAllBudgetMonthRows() async {
+  final dbClient = await AppDb().db;
+  return dbClient.query(DBConstants.BUDGET_MONTH, orderBy: 'id ASC');
+}
+
+Future<List<Map<String, dynamic>>> queryAllBudgetLineRows() async {
+  final dbClient = await AppDb().db;
+  return dbClient.query(DBConstants.BUDGET_LINE, orderBy: 'id ASC');
 }

@@ -1,6 +1,6 @@
 import 'package:balance_sheet/constants/db.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class AppDb {
   static final AppDb _instance = new AppDb.internal();
@@ -52,6 +52,8 @@ class AppDb {
             name TEXT NOT NULL
           )"""
         );
+        await db.execute(_sqlCreateBudgetMonths);
+        await db.execute(_sqlCreateBudgetLines);
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
         if (oldVersion < 3) {
@@ -77,8 +79,40 @@ class AppDb {
           );
           await db.execute('DROP TABLE IF EXISTS organizations');
         }
+        if (oldVersion < 4) {
+          await db.execute(_sqlCreateBudgetMonths);
+          await db.execute(_sqlCreateBudgetLines);
+        }
+        if (oldVersion < 5) {
+          await db.execute(
+            "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN category TEXT NOT NULL DEFAULT ''",
+          );
+        }
       },
     );
     return taskDb;
   }
 }
+
+const String _sqlCreateBudgetMonths = '''
+CREATE TABLE ${DBConstants.BUDGET_MONTH}(
+  id INTEGER PRIMARY KEY,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  UNIQUE(year, month)
+)
+''';
+
+const String _sqlCreateBudgetLines = '''
+CREATE TABLE ${DBConstants.BUDGET_LINE}(
+  id INTEGER PRIMARY KEY,
+  budget_month_id INTEGER NOT NULL,
+  description TEXT NOT NULL,
+  planned_amount INTEGER NOT NULL,
+  contact_id INTEGER,
+  category TEXT NOT NULL DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY(budget_month_id) REFERENCES ${DBConstants.BUDGET_MONTH}(id) ON DELETE CASCADE,
+  FOREIGN KEY(contact_id) REFERENCES ${DBConstants.CONTACT}(id) ON DELETE SET NULL
+)
+''';
