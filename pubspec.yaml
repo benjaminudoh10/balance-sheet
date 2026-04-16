@@ -51,6 +51,7 @@ dev_dependencies:
   flutter_native_splash: ^2.4.7
   flutter_launcher_icons: ^0.14.4
   sqflite_common_ffi: ^2.3.4
+  image: ^4.5.3
 
 # Transitive pins for current Flutter / Dart SDK (AGP 8, dart:io API changes).
 dependency_overrides:
@@ -67,13 +68,25 @@ flutter_icons:
   remove_alpha_ios: true
 
 # flutter pub run flutter_native_splash:create (run this to generate splash screen)
+# Colors match AppPalette.light.background / AppPalette.dark.background.
+# Center art: lib/assets/splash/ — mark PNGs + generated wordmark (see tool/generate_splash_assets.dart).
+# Light vs dark follows the *system* appearance (native splash runs before Flutter).
 flutter_native_splash:
-  color: "#944BE7"
-  image: "lib/assets/logo.png"
-  color_dark: "#944BE7"
-  image_dark: "lib/assets/logo.png"
+  color: "#F5F3FA"
+  image: "lib/assets/splash/splash_full_light.png"
+  color_dark: "#0D1117"
+  image_dark: "lib/assets/splash/splash_full_dark.png"
   android: true
   ios: true
+  android_12:
+    color: "#F5F3FA"
+    color_dark: "#0D1117"
+    image: "lib/assets/splash/splash_android12_light.png"
+    image_dark: "lib/assets/splash/splash_android12_dark.png"
+    icon_background_color: "#EDE9F4"
+    icon_background_color_dark: "#21262D"
+    branding: "lib/assets/splash/splash_branding_light.png"
+    branding_dark: "lib/assets/splash/splash_branding_dark.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
