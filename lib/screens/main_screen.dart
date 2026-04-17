@@ -94,17 +94,19 @@ class MainView extends StatelessWidget {
                               ),
                               const SizedBox(height: 18),
                               _IncomeExpenseRow(),
-                              const SizedBox(height: 28),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Recent Transactions',
-                                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: p.textPrimary,
+                              if (list.isNotEmpty) ...[
+                                const SizedBox(height: 28),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Recent Transactions',
+                                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                                      color: p.textPrimary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
+                                const SizedBox(height: 12),
+                              ],
                             ],
                           ),
                         ),

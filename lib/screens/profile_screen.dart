@@ -9,6 +9,7 @@ import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/debug_clear_data_screen.dart';
+import 'package:balance_sheet/screens/debug_seed_data_screen.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
@@ -247,6 +248,14 @@ class ProfileView extends StatelessWidget {
                                 'Remove selected SQLite tables and GetStorage keys — not shown in release builds',
                             icon: Icons.delete_forever_outlined,
                             onTap: () => Get.to(() => const DebugClearDataScreen()),
+                          ),
+                          const SizedBox(height: 8),
+                          _BackupActionRow(
+                            label: 'Seed sample data (debug)',
+                            subtitle:
+                                'Replace DB with a randomized multi-month demo (ledger, budget, stocks, other assets)',
+                            icon: Icons.grass_outlined,
+                            onTap: () => Get.to(() => const DebugSeedDataScreen()),
                           ),
                         ],
                       ],

@@ -14,6 +14,7 @@ import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -895,36 +896,33 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              sliver: SliverToBoxAdapter(child: _PortfolioSummary(p: p, inv: _inv)),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(child: _PortfolioChart(p: p, inv: _inv)),
-            ),
-            const SliverPadding(padding: EdgeInsets.only(top: 8), sliver: SliverToBoxAdapter(child: SizedBox())),
+            if (_inv.holdings.isNotEmpty) ...<Widget>[
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                sliver: SliverToBoxAdapter(child: _PortfolioSummary(p: p, inv: _inv)),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(child: _PortfolioChart(p: p, inv: _inv)),
+              ),
+              const SliverPadding(padding: EdgeInsets.only(top: 8), sliver: SliverToBoxAdapter(child: SizedBox())),
+            ],
             if (_inv.holdings.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.inventory_2_outlined, size: 48, color: p.textSecondary),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No positions yet',
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Add a ticker, log fractional shares over time, and enter prices manually to track value and growth.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.4),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: EmptyState(
+                    icon: Icon(Icons.inventory_2_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                    primaryText: Text(
+                      'No positions yet',
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                    ),
+                    secondaryText: Text(
+                      'Add a ticker, log fractional shares over time, and enter prices manually to track value and growth.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.4),
+                    ),
                   ),
                 ),
               )
@@ -1093,32 +1091,29 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              sliver: SliverToBoxAdapter(child: _OtherInvestmentsSummary(p: p, inv: _inv)),
-            ),
-            const SliverPadding(padding: EdgeInsets.only(top: 4), sliver: SliverToBoxAdapter(child: SizedBox())),
+            if (_inv.otherInvestments.isNotEmpty) ...<Widget>[
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                sliver: SliverToBoxAdapter(child: _OtherInvestmentsSummary(p: p, inv: _inv)),
+              ),
+              const SliverPadding(padding: EdgeInsets.only(top: 4), sliver: SliverToBoxAdapter(child: SizedBox())),
+            ],
             if (_inv.otherInvestments.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.savings_outlined, size: 52, color: p.textSecondary),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No other investments yet',
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Add cash, land, gold, or anything else. Each line is converted to your local currency and included in net worth.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.45),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: EmptyState(
+                    icon: Icon(Icons.savings_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                    primaryText: Text(
+                      'No other investments yet',
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                    ),
+                    secondaryText: Text(
+                      'Add cash, land, gold, or anything else. Each line is converted to your local currency and included in net worth.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.45),
+                    ),
                   ),
                 ),
               )
