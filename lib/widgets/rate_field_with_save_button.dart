@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 
 /// Single visual: text field + trailing control that looks like one outlined control.
@@ -122,7 +123,7 @@ class _RateFieldWithSaveButtonState extends State<RateFieldWithSaveButton> {
                   child: Material(
                     color: p.surfaceElevated,
                     child: InkWell(
-                      onTap: widget.onSave,
+                      onTap: AppHaptics.wrap(widget.onSave),
                       borderRadius: saveStripRadius,
                       child: Tooltip(
                         message: widget.saveTooltip,

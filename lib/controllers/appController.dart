@@ -1,5 +1,6 @@
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -70,7 +71,9 @@ class AppController extends GetxController {
     }
   }
 
-  setIndex(int i) {
+  void setIndex(int i) {
+    if (i == index.value) return;
+    AppHaptics.selection();
     index.value = i;
   }
 }

@@ -3,6 +3,7 @@ import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/pin_field_card.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/pin_hero_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -173,8 +174,10 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () =>
-                                    _securityController.unlockWithFingerprint(),
+                                onTap: () {
+                                  AppHaptics.light();
+                                  _securityController.unlockWithFingerprint();
+                                },
                                 borderRadius: BorderRadius.circular(32),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8),

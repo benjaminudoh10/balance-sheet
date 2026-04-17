@@ -6,6 +6,7 @@ import 'package:balance_sheet/screens/placeholder_tab.dart';
 import 'package:balance_sheet/screens/profile_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -55,7 +56,10 @@ class _HomeState extends State<Home> {
                   Positioned.fill(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _planHubOpen = false),
+                      onTap: () {
+                        AppHaptics.light();
+                        setState(() => _planHubOpen = false);
+                      },
                       child: ColoredBox(color: AppPalette.of(context).overlay),
                     ),
                   ),

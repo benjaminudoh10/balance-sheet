@@ -11,6 +11,7 @@ import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
 import 'package:file_picker/file_picker.dart';
@@ -115,7 +116,10 @@ class ProfileView extends StatelessWidget {
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                    onTap: () => _appController.setAppFont(o.id),
+                                    onTap: () {
+                                      AppHaptics.selection();
+                                      _appController.setAppFont(o.id);
+                                    },
                                     borderRadius: BorderRadius.circular(16),
                                     child: Ink(
                                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -338,11 +342,17 @@ class ProfileView extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
+              onPressed: () {
+                AppHaptics.light();
+                Navigator.of(ctx).pop(false);
+              },
               child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
             ),
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
+              onPressed: () {
+                AppHaptics.medium();
+                Navigator.of(ctx).pop(true);
+              },
               child: Text('Import', style: TextStyle(color: p.mint)),
             ),
           ],
@@ -404,7 +414,7 @@ class _BackupActionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -580,7 +590,9 @@ class _SecuritySwitchRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: switchDisabled ? null : onRowTap,
+        onTap: switchDisabled
+            ? null
+            : (onRowTap == null ? null : AppHaptics.wrap(onRowTap)),
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -636,7 +648,12 @@ class _SecuritySwitchRow extends StatelessWidget {
               ),
               Switch(
                 value: switchValue,
-                onChanged: switchDisabled ? null : onSwitch,
+                onChanged: switchDisabled
+                    ? null
+                    : (bool v) {
+                        AppHaptics.selection();
+                        onSwitch(v);
+                      },
                 activeThumbColor: Colors.black87,
                 activeTrackColor: p.mint.withValues(alpha: 0.55),
                 inactiveThumbColor: p.textSecondary,
@@ -670,7 +687,7 @@ class _ThemeModeOptionRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -760,6 +777,7 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
     }
     final CurrencyController c = Get.find<CurrencyController>();
     c.setRate(d);
+    AppHaptics.medium();
     _rate.text = _formatRate(c.rate.value);
     FocusManager.instance.primaryFocus?.unfocus();
     Get.snackbar(
@@ -831,7 +849,9 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
                 )
                 .toList(),
             onChanged: (String? v) {
-              if (v != null) c.setLcyCode(v);
+              if (v == null) return;
+              AppHaptics.selection();
+              c.setLcyCode(v);
             },
           ),
           const SizedBox(height: 10),
@@ -861,7 +881,9 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
                 )
                 .toList(),
             onChanged: (String? v) {
-              if (v != null) c.setFcyCode(v);
+              if (v == null) return;
+              AppHaptics.selection();
+              c.setFcyCode(v);
             },
           ),
           const SizedBox(height: 10),

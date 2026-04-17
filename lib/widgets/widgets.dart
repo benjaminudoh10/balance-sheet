@@ -7,6 +7,7 @@ import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -58,7 +59,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
         extentRatio: 0.28,
         children: [
           SlidableAction(
-            onPressed: (_) => _openEditModalFor(transaction),
+            onPressed: AppHaptics.wrapSlidable((_) => _openEditModalFor(transaction)),
             backgroundColor: p.mint,
             foregroundColor: Colors.black87,
             icon: Icons.edit_rounded,
@@ -73,7 +74,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
         extentRatio: 0.28,
         children: [
           SlidableAction(
-            onPressed: (_) => showDeleteModal(transaction),
+            onPressed: AppHaptics.wrapSlidable((_) => showDeleteModal(transaction)),
             backgroundColor: p.coral,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline_rounded,

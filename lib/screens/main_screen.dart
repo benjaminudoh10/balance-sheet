@@ -9,6 +9,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
@@ -242,7 +243,10 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
               height: _pageHeight,
               child: PageView(
                 controller: _pageController,
-                onPageChanged: (int i) => setState(() => _index = i),
+                onPageChanged: (int i) {
+                  if (i != _index) AppHaptics.selection();
+                  setState(() => _index = i);
+                },
                 physics: const BouncingScrollPhysics(),
                 children: <Widget>[
                   Align(
@@ -509,7 +513,10 @@ class _GlassBalanceCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => Get.to(() => const ReportView()),
+                  onPressed: () {
+                    AppHaptics.light();
+                    Get.to(() => const ReportView());
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: cardAccent,
                     side: BorderSide(color: cardAccent.withValues(alpha: 0.45)),
@@ -592,7 +599,7 @@ class _ActionPill extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: BorderRadius.circular(radius),
         splashColor: accent.withValues(alpha: 0.12),
         highlightColor: accent.withValues(alpha: 0.06),
@@ -632,6 +639,7 @@ class _ActionPill extends StatelessWidget {
 }
 
 void showNewTransactionModal(TransactionType type) async {
+  AppHaptics.light();
   final TransactionController transactionController = Get.find();
 
   final BuildContext context = Get.context!;

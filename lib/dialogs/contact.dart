@@ -3,6 +3,7 @@ import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/screens/home.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,6 +18,7 @@ Future<void> showContactPickerSheet(
   /// one (e.g. the new-transaction bottom sheet).
   bool popUnderlyingSheetWhenAddingContact = false,
 }) {
+  AppHaptics.light();
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -55,11 +57,13 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
   }
 
   void _select(Contact contact) {
+    AppHaptics.selection();
     widget.controller.contact.value = contact;
     Navigator.of(context).pop();
   }
 
   void _openAddContact() {
+    AppHaptics.light();
     final NavigatorState nav = Navigator.of(context);
     nav.pop();
     if (widget.popUnderlyingSheetWhenAddingContact) {
@@ -122,7 +126,10 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        AppHaptics.light();
+                        Navigator.of(context).pop();
+                      },
                       style: IconButton.styleFrom(
                         foregroundColor: p.textSecondary,
                       ),
@@ -302,7 +309,7 @@ class _ContactRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

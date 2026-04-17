@@ -4,6 +4,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/screens/report.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
@@ -167,7 +168,10 @@ class _InsightsViewState extends State<InsightsView> {
                               _InsightsList(controller: _controller),
                               const SizedBox(height: 12),
                               TextButton.icon(
-                                onPressed: () => Get.to(() => const ReportView()),
+                                onPressed: () {
+                                  AppHaptics.light();
+                                  Get.to(() => const ReportView());
+                                },
                                 icon: Icon(Icons.receipt_long_outlined, color: p.mint, size: 20),
                                 label: Text(
                                   'All transactions',

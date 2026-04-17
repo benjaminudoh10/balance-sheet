@@ -1,4 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
@@ -69,7 +70,7 @@ class _EntryDateTimeField extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onPick,
+          onTap: AppHaptics.wrap(onPick),
           borderRadius: BorderRadius.circular(10),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -204,7 +205,10 @@ class IncomeForm extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => Get.back(),
+                          onPressed: () {
+                            AppHaptics.light();
+                            Get.back();
+                          },
                           style: IconButton.styleFrom(
                             backgroundColor: p.surface,
                             foregroundColor: p.textSecondary,
@@ -261,6 +265,7 @@ class IncomeForm extends StatelessWidget {
                         borderRadius: BorderRadius.circular(26),
                         child: InkWell(
                           onTap: () async {
+                            AppHaptics.light();
                             if (!validInput()) {
                               Get.snackbar(
                                 'Error',
@@ -480,7 +485,7 @@ class _ContactChip extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         GestureDetector(
-          onTap: onClear,
+          onTap: AppHaptics.wrap(onClear),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(

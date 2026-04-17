@@ -6,6 +6,7 @@ import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -82,7 +83,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: p.textPrimary,
-          onPressed: () => Get.back(),
+          onPressed: () {
+            AppHaptics.light();
+            Get.back();
+          },
         ),
         title: Text(
           'Monthly budget',
@@ -95,7 +99,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: p.textPrimary),
-            onPressed: () => _budget.reloadFocusMonth(),
+            onPressed: () {
+              AppHaptics.light();
+              _budget.reloadFocusMonth();
+            },
           ),
         ],
       ),
@@ -103,7 +110,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
         heroTag: 'budget_add_line',
         backgroundColor: p.mint,
         foregroundColor: const Color(0xFF0D1117),
-        onPressed: () => _openEditor(),
+        onPressed: () {
+          AppHaptics.light();
+          _openEditor();
+        },
         child: const Icon(Icons.add_rounded),
       ),
       body: Stack(
@@ -219,7 +229,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                 spentMinor: line.hasSpendTracker
                                     ? (_budget.spentMinorByLineId[line.id] ?? 0)
                                     : null,
-                                onTap: () => _openEditor(line: line),
+                                onTap: () {
+                                  AppHaptics.light();
+                                  _openEditor(line: line);
+                                },
                                 onDelete: () => _confirmDelete(context, line),
                               ),
                             );
@@ -269,8 +282,20 @@ class _BudgetScreenState extends State<BudgetScreen> {
             style: TextStyle(color: p.textSecondary),
           ),
           actions: <Widget>[
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () {
+                AppHaptics.light();
+                Navigator.pop(ctx, false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                AppHaptics.medium();
+                Navigator.pop(ctx, true);
+              },
+              child: const Text('Delete'),
+            ),
           ],
         );
       },
@@ -305,7 +330,10 @@ class _MonthSwitcher extends StatelessWidget {
       child: Row(
         children: <Widget>[
           IconButton(
-            onPressed: onPrev,
+            onPressed: () {
+              AppHaptics.selection();
+              onPrev();
+            },
             icon: Icon(Icons.chevron_left_rounded, color: p.textPrimary, size: 28),
           ),
           Expanded(
@@ -319,7 +347,10 @@ class _MonthSwitcher extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: onNext,
+            onPressed: () {
+              AppHaptics.selection();
+              onNext();
+            },
             icon: Icon(Icons.chevron_right_rounded, color: p.textPrimary, size: 28),
           ),
         ],
@@ -510,7 +541,7 @@ class _BudgetLineTile extends StatelessWidget {
           extentRatio: 0.28,
           children: <Widget>[
             SlidableAction(
-              onPressed: (_) => onDelete(),
+              onPressed: AppHaptics.wrapSlidable((_) => onDelete()),
               backgroundColor: p.coral.withValues(alpha: 0.9),
               foregroundColor: Colors.white,
               icon: Icons.delete_outline_rounded,
@@ -521,7 +552,7 @@ class _BudgetLineTile extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: AppHaptics.wrap(onTap),
             borderRadius: BorderRadius.circular(16),
             child: Ink(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
@@ -914,7 +945,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                                 );
                               }),
                             ],
-                            onChanged: (String? v) => setState(() => _categoryKey = v ?? ''),
+                            onChanged: (String? v) {
+                              AppHaptics.selection();
+                              setState(() => _categoryKey = v ?? '');
+                            },
                           ),
                         ),
                       );
@@ -961,7 +995,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                       dropdownColor: p.surfaceElevated,
                       style: TextStyle(color: p.textPrimary, fontSize: 15),
                       items: items,
-                      onChanged: (int? v) => setState(() => _contactId = v ?? 0),
+                      onChanged: (int? v) {
+                        AppHaptics.selection();
+                        setState(() => _contactId = v ?? 0);
+                      },
                     ),
                   ),
                 );
@@ -973,7 +1010,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: _save,
+                onPressed: () async {
+                  AppHaptics.light();
+                  await _save();
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: p.mint,
                   foregroundColor: const Color(0xFF0D1117),

@@ -1,4 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -150,6 +151,7 @@ class _ContactViewState extends State<ContactView> {
                                     ),
                                   ),
                                   onDismissed: (_) {
+                                    AppHaptics.medium();
                                     _contactController.deleteContact(contact);
                                   },
                                   child: _ContactTile(
@@ -298,6 +300,7 @@ class _SearchField extends StatelessWidget {
                   size: 20,
                 ),
                 onPressed: () {
+                  AppHaptics.light();
                   controller.clear();
                 },
               )
@@ -459,7 +462,7 @@ class _ComposerDock extends StatelessWidget {
             return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: onAddTap,
+                onTap: AppHaptics.wrap(onAddTap),
                 customBorder: const CircleBorder(),
                 child: Ink(
                   width: 48,

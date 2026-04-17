@@ -10,6 +10,7 @@ import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -81,7 +82,10 @@ class _ReportViewState extends State<ReportView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: p.textPrimary,
-          onPressed: () => Get.back(),
+          onPressed: () {
+            AppHaptics.light();
+            Get.back();
+          },
         ),
         title: Text(
           'All transactions',
@@ -254,9 +258,9 @@ class _ReportPeriodDropdown extends StatelessWidget {
               );
             }).toList(),
             onChanged: (ReportType? t) {
-              if (t != null) {
-                controller.applyPeriodType(t);
-              }
+              if (t == null) return;
+              AppHaptics.selection();
+              controller.applyPeriodType(t);
             },
           ),
         ),
@@ -317,6 +321,7 @@ class _ClearFiltersPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () {
+          AppHaptics.light();
           controller.category.value = 'Category';
           controller.categoryLabel.value = 'Category';
           controller.contact.value = Contact(name: 'Contact');
@@ -397,6 +402,7 @@ class _ContactFilterChip extends StatelessWidget {
                 const SizedBox(width: 6),
                 InkWell(
                   onTap: () {
+                    AppHaptics.light();
                     controller.contact.value = Contact(name: 'Contact');
                   },
                   borderRadius: BorderRadius.circular(12),

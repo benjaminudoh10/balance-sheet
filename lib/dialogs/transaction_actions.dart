@@ -4,6 +4,7 @@ import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -105,8 +106,10 @@ void showDeleteModal(Transaction transaction) {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: () =>
-                    transactionController.deleteTransaction(transaction),
+                onPressed: () {
+                  AppHaptics.medium();
+                  transactionController.deleteTransaction(transaction);
+                },
                 child: Text(
                   'YES',
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(
@@ -129,7 +132,10 @@ void showDeleteModal(Transaction transaction) {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  AppHaptics.light();
+                  Get.back();
+                },
                 child: Text(
                   'NO',
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(

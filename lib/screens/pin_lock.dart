@@ -1,5 +1,6 @@
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/pin_field_card.dart';
@@ -189,7 +190,10 @@ class _NewPinScreenState extends State<NewPinScreen> {
                       : p.surfaceElevated,
                   borderRadius: BorderRadius.circular(26),
                   child: InkWell(
-                    onTap: () => _setNewPin(c),
+                    onTap: () {
+                      AppHaptics.light();
+                      _setNewPin(c);
+                    },
                     borderRadius: BorderRadius.circular(26),
                     child: Center(
                       child: Text(
@@ -383,7 +387,10 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                       : p.surfaceElevated,
                   borderRadius: BorderRadius.circular(26),
                   child: InkWell(
-                    onTap: () => _changePin(c),
+                    onTap: () {
+                      AppHaptics.light();
+                      _changePin(c);
+                    },
                     borderRadius: BorderRadius.circular(26),
                     child: Center(
                       child: Text(

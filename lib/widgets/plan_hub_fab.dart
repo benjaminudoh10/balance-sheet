@@ -1,6 +1,7 @@
 import 'package:balance_sheet/screens/budget_screen.dart';
 import 'package:balance_sheet/screens/plan_stocks_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -19,6 +20,7 @@ class PlanHubFab extends StatelessWidget {
   final ValueChanged<bool> onExpandedChanged;
 
   void _go(Widget page) {
+    AppHaptics.light();
     onExpandedChanged(false);
     Get.to(() => page);
   }
@@ -70,7 +72,10 @@ class PlanHubFab extends StatelessWidget {
             shape: const CircleBorder(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () => onExpandedChanged(!expanded),
+              onTap: () {
+                AppHaptics.light();
+                onExpandedChanged(!expanded);
+              },
               child: Ink(
                 width: 58,
                 height: 58,
@@ -119,7 +124,7 @@ class _HubActionPill extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),

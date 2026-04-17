@@ -8,6 +8,7 @@ import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -181,6 +182,7 @@ class AmountInput extends StatelessWidget {
                     if (next.isEmpty) return;
                     final bool toFcy = next.single;
                     if (toFcy == fcy) return;
+                    AppHaptics.selection();
                     _transactionController.toggleAmountEntryCurrency();
                   },
                   style: SegmentedButton.styleFrom(
@@ -308,9 +310,9 @@ class CategoryInput extends StatelessWidget {
               );
             }).toList(),
             onChanged: (String? v) {
-              if (v != null) {
-                _transactionController.category.value = v;
-              }
+              if (v == null) return;
+              AppHaptics.selection();
+              _transactionController.category.value = v;
             },
           ),
         ),
@@ -374,6 +376,7 @@ class ReportCategoryDropdown extends StatelessWidget {
             borderRadius: BorderRadius.circular(14.0),
           ),
           onSelected: (String v) {
+            AppHaptics.selection();
             controller.category.value = v;
           },
           itemBuilder: (BuildContext context) {
@@ -537,6 +540,7 @@ class PinInput extends StatefulWidget {
 class _PinInputState extends State<PinInput> {
   late final FocusNode _focusNode;
   bool _ownsFocusNode = false;
+  int _lastPinLen = 0;
 
   static const double _gap = 10.0;
   static const double _compactSize = 50.0;
@@ -550,6 +554,7 @@ class _PinInputState extends State<PinInput> {
       _focusNode = FocusNode();
       _ownsFocusNode = true;
     }
+    _lastPinLen = widget.controller.text.length;
   }
 
   @override
@@ -608,8 +613,18 @@ class _PinInputState extends State<PinInput> {
       separatorBuilder: (index) => SizedBox(width: _gap),
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-      onChanged: widget.onChanged,
-      onCompleted: (value) {
+      onChanged: (String value) {
+        final int len = value.length;
+        if (len > _lastPinLen) {
+          AppHaptics.selection();
+        } else if (len < _lastPinLen) {
+          AppHaptics.light();
+        }
+        _lastPinLen = len;
+        widget.onChanged(value);
+      },
+      onCompleted: (String value) {
+        AppHaptics.medium();
         if (widget.unfocusOnCompleted) {
           FocusScope.of(context).unfocus();
         }

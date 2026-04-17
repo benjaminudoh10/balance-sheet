@@ -10,6 +10,7 @@ import 'package:balance_sheet/models/investment_price_point.dart';
 import 'package:balance_sheet/models/other_investment.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -184,6 +185,7 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                     if (next.isEmpty) return;
                     final bool toFcy = next.single;
                     if (toFcy == _entryIsFcy) return;
+                    AppHaptics.selection();
                     setState(() {
                       final int m = parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
                       if (m <= 0) {
@@ -224,12 +226,18 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
                 focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
               ),
-              onSubmitted: (_) => _save(),
+              onSubmitted: (_) async {
+                AppHaptics.light();
+                await _save();
+              },
             ),
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: _save,
+            onPressed: () async {
+              AppHaptics.light();
+              await _save();
+            },
             style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
             child: Text(widget.existing == null ? 'Add' : 'Save'),
           ),
@@ -339,7 +347,10 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
           ),
           const SizedBox(height: 20),
           FilledButton(
-            onPressed: _submit,
+            onPressed: () async {
+              AppHaptics.light();
+              await _submit();
+            },
             style: FilledButton.styleFrom(backgroundColor: _kInvestAccent),
             child: const Text('Add'),
           ),
@@ -481,6 +492,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                     if (next.isEmpty) return;
                     final bool toFcy = next.single;
                     if (toFcy == _entryIsFcy) return;
+                    AppHaptics.selection();
                     setState(() {
                       final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
                       if (m <= 0) {
@@ -517,7 +529,10 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
               decoration: InputDecoration(
                 labelText: 'Price per share (${_entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value})',
               ),
-              onSubmitted: (_) => _save(),
+              onSubmitted: (_) async {
+                AppHaptics.light();
+                await _save();
+              },
             ),
           ),
           const SizedBox(height: 8),
@@ -526,6 +541,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
             subtitle: const Text('Purchase date'),
             trailing: const Icon(Icons.event_rounded),
             onTap: () async {
+              AppHaptics.light();
               final DateTime? d = await showDatePicker(
                 context: context,
                 initialDate: _purchaseDay,
@@ -539,7 +555,10 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
             },
           ),
           FilledButton(
-            onPressed: _save,
+            onPressed: () async {
+              AppHaptics.light();
+              await _save();
+            },
             child: const Text('Save'),
           ),
         ],
@@ -650,6 +669,7 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
                     if (next.isEmpty) return;
                     final bool toFcy = next.single;
                     if (toFcy == _entryIsFcy) return;
+                    AppHaptics.selection();
                     setState(() {
                       final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
                       if (m <= 0) {
@@ -686,7 +706,10 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
               decoration: InputDecoration(
                 labelText: 'Amount (${_entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value})',
               ),
-              onSubmitted: (_) => _save(),
+              onSubmitted: (_) async {
+                AppHaptics.light();
+                await _save();
+              },
             ),
           ),
           ListTile(
@@ -694,6 +717,7 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
             subtitle: const Text('As of date'),
             trailing: const Icon(Icons.calendar_today_rounded),
             onTap: () async {
+              AppHaptics.light();
               final DateTime? d = await showDatePicker(
                 context: context,
                 initialDate: _priceDay,
@@ -707,7 +731,10 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
             },
           ),
           FilledButton(
-            onPressed: _save,
+            onPressed: () async {
+              AppHaptics.light();
+              await _save();
+            },
             child: const Text('Save price'),
           ),
         ],
@@ -727,9 +754,27 @@ class PlanStocksScreen extends StatefulWidget {
 class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 2, vsync: this);
   final InvestmentController _inv = Get.find<InvestmentController>();
+  int _stocksTabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _stocksTabIndex = _tabs.index;
+    _tabs.addListener(_onStocksTabChanged);
+  }
+
+  void _onStocksTabChanged() {
+    if (_tabs.indexIsChanging) return;
+    final int i = _tabs.index;
+    if (i != _stocksTabIndex) {
+      AppHaptics.selection();
+      _stocksTabIndex = i;
+    }
+  }
 
   @override
   void dispose() {
+    _tabs.removeListener(_onStocksTabChanged);
     _tabs.dispose();
     super.dispose();
   }
@@ -754,7 +799,10 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: p.textPrimary,
-          onPressed: () => Get.back(),
+          onPressed: () {
+            AppHaptics.light();
+            Get.back();
+          },
         ),
         title: Text(
           'Investments',
@@ -803,7 +851,10 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
         builder: (BuildContext context, Widget? child) {
           if (_tabs.index == 0) {
             return FloatingActionButton(
-              onPressed: () => _showAddHoldingSheet(context, p),
+              onPressed: () {
+                AppHaptics.light();
+                _showAddHoldingSheet(context, p);
+              },
               backgroundColor: p.mint,
               foregroundColor: const Color(0xFF0D1117),
               child: const Icon(Icons.add_rounded),
@@ -811,7 +862,10 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
           }
           if (_tabs.index == 1) {
             return FloatingActionButton(
-              onPressed: () => _showOtherInvestmentSheet(context, p, null),
+              onPressed: () {
+                AppHaptics.light();
+                _showOtherInvestmentSheet(context, p, null);
+              },
               backgroundColor: _kInvestAccent,
               foregroundColor: Colors.white,
               child: const Icon(Icons.add_rounded),
@@ -884,14 +938,24 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                             children: <Widget>[
                               SlidableAction(
                                 onPressed: (_) async {
+                                  AppHaptics.light();
                                   final bool? ok = await Get.dialog<bool>(
                                     AlertDialog(
                                       title: const Text('Remove holding?'),
                                       content: Text('Delete ${h.ticker} and all its history?'),
                                       actions: <Widget>[
-                                        TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
                                         TextButton(
-                                          onPressed: () => Get.back(result: true),
+                                          onPressed: () {
+                                            AppHaptics.light();
+                                            Get.back(result: false);
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            AppHaptics.medium();
+                                            Get.back(result: true);
+                                          },
                                           child: Text('Delete', style: TextStyle(color: p.coral)),
                                         ),
                                       ],
@@ -913,7 +977,10 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
-                              onTap: () => _showHoldingDetailSheet(context, p, h),
+                              onTap: () {
+                                AppHaptics.light();
+                                _showHoldingDetailSheet(context, p, h);
+                              },
                               child: Ink(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                                 decoration: BoxDecoration(
@@ -1064,14 +1131,24 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                             children: <Widget>[
                               SlidableAction(
                                 onPressed: (_) async {
+                                  AppHaptics.light();
                                   final bool? ok = await Get.dialog<bool>(
                                     AlertDialog(
                                       title: const Text('Remove item?'),
                                       content: Text('Delete “${o.label}”?'),
                                       actions: <Widget>[
-                                        TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
                                         TextButton(
-                                          onPressed: () => Get.back(result: true),
+                                          onPressed: () {
+                                            AppHaptics.light();
+                                            Get.back(result: false);
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            AppHaptics.medium();
+                                            Get.back(result: true);
+                                          },
                                           child: Text('Delete', style: TextStyle(color: p.coral)),
                                         ),
                                       ],
@@ -1092,7 +1169,10 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(16),
-                              onTap: () => _showOtherInvestmentSheet(context, p, o),
+                              onTap: () {
+                                AppHaptics.light();
+                                _showOtherInvestmentSheet(context, p, o);
+                              },
                               child: Ink(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                                 decoration: BoxDecoration(
@@ -1529,7 +1609,10 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
               children: <Widget>[
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _addLot(context),
+                    onPressed: () {
+                      AppHaptics.light();
+                      _addLot(context);
+                    },
                     icon: const Icon(Icons.add_chart_rounded),
                     label: const Text('Add shares'),
                     style: OutlinedButton.styleFrom(foregroundColor: _kInvestAccent),
@@ -1538,7 +1621,10 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () => _addPrice(context),
+                    onPressed: () {
+                      AppHaptics.light();
+                      _addPrice(context);
+                    },
                     icon: const Icon(Icons.price_change_outlined),
                     label: const Text('Log price'),
                     style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
@@ -1581,6 +1667,7 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
                   trailing: IconButton(
                     icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
                     onPressed: () async {
+                      AppHaptics.light();
                       await inv.deleteInvestmentLot(e.id);
                       await _load();
                       await widget.onChanged();
@@ -1627,6 +1714,7 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
                   trailing: IconButton(
                     icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
                     onPressed: () async {
+                      AppHaptics.light();
                       await inv.deleteInvestmentPricePoint(e.id);
                       await _load();
                       await widget.onChanged();
