@@ -93,10 +93,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           height: maxH,
           decoration: BoxDecoration(
             color: p.surfaceElevated,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: p.border),
           ),
           child: Column(

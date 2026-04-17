@@ -23,6 +23,31 @@ import 'package:intl/intl.dart';
 
 const Color _kInvestAccent = Color(0xFF818CF8);
 
+/// Same floating card treatment as the budget planned-item editor.
+Widget _floatingModalCard({
+  required BuildContext context,
+  required AppPalette palette,
+  required Widget child,
+}) {
+  final double inset = MediaQuery.viewInsetsOf(context).bottom;
+  return Align(
+    alignment: Alignment.bottomCenter,
+    child: Padding(
+      padding: EdgeInsets.only(bottom: inset),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        decoration: BoxDecoration(
+          color: palette.surfaceElevated,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: palette.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: child,
+      ),
+    ),
+  );
+}
+
 /// Avoid calling [Get.snackbar] synchronously right after [Navigator.pop]: the overlay /
 /// [ScaffoldMessenger] can rebuild while the route subtree is still tearing down, which
 /// triggers framework assertions on inherited widgets.
@@ -133,12 +158,7 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
     return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -305,12 +325,7 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
     return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -449,12 +464,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
     return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -636,12 +646,7 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
     return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1248,13 +1253,36 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: p.surfaceElevated,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
       builder: (BuildContext ctx) {
-        return _OtherInvestmentEditorContent(
+        return _floatingModalCard(
+          context: ctx,
           palette: p,
-          inv: _inv,
-          existing: existing,
+          child: ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _OtherInvestmentEditorContent(
+                palette: p,
+                inv: _inv,
+                existing: existing,
+              ),
+            ],
+          ),
         );
       },
     );
@@ -1264,14 +1292,37 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: p.surfaceElevated,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
       builder: (BuildContext ctx) {
-        return _AddHoldingEditorContent(
+        return _floatingModalCard(
+          context: ctx,
           palette: p,
-          onSave: (String ticker, String displayName) async {
-            await inv.insertInvestmentHolding(ticker: ticker, displayName: displayName);
-          },
+          child: ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _AddHoldingEditorContent(
+                palette: p,
+                onSave: (String ticker, String displayName) async {
+                  await inv.insertInvestmentHolding(ticker: ticker, displayName: displayName);
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -1282,14 +1333,18 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: p.surfaceElevated,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
       builder: (BuildContext ctx) {
-        return _HoldingDetailBody(
-          holding: h,
+        return _floatingModalCard(
+          context: ctx,
           palette: p,
-          onChanged: _reload,
-          fmtQty: _fmtQty,
+          child: _HoldingDetailBody(
+            holding: h,
+            palette: p,
+            onChanged: _reload,
+            fmtQty: _fmtQty,
+          ),
         );
       },
     );
@@ -1601,151 +1656,148 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.72,
-      minChildSize: 0.45,
-      maxChildSize: 0.95,
-      builder: (BuildContext context, ScrollController sc) {
-        return ListView(
-          controller: sc,
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          children: <Widget>[
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: p.border, borderRadius: BorderRadius.circular(2)),
+    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxSheetHeight),
+      child: ListView(
+        shrinkWrap: true,
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        children: <Widget>[
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: p.border, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.holding.ticker,
+            style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w800),
+          ),
+          if (widget.holding.displayName.isNotEmpty)
+            Text(widget.holding.displayName, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary)),
+          const SizedBox(height: 20),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    AppHaptics.light();
+                    _addLot(context);
+                  },
+                  icon: const Icon(Icons.add_chart_rounded),
+                  label: const Text('Add shares'),
+                  style: OutlinedButton.styleFrom(foregroundColor: _kInvestAccent),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () {
+                    AppHaptics.light();
+                    _addPrice(context);
+                  },
+                  icon: const Icon(Icons.price_change_outlined),
+                  label: const Text('Log price'),
+                  style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text('Share lots (purchase price)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
+          const SizedBox(height: 8),
+          if (_loading)
+            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+          else if (_lots.isEmpty)
+            Text('No lots yet — add shares with the price you paid per share.', style: TextStyle(color: p.textSecondary))
+          else
+            ..._lots.map((InvestmentLotEntry e) {
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatAmount(e.purchasePriceMinorPerShare)}',
+                  style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(e.occurredAtMs)),
+                      style: TextStyle(color: p.textSecondary),
+                    ),
+                    if (e.purchaseEntryIsFcy)
+                      Obx(
+                        () => Text(
+                          '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
+                          style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+                  onPressed: () async {
+                    AppHaptics.light();
+                    await inv.deleteInvestmentLot(e.id);
+                    await _load();
+                    await widget.onChanged();
+                  },
+                ),
+              );
+            }),
+          const SizedBox(height: 20),
+          Text('Market price history (date)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
+          const SizedBox(height: 8),
+          if (!_loading && _prices.isEmpty)
             Text(
-              widget.holding.ticker,
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w800),
-            ),
-            if (widget.holding.displayName.isNotEmpty)
-              Text(widget.holding.displayName, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary)),
-            const SizedBox(height: 20),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      AppHaptics.light();
-                      _addLot(context);
-                    },
-                    icon: const Icon(Icons.add_chart_rounded),
-                    label: const Text('Add shares'),
-                    style: OutlinedButton.styleFrom(foregroundColor: _kInvestAccent),
-                  ),
+              'No market prices — log the current price per share by date to track value and growth.',
+              style: TextStyle(color: p.textSecondary),
+            )
+          else if (!_loading)
+            ..._prices.map((InvestmentPricePoint e) {
+              final DateTime day = e.asOfDay > 0
+                  ? localMidnightFromYyyymmdd(e.asOfDay)
+                  : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  formatAmount(e.priceMinorPerShare),
+                  style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      AppHaptics.light();
-                      _addPrice(context);
-                    },
-                    icon: const Icon(Icons.price_change_outlined),
-                    label: const Text('Log price'),
-                    style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
-                  ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      DateFormat.yMMMd().format(day),
+                      style: TextStyle(color: p.textSecondary),
+                    ),
+                    if (e.entryIsFcy)
+                      Obx(
+                        () => Text(
+                          '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
+                          style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text('Share lots (purchase price)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
-            const SizedBox(height: 8),
-            if (_loading)
-              const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-            else if (_lots.isEmpty)
-              Text('No lots yet — add shares with the price you paid per share.', style: TextStyle(color: p.textSecondary))
-            else
-              ..._lots.map((InvestmentLotEntry e) {
-                return ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatAmount(e.purchasePriceMinorPerShare)}',
-                    style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(e.occurredAtMs)),
-                        style: TextStyle(color: p.textSecondary),
-                      ),
-                      if (e.purchaseEntryIsFcy)
-                        Obx(
-                          () => Text(
-                            '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
-                            style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                    onPressed: () async {
-                      AppHaptics.light();
-                      await inv.deleteInvestmentLot(e.id);
-                      await _load();
-                      await widget.onChanged();
-                    },
-                  ),
-                );
-              }),
-            const SizedBox(height: 20),
-            Text('Market price history (date)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
-            const SizedBox(height: 8),
-            if (!_loading && _prices.isEmpty)
-              Text(
-                'No market prices — log the current price per share by date to track value and growth.',
-                style: TextStyle(color: p.textSecondary),
-              )
-            else if (!_loading)
-              ..._prices.map((InvestmentPricePoint e) {
-                final DateTime day = e.asOfDay > 0
-                    ? localMidnightFromYyyymmdd(e.asOfDay)
-                    : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
-                return ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    formatAmount(e.priceMinorPerShare),
-                    style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        DateFormat.yMMMd().format(day),
-                        style: TextStyle(color: p.textSecondary),
-                      ),
-                      if (e.entryIsFcy)
-                        Obx(
-                          () => Text(
-                            '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
-                            style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                    onPressed: () async {
-                      AppHaptics.light();
-                      await inv.deleteInvestmentPricePoint(e.id);
-                      await _load();
-                      await widget.onChanged();
-                    },
-                  ),
-                );
-              }),
-          ],
-        );
-      },
+                trailing: IconButton(
+                  icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+                  onPressed: () async {
+                    AppHaptics.light();
+                    await inv.deleteInvestmentPricePoint(e.id);
+                    await _load();
+                    await widget.onChanged();
+                  },
+                ),
+              );
+            }),
+        ],
+      ),
     );
   }
 
@@ -1753,15 +1805,39 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: p.surfaceElevated,
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
       builder: (BuildContext ctx) {
-        return _AddInvestmentLotSheet(
+        return _floatingModalCard(
+          context: ctx,
           palette: p,
-          holding: widget.holding,
-          onCompleted: () async {
-            await _load();
-            await widget.onChanged();
-          },
+          child: ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _AddInvestmentLotSheet(
+                palette: p,
+                holding: widget.holding,
+                onCompleted: () async {
+                  await _load();
+                  await widget.onChanged();
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -1771,15 +1847,39 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: p.surfaceElevated,
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
       builder: (BuildContext ctx) {
-        return _LogInvestmentPriceSheet(
+        return _floatingModalCard(
+          context: ctx,
           palette: p,
-          holding: widget.holding,
-          onCompleted: () async {
-            await _load();
-            await widget.onChanged();
-          },
+          child: ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _LogInvestmentPriceSheet(
+                palette: p,
+                holding: widget.holding,
+                onCompleted: () async {
+                  await _load();
+                  await widget.onChanged();
+                },
+              ),
+            ],
+          ),
         );
       },
     );

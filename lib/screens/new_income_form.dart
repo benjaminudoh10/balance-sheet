@@ -121,30 +121,25 @@ class IncomeForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final Color accent = _isIncome ? p.mint : p.coral;
-    final double keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
+    final double insetBottom = MediaQuery.viewInsetsOf(context).bottom;
     final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
 
-    return Obx(() => ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxSheetHeight),
+    return Obx(() => Padding(
+          padding: EdgeInsets.only(bottom: insetBottom),
           child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            constraints: BoxConstraints(maxHeight: maxSheetHeight),
             decoration: BoxDecoration(
-              color: p.background,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              color: p.surfaceElevated,
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: p.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 24,
-                  offset: const Offset(0, -4),
-                ),
-              ],
             ),
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: BorderRadius.circular(24),
               child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + keyboardBottom),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
