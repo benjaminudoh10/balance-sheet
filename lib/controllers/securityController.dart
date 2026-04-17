@@ -40,11 +40,14 @@ class SecurityController extends GetxController {
   }
 
   /// Reloads PIN state and fingerprint flags from [GetStorage] (e.g. after backup import).
+  ///
+  /// Does not change [sessionUnlocked]; clearing it here broke autolock when the user was still
+  /// on [Home] after a data-only refresh (lifecycle only navigates to [LockScreen] when the
+  /// session had been unlocked). Use [onRequireScreenLock] when trust boundaries change.
   void reloadFromStorage() {
     final GetStorage box = GetStorage();
     pinIsSet.value = PinHash.hasPin(box);
     fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
-    sessionUnlocked.value = false;
   }
 
   void onRequireScreenLock() {

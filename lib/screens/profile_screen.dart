@@ -8,6 +8,7 @@ import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/screens/debug_clear_data_screen.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
@@ -15,6 +16,7 @@ import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
@@ -237,6 +239,16 @@ class ProfileView extends StatelessWidget {
                           icon: Icons.file_download_outlined,
                           onTap: () => _importBackup(context),
                         ),
+                        if (kDebugMode) ...[
+                          const SizedBox(height: 8),
+                          _BackupActionRow(
+                            label: 'Clear local data (debug)',
+                            subtitle:
+                                'Remove selected SQLite tables and GetStorage keys — not shown in release builds',
+                            icon: Icons.delete_forever_outlined,
+                            onTap: () => Get.to(() => const DebugClearDataScreen()),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -365,7 +377,7 @@ class ProfileView extends StatelessWidget {
     try {
       final String raw = await File(path).readAsString();
       await BackupService.importFromJsonString(raw);
-      await BackupService.refreshControllersAfterImport();
+      await BackupService.refreshControllersAfterImport(invalidateSecuritySession: true);
       if (!context.mounted) return;
       Get.snackbar(
         'Restored',

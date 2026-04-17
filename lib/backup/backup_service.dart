@@ -18,7 +18,9 @@ import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart' as txn_model;
+import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -97,7 +99,8 @@ class BackupService {
     );
   }
 
-  /// Replaces all local transactions, contacts, and known preferences. Call [refreshControllersAfterImport] after.
+  /// Replaces all local transactions, contacts, and known preferences.
+  /// Call [refreshControllersAfterImport] with `invalidateSecuritySession: true` afterward.
   static Future<void> importFromJsonString(String raw) async {
     final Object? decoded = jsonDecode(raw);
     if (decoded is! Map) {
@@ -447,7 +450,12 @@ class BackupService {
     }
   }
 
-  static Future<void> refreshControllersAfterImport() async {
+  /// Refreshes in-memory state from SQLite + [GetStorage].
+  ///
+  /// When [invalidateSecuritySession] is true (backup import), a configured PIN invalidates the
+  /// unlock session and sends the user to [LockScreen] so the restored secrets match a fresh unlock.
+  /// Debug-only data clears pass false so autolock keeps working for the unchanged PIN session.
+  static Future<void> refreshControllersAfterImport({bool invalidateSecuritySession = false}) async {
     final AppController app = Get.find<AppController>();
     app.syncFromStorage();
 
@@ -457,12 +465,22 @@ class BackupService {
 
     final SecurityController security = Get.find<SecurityController>();
     security.reloadFromStorage();
+    if (invalidateSecuritySession && security.pinIsSet.value) {
+      security.onRequireScreenLock();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!Get.isRegistered<SecurityController>()) return;
+        if (Get.key.currentContext == null) return;
+        Get.offAll(LockScreen(), transition: Transition.noTransition);
+      });
+    }
 
     final TransactionController tx = Get.find<TransactionController>();
     await tx.loadHomeScreenData();
+    tx.resetFieldValues();
 
     final ContactController contacts = Get.find<ContactController>();
     await contacts.getContacts();
+    contacts.resetNewContactDraft();
 
     if (Get.isRegistered<ReportController>()) {
       final ReportController report = Get.find<ReportController>();

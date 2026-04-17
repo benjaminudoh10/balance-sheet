@@ -81,4 +81,10 @@ class ContactController extends GetxController {
   getContacts() async {
     contacts.value = await db.getContacts();
   }
+
+  /// Clears the add-contact draft (used after backup import / debug data clear).
+  void resetNewContactDraft() {
+    name.value = '';
+    nameController.value.text = '';
+  }
 }
