@@ -79,6 +79,7 @@ class _ReportViewState extends State<ReportView> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        systemOverlayStyle: p.systemUiOverlayStyle,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           color: p.textPrimary,

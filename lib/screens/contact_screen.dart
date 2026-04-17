@@ -98,11 +98,13 @@ class _ContactViewState extends State<ContactView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _AccountsHeader(
-                          isFiltering: _searchQuery.isNotEmpty,
+                          isFiltering: all.isNotEmpty && _searchQuery.isNotEmpty,
                         ),
-                        const SizedBox(height: 18),
-                        _SearchField(controller: _searchController),
-                        const SizedBox(height: 20),
+                        if (all.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          _SearchField(controller: _searchController),
+                          const SizedBox(height: 20),
+                        ],
                       ],
                     ),
                   ),

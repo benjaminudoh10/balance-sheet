@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Semantic colors for Balanced UI — registered via [ThemeExtension] on light and dark [ThemeData].
 @immutable
@@ -34,6 +35,22 @@ class AppPalette extends ThemeExtension<AppPalette> {
     final AppPalette? p = Theme.of(context).extension<AppPalette>();
     assert(p != null, 'ThemeData.extensions must include AppPalette');
     return p!;
+  }
+
+  /// Status bar and navigation bar icons that contrast with [background].
+  ///
+  /// Transparent [AppBar]s (e.g. Budget) can otherwise pick the wrong brightness;
+  /// that style may persist after leaving the screen unless a root overlay reapplies this.
+  SystemUiOverlayStyle get systemUiOverlayStyle {
+    final bool isDark = brightness == Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: background,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    );
   }
 
   /// Dark “Midnight Mint” palette (previous default).

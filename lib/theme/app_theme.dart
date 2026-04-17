@@ -111,6 +111,7 @@ ThemeData _buildAppTheme(String fontId, AppPalette palette) {
       foregroundColor: palette.textPrimary,
       elevation: 0,
       centerTitle: false,
+      systemOverlayStyle: palette.systemUiOverlayStyle,
       titleTextStyle: textTheme.titleLarge?.copyWith(
         color: palette.textPrimary,
         fontWeight: FontWeight.w600,

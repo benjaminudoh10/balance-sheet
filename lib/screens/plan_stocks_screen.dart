@@ -335,6 +335,8 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
           TextField(
             controller: _nameCtrl,
             focusNode: _nameFocus,
+            keyboardType: TextInputType.text,
+            textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.done,
             style: TextStyle(color: p.textPrimary),
             decoration: InputDecoration(
@@ -380,7 +382,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   late final TextEditingController _priceCtrl;
   late final FocusNode _qtyFocus;
   late final FocusNode _priceFocus;
-  bool _entryIsFcy = false;
+  bool _entryIsFcy = true;
   late DateTime _purchaseDay;
   final CurrencyController _cur = Get.find<CurrencyController>();
 
@@ -585,7 +587,7 @@ class _LogInvestmentPriceSheet extends StatefulWidget {
 class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
   late final TextEditingController _priceCtrl;
   late final FocusNode _priceFocus;
-  bool _entryIsFcy = false;
+  bool _entryIsFcy = true;
   late DateTime _priceDay;
   final CurrencyController _cur = Get.find<CurrencyController>();
 

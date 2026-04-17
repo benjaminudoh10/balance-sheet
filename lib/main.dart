@@ -11,6 +11,7 @@ import 'package:balance_sheet/screens/splash.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -149,6 +150,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             themeMode: app.themeMode.value,
             home: Splash(),
             debugShowCheckedModeBanner: false,
+            builder: (BuildContext context, Widget? child) {
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: AppPalette.of(context).systemUiOverlayStyle,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           ),
           if (_privacyOverlayVisible)
             Positioned.fill(

@@ -138,47 +138,57 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (_) => setState(() {}),
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        color: p.textPrimary,
-                      ),
-                  cursorColor: p.mint,
-                  decoration: InputDecoration(
-                    hintText: 'Search contacts',
-                    hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: p.textSecondary,
+              Obx(() {
+                if (_contactController.contacts.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              color: p.textPrimary,
+                            ),
+                        cursorColor: p.mint,
+                        decoration: InputDecoration(
+                          hintText: 'Search contacts',
+                          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                color: p.textSecondary,
+                              ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: p.textSecondary.withValues(alpha: 0.85),
+                            size: 22,
+                          ),
+                          filled: true,
+                          fillColor: p.surface,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: p.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: p.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: p.mint.withValues(alpha: 0.65)),
+                          ),
                         ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: p.textSecondary.withValues(alpha: 0.85),
-                      size: 22,
+                      ),
                     ),
-                    filled: true,
-                    fillColor: p.surface,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: p.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: p.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: p.mint.withValues(alpha: 0.65)),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
+                    const SizedBox(height: 8),
+                  ],
+                );
+              }),
               Expanded(
                 child: Obx(() {
                   _contactController.contacts.length;

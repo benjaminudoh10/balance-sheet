@@ -49,17 +49,8 @@ class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    final Brightness b = Theme.of(context).brightness;
-    final bool isDark = b == Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor: p.background,
-        systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      ),
+      value: p.systemUiOverlayStyle,
       child: Scaffold(
         backgroundColor: p.background,
         body: Stack(

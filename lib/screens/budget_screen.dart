@@ -82,6 +82,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        systemOverlayStyle: p.systemUiOverlayStyle,
         automaticallyImplyLeading: false,
         title: Text(
           'Budgets',

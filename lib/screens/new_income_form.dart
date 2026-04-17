@@ -245,6 +245,7 @@ class IncomeForm extends StatelessWidget {
                       ),
                     ),
                     _CategoryAndContactBlock(
+                      accent: accent,
                       contactName: _transactionController.contact.value?.name,
                       onClearContact: () => _transactionController.resetContact(),
                       contactTap: () => showContactPickerSheet(
@@ -373,12 +374,14 @@ class _FormSection extends StatelessWidget {
 
 class _CategoryAndContactBlock extends StatelessWidget {
   const _CategoryAndContactBlock({
+    required this.accent,
     required this.contactName,
     required this.onClearContact,
     required this.contactTap,
     required this.categoryChild,
   });
 
+  final Color accent;
   final String? contactName;
   final VoidCallback onClearContact;
   final VoidCallback contactTap;
@@ -407,6 +410,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: _ContactChip(
+                      accent: accent,
                       name: contactName!,
                       onClear: onClearContact,
                     ),
@@ -439,7 +443,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.contacts_rounded,
-                        color: p.mint,
+                        color: accent,
                         size: 22,
                       ),
                     ),
@@ -455,8 +459,13 @@ class _CategoryAndContactBlock extends StatelessWidget {
 }
 
 class _ContactChip extends StatelessWidget {
-  const _ContactChip({required this.name, required this.onClear});
+  const _ContactChip({
+    required this.accent,
+    required this.name,
+    required this.onClear,
+  });
 
+  final Color accent;
   final String name;
   final VoidCallback onClear;
 
@@ -469,7 +478,7 @@ class _ContactChip extends StatelessWidget {
         Icon(
           Icons.person_outline_rounded,
           size: 16,
-          color: p.mint.withValues(alpha: 0.9),
+          color: accent.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 6),
         Flexible(
