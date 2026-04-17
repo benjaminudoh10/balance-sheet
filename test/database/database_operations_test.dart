@@ -1,8 +1,12 @@
+import 'package:balance_sheet/database/investment_operations.dart' as inv_ops;
 import 'package:balance_sheet/database/operations.dart' as db_ops;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
+import 'package:balance_sheet/models/investment_lot_entry.dart';
+import 'package:balance_sheet/models/investment_price_point.dart';
+import 'package:balance_sheet/models/other_investment.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -397,6 +401,75 @@ void main() {
       expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'food'), 1000);
       expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, contactId: cid), 3500);
       expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'transport'), 2500);
+    });
+  });
+
+  group('investments', () {
+    test('lots and manual prices value portfolio in minor units', () async {
+      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'TST', displayName: 'Test Co');
+      final int t0 = DateTime(2026, 1, 5, 12).millisecondsSinceEpoch;
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: t0,
+        quantityDelta: 2.5,
+        purchasePriceMinorPerShare: 8000,
+      );
+      await inv_ops.insertInvestmentPricePoint(
+        holdingId: hid,
+        asOfDayYyyymmdd: 20260106,
+        priceMinorPerShare: 10000,
+      );
+      expect(await inv_ops.totalQuantityForHolding(hid), 2.5);
+      expect(await inv_ops.getInvestmentStocksTotalMinor(), (2.5 * 10000).round());
+    });
+
+    test('lot and price persist entry currency alongside LCY canonical', () async {
+      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'FCY', displayName: '');
+      final int t0 = DateTime(2026, 2, 1).millisecondsSinceEpoch;
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: t0,
+        quantityDelta: 1,
+        purchasePriceMinorPerShare: 100000,
+        purchaseEntryIsFcy: true,
+        purchasePriceEntryMinorPerShare: 100,
+      );
+      await inv_ops.insertInvestmentPricePoint(
+        holdingId: hid,
+        asOfDayYyyymmdd: 20260202,
+        priceMinorPerShare: 200000,
+        entryIsFcy: true,
+        priceEntryMinorPerShare: 200,
+      );
+      final List<InvestmentLotEntry> lots = await inv_ops.listLotsForHolding(hid);
+      expect(lots.length, 1);
+      expect(lots.first.purchasePriceMinorPerShare, 100000);
+      expect(lots.first.purchaseEntryIsFcy, isTrue);
+      expect(lots.first.purchasePriceEntryMinorPerShare, 100);
+      final List<InvestmentPricePoint> pts = await inv_ops.listPricePointsForHolding(hid);
+      expect(pts.length, 1);
+      expect(pts.first.priceMinorPerShare, 200000);
+      expect(pts.first.entryIsFcy, isTrue);
+      expect(pts.first.priceEntryMinorPerShare, 200);
+    });
+
+    test('other investments list and sum LCY for net worth', () async {
+      await inv_ops.insertOtherInvestment(
+        label: 'Cash',
+        valueLcyMinor: 2000000,
+        entryCurrency: 'lcy',
+        entryMinor: 2000000,
+      );
+      await inv_ops.insertOtherInvestment(
+        label: 'Gold',
+        valueLcyMinor: 1800000,
+        entryCurrency: 'fcy',
+        entryMinor: 120000,
+      );
+      expect(await inv_ops.getOtherInvestmentsTotalLcyMinor(), 2000000 + 1800000);
+      final List<OtherInvestment> rows = await inv_ops.listOtherInvestments();
+      expect(rows.length, 2);
+      expect(rows.map((OtherInvestment e) => e.label).toSet(), <String>{'Cash', 'Gold'});
     });
   });
 }

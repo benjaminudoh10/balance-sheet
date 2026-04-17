@@ -50,4 +50,16 @@ void main() {
       expect(formatNetWithoutSign(-300), formatAmount(300));
     });
   });
+
+  group('parseMoneyStringToMinor', () {
+    test('parses decimals to cents', () {
+      expect(parseMoneyStringToMinor('12.34'), 1234);
+      expect(parseMoneyStringToMinor('1,234.56'), 123456);
+    });
+
+    test('returns null for empty or invalid', () {
+      expect(parseMoneyStringToMinor(''), null);
+      expect(parseMoneyStringToMinor('abc'), null);
+    });
+  });
 }

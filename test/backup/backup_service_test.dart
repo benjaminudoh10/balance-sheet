@@ -1,10 +1,15 @@
 import 'package:balance_sheet/backup/backup_service.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
 import 'package:balance_sheet/constants/db.dart';
+import 'package:balance_sheet/database/investment_operations.dart' as inv_ops;
 import 'package:balance_sheet/database/operations.dart' as db_ops;
+import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
+import 'package:balance_sheet/models/investment_holding.dart';
+import 'package:balance_sheet/models/other_investment.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -125,6 +130,48 @@ void main() {
       expect(json, contains('Bob'));
       expect(json, contains('"budgetMonths"'));
       expect(json, contains('"budgetLines"'));
+      expect(json, contains('"investmentHoldings"'));
+      expect(json, contains('"investmentOtherAssets"'));
+    });
+
+    test('roundtrip preserves investment holdings, lots, prices, and other assets', () async {
+      final int cid = await db_ops.addContact(Contact(name: 'Only'));
+      await db_ops.addTransaction(Transaction(
+        description: 'seed',
+        type: TransactionType.income,
+        amount: 100,
+        date: DateTime(2026, 1, 1),
+        category: 'salary',
+        contactId: cid,
+      ));
+      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'X', displayName: 'Y');
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: 1,
+        quantityDelta: 3,
+        purchasePriceMinorPerShare: 400,
+      );
+      await inv_ops.insertInvestmentPricePoint(holdingId: hid, asOfDayYyyymmdd: 19700101, priceMinorPerShare: 500);
+      await inv_ops.insertOtherInvestment(
+        label: 'Cash',
+        valueLcyMinor: 9900,
+        entryCurrency: 'lcy',
+        entryMinor: 9900,
+      );
+
+      final String exported = await BackupService.exportJsonString();
+      await resetAppDatabaseFile();
+      await BackupService.importFromJsonString(exported);
+
+      final List<InvestmentHolding> holdings = await inv_ops.listInvestmentHoldings();
+      expect(holdings.length, 1);
+      expect(holdings.first.ticker, 'X');
+      expect(await inv_ops.totalQuantityForHolding(holdings.first.id), 3.0);
+      expect(await inv_ops.getOtherInvestmentsTotalLcyMinor(), 9900);
+      final List<OtherInvestment> rows = await inv_ops.listOtherInvestments();
+      expect(rows.length, 1);
+      expect(rows.first.label, 'Cash');
+      expect(rows.first.valueLcyMinor, 9900);
     });
 
     test('roundtrip preserves budget months and lines', () async {

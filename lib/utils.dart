@@ -4,6 +4,15 @@ import 'package:balance_sheet/models/transaction.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+/// Parses a plain amount string (e.g. `1,234.56`) into **minor units** (cents). Returns null if invalid.
+int? parseMoneyStringToMinor(String raw) {
+  final String t = raw.trim().replaceAll(',', '');
+  if (t.isEmpty) return null;
+  final double? v = double.tryParse(t);
+  if (v == null) return null;
+  return (v * 100).round();
+}
+
 String formatMinorUnits(int minor, String iso4217Code) {
   final String code = iso4217Code.trim().toUpperCase();
   if (code.isEmpty) {

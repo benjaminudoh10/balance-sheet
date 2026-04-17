@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/currency_controller.dart';
+import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
@@ -63,6 +65,10 @@ class MainView extends StatelessWidget {
               Expanded(
                 child: Obx(() {
                   final list = _transactionController.transactions;
+                  final int ledgerMinor = _transactionController.total.value;
+                  final InvestmentController inv = Get.find<InvestmentController>();
+                  final int stocksMinor = inv.stocksTotalMinor.value;
+                  final int otherInvestMinor = inv.otherInvestmentsTotalMinor.value;
                   return CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
@@ -72,10 +78,18 @@ class MainView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _GlassBalanceCard(
-                                total: _transactionController.total.value,
-                                todayIncome: _transactionController.todaysIncome.value,
-                                todayExpense: _transactionController.todaysExpense.value,
+                              _BalanceNetWorthPager(
+                                palette: p,
+                                balanceCard: _GlassBalanceCard(
+                                  total: _transactionController.total.value,
+                                  todayIncome: _transactionController.todaysIncome.value,
+                                  todayExpense: _transactionController.todaysExpense.value,
+                                ),
+                                netWorthStrip: _NetWorthStrip(
+                                  ledgerMinor: ledgerMinor,
+                                  stocksMinor: stocksMinor,
+                                  otherInvestmentsMinor: otherInvestMinor,
+                                ),
                               ),
                               const SizedBox(height: 18),
                               _IncomeExpenseRow(),
@@ -145,6 +159,277 @@ class MainView extends StatelessWidget {
   }
 }
 
+const Color _kNetWorthInvestAccent = Color(0xFF818CF8);
+
+/// Swipe horizontally: main balance card, then net worth (same styling as before).
+class _BalanceNetWorthPager extends StatefulWidget {
+  const _BalanceNetWorthPager({
+    required this.palette,
+    required this.balanceCard,
+    required this.netWorthStrip,
+  });
+
+  final AppPalette palette;
+  final Widget balanceCard;
+  final Widget netWorthStrip;
+
+  @override
+  State<_BalanceNetWorthPager> createState() => _BalanceNetWorthPagerState();
+}
+
+class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
+  late final PageController _pageController;
+  final GlobalKey _balanceKey = GlobalKey();
+  int _index = 0;
+  double? _pageHeight;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _scheduleMeasureBalanceHeight() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measureBalanceHeight());
+  }
+
+  void _measureBalanceHeight() {
+    final BuildContext? ctx = _balanceKey.currentContext;
+    if (ctx == null || !mounted) return;
+    final RenderObject? ro = ctx.findRenderObject();
+    if (ro is! RenderBox || !ro.hasSize) return;
+    final double h = ro.size.height;
+    if (_pageHeight == null || (h - _pageHeight!).abs() > 0.5) {
+      setState(() => _pageHeight = h);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_BalanceNetWorthPager oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scheduleMeasureBalanceHeight();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = widget.palette;
+    _scheduleMeasureBalanceHeight();
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double w = constraints.maxWidth;
+        final Widget balance = KeyedSubtree(
+          key: _balanceKey,
+          child: widget.balanceCard,
+        );
+
+        if (_pageHeight == null) {
+          return SizedBox(
+            width: w,
+            child: balance,
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(
+              height: _pageHeight,
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (int i) => setState(() => _index = i),
+                physics: const BouncingScrollPhysics(),
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: balance,
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: w,
+                      height: _pageHeight,
+                      child: widget.netWorthStrip,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                _HomeCardPagerDot(active: _index == 0, palette: p),
+                const SizedBox(width: 6),
+                _HomeCardPagerDot(active: _index == 1, palette: p),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _HomeCardPagerDot extends StatelessWidget {
+  const _HomeCardPagerDot({required this.active, required this.palette});
+
+  final bool active;
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = palette;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      width: active ? 18 : 7,
+      height: 7,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        color: active ? p.mint.withValues(alpha: 0.95) : p.border.withValues(alpha: 0.9),
+      ),
+    );
+  }
+}
+
+class _NetWorthStrip extends StatelessWidget {
+  const _NetWorthStrip({
+    required this.ledgerMinor,
+    required this.stocksMinor,
+    required this.otherInvestmentsMinor,
+  });
+
+  final int ledgerMinor;
+  final int stocksMinor;
+  final int otherInvestmentsMinor;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final int total = ledgerMinor + stocksMinor + otherInvestmentsMinor;
+    final TextStyle totalPrimary = Theme.of(context).textTheme.titleLarge!.copyWith(
+          color: p.textPrimary,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+        );
+    final TextStyle totalSecondary = Theme.of(context).textTheme.bodySmall!.copyWith(
+          color: p.textSecondary,
+          fontWeight: FontWeight.w500,
+        );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: p.surface.withValues(alpha: 0.78),
+        border: Border.all(color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.pie_chart_outline_rounded, size: 18, color: _kNetWorthInvestAccent.withValues(alpha: 0.95)),
+              const SizedBox(width: 8),
+              Text(
+                'Net worth',
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      color: p.textSecondary,
+                      letterSpacing: 0.2,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          DualCurrencyTotal(
+            lcyMinor: total,
+            textAlign: TextAlign.start,
+            compactSecondary: true,
+            primaryStyle: totalPrimary,
+            secondaryStyle: totalSecondary,
+          ),
+          const Spacer(),
+          _NetWorthRow(label: 'Ledger balance', minor: ledgerMinor, palette: p),
+          _NetWorthRow(label: 'Investments', minor: stocksMinor, palette: p),
+          _NetWorthRow(label: 'Other investments', minor: otherInvestmentsMinor, palette: p),
+        ],
+      ),
+    );
+  }
+}
+
+class _NetWorthRow extends StatelessWidget {
+  const _NetWorthRow({
+    required this.label,
+    required this.minor,
+    required this.palette,
+  });
+
+  final String label;
+  final int minor;
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle primaryAmt = Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: palette.textPrimary,
+          fontWeight: FontWeight.w600,
+        );
+    final TextStyle secondaryAmt = Theme.of(context).textTheme.bodySmall!.copyWith(
+          color: palette.textSecondary,
+          fontWeight: FontWeight.w500,
+        );
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: palette.textSecondary),
+            ),
+          ),
+          Obx(() {
+            final CurrencyController c = Get.find<CurrencyController>();
+            if (!c.showDualTotals) {
+              return Text(
+                formatAmount(minor),
+                textAlign: TextAlign.end,
+                style: primaryAmt,
+              );
+            }
+            final int fcyMinor = c.fcyMinorFromLcyMinor(minor);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  formatMinorUnits(minor, c.lcyCode.value),
+                  textAlign: TextAlign.end,
+                  style: primaryAmt,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '≈ ${formatMinorUnits(fcyMinor, c.fcyCode.value)}',
+                  textAlign: TextAlign.end,
+                  style: secondaryAmt,
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
 
 class _GlassBalanceCard extends StatelessWidget {
   const _GlassBalanceCard({

@@ -51,7 +51,7 @@ class PlanHubFab extends StatelessWidget {
                       const SizedBox(height: 10),
                       _HubActionPill(
                         label: 'Investments',
-                        subtitle: 'Stocks & assets (soon)',
+                        subtitle: 'Stocks & manual prices',
                         icon: Icons.candlestick_chart_rounded,
                         accent: const Color(0xFF818CF8),
                         onTap: () => _go(const PlanStocksScreen()),

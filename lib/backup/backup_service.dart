@@ -10,8 +10,10 @@ import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
+import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/database/db.dart';
+import 'package:balance_sheet/database/investment_operations.dart' as inv_db;
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -44,6 +46,10 @@ class BackupService {
         await dbClient.query(DBConstants.BUDGET_MONTH, orderBy: 'id ASC');
     final List<Map<String, dynamic>> budgetLineRows =
         await dbClient.query(DBConstants.BUDGET_LINE, orderBy: 'id ASC');
+    final List<Map<String, Object?>> investmentHoldingRows = await inv_db.queryAllInvestmentHoldingRows();
+    final List<Map<String, Object?>> investmentLotRows = await inv_db.queryAllInvestmentLotRows();
+    final List<Map<String, Object?>> investmentPriceRows = await inv_db.queryAllInvestmentPriceRows();
+    final List<Map<String, Object?>> investmentOtherAssetRows = await inv_db.queryAllOtherInvestmentRows();
 
     final GetStorage box = GetStorage();
     final Map<String, dynamic> preferences = <String, dynamic>{
@@ -66,6 +72,10 @@ class BackupService {
       'transactions': txnRows.map((Map<String, dynamic> r) => txn_model.Transaction.fromJson(r).toJson()).toList(),
       'budgetMonths': budgetMonthRows.map((Map<String, dynamic> r) => BudgetMonth.fromJson(r).toJson()).toList(),
       'budgetLines': budgetLineRows.map((Map<String, dynamic> r) => BudgetLine.fromJson(r).toJson()).toList(),
+      'investmentHoldings': investmentHoldingRows,
+      'investmentLots': investmentLotRows,
+      'investmentPrices': investmentPriceRows,
+      'investmentOtherAssets': investmentOtherAssetRows,
       'preferences': preferences,
     };
 
@@ -99,7 +109,7 @@ class BackupService {
       throw BackupException('Not a Balanced backup file.');
     }
     final int? v = map['version'] is int ? map['version'] as int : int.tryParse('${map['version']}');
-    if (v == null || v != BackupConstants.formatVersion) {
+    if (v == null || (v != 2 && v != 3 && v != 4)) {
       throw BackupException('This backup version is not supported. Update the app and try again.');
     }
 
@@ -161,8 +171,101 @@ class BackupService {
       }
     }
 
+    final List<Map<String, dynamic>> investmentHoldings = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> investmentLots = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> investmentPrices = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> investmentOtherAssets = <Map<String, dynamic>>[];
+    Map<String, dynamic>? investmentCashLegacy;
+    if (v >= 3) {
+      final List<dynamic>? ih = map['investmentHoldings'] as List<dynamic>?;
+      final List<dynamic>? il = map['investmentLots'] as List<dynamic>?;
+      final List<dynamic>? ip = map['investmentPrices'] as List<dynamic>?;
+      if (ih != null) {
+        for (final dynamic e in ih) {
+          investmentHoldings.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+        }
+      }
+      if (il != null) {
+        for (final dynamic e in il) {
+          investmentLots.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+        }
+      }
+      if (ip != null) {
+        for (final dynamic e in ip) {
+          investmentPrices.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+        }
+      }
+      if (v >= 4) {
+        final List<dynamic>? io = map['investmentOtherAssets'] as List<dynamic>?;
+        if (io != null) {
+          for (final dynamic e in io) {
+            investmentOtherAssets.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+          }
+        }
+      }
+      final Object? ic = map['investmentCash'];
+      if (ic is Map) {
+        investmentCashLegacy = Map<String, dynamic>.from(ic);
+      }
+    }
+    if (investmentOtherAssets.isEmpty && investmentCashLegacy != null) {
+      final int bal = investmentCashLegacy['balance_minor'] is int
+          ? investmentCashLegacy['balance_minor'] as int
+          : int.tryParse('${investmentCashLegacy['balance_minor']}') ?? 0;
+      final String ec = '${investmentCashLegacy['balance_entry_currency'] ?? 'lcy'}'.toLowerCase();
+      int ent = investmentCashLegacy['balance_entry_minor'] is int
+          ? investmentCashLegacy['balance_entry_minor'] as int
+          : int.tryParse('${investmentCashLegacy['balance_entry_minor']}') ?? 0;
+      if (ent == 0 && bal != 0) {
+        ent = bal;
+      }
+      final int um = investmentCashLegacy['updated_at_ms'] is int
+          ? investmentCashLegacy['updated_at_ms'] as int
+          : int.tryParse('${investmentCashLegacy['updated_at_ms']}') ?? DateTime.now().millisecondsSinceEpoch;
+      if (bal != 0 || ent != 0) {
+        investmentOtherAssets.add(<String, dynamic>{
+          'label': 'Cash',
+          'value_lcy_minor': bal,
+          'entry_currency': ec == 'fcy' ? 'fcy' : 'lcy',
+          'entry_minor': ent,
+          'sort_order': 0,
+          'updated_at_ms': um,
+        });
+      }
+    }
+
+    final Set<int> investmentHoldingIds = investmentHoldings.map((Map<String, dynamic> r) {
+      final Object? id = r['id'];
+      if (id is int) return id;
+      if (id is num) return id.toInt();
+      return int.tryParse('$id') ?? 0;
+    }).toSet();
+
+    for (final Map<String, dynamic> row in investmentLots) {
+      final Object? hid = row['holding_id'];
+      final int h = hid is int ? hid : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
+      if (h > 0 && !investmentHoldingIds.contains(h)) {
+        throw BackupException(
+          'Backup is inconsistent: an investment lot references a missing holding (id $h).',
+        );
+      }
+    }
+    for (final Map<String, dynamic> row in investmentPrices) {
+      final Object? hid = row['holding_id'];
+      final int h = hid is int ? hid : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
+      if (h > 0 && !investmentHoldingIds.contains(h)) {
+        throw BackupException(
+          'Backup is inconsistent: an investment price references a missing holding (id $h).',
+        );
+      }
+    }
+
     final Database dbClient = await AppDb().db;
     await dbClient.transaction((Transaction sqlTxn) async {
+      await sqlTxn.delete(DBConstants.INVESTMENT_LOT);
+      await sqlTxn.delete(DBConstants.INVESTMENT_PRICE);
+      await sqlTxn.delete(DBConstants.INVESTMENT_HOLDING);
+      await sqlTxn.delete(DBConstants.INVESTMENT_OTHER_ASSET);
       await sqlTxn.delete(DBConstants.TRANSACTION);
       await sqlTxn.delete(DBConstants.BUDGET_LINE);
       await sqlTxn.delete(DBConstants.BUDGET_MONTH);
@@ -206,6 +309,103 @@ class BackupService {
           'sort_order': bl.sortOrder,
           'entryCurrency': bl.planEntryIsFcy ? 'fcy' : 'lcy',
           'entryAmount': bl.planEntryAmountMinor > 0 ? bl.planEntryAmountMinor : bl.plannedAmount,
+        });
+      }
+
+      for (final Map<String, dynamic> r in investmentOtherAssets) {
+        final int lcy = r['value_lcy_minor'] is int
+            ? r['value_lcy_minor'] as int
+            : int.tryParse('${r['value_lcy_minor']}') ?? 0;
+        final String ec = '${r['entry_currency'] ?? 'lcy'}'.toLowerCase();
+        final Object? rawE = r['entry_minor'];
+        int ent = rawE is int ? rawE : (rawE is num ? rawE.toInt() : int.tryParse('$rawE') ?? 0);
+        if (ent == 0 && lcy != 0) {
+          ent = lcy;
+        }
+        final Map<String, Object?> row = <String, Object?>{
+          'label': '${r['label'] ?? ''}'.trim().isEmpty ? 'Investment' : '${r['label']}'.trim(),
+          'value_lcy_minor': lcy,
+          'entry_currency': ec == 'fcy' ? 'fcy' : 'lcy',
+          'entry_minor': ent,
+          'sort_order': r['sort_order'] is int
+              ? r['sort_order'] as int
+              : int.tryParse('${r['sort_order']}') ?? 0,
+          'updated_at_ms': r['updated_at_ms'] is int
+              ? r['updated_at_ms'] as int
+              : int.tryParse('${r['updated_at_ms']}') ?? DateTime.now().millisecondsSinceEpoch,
+        };
+        final Object? rid = r['id'];
+        if (rid != null) {
+          final int id = rid is int ? rid : (rid is num ? rid.toInt() : int.tryParse('$rid') ?? 0);
+          if (id > 0) {
+            row['id'] = id;
+          }
+        }
+        await sqlTxn.insert(DBConstants.INVESTMENT_OTHER_ASSET, row);
+      }
+
+      for (final Map<String, dynamic> r in investmentHoldings) {
+        await sqlTxn.insert(DBConstants.INVESTMENT_HOLDING, <String, Object?>{
+          'id': r['id'],
+          'ticker': r['ticker'],
+          'display_name': r['display_name'] ?? '',
+          'sort_order': r['sort_order'] ?? 0,
+          'created_at_ms': r['created_at_ms'],
+        });
+      }
+      for (final Map<String, dynamic> r in investmentLots) {
+        final int lcyPs = r['purchase_price_minor_per_share'] is int
+            ? r['purchase_price_minor_per_share'] as int
+            : int.tryParse('${r['purchase_price_minor_per_share']}') ?? 0;
+        final String ec = '${r['purchase_entry_currency'] ?? 'lcy'}'.toLowerCase();
+        final Object? rawEntry = r['purchase_price_entry_minor'];
+        int entryPs = rawEntry is int ? rawEntry : (rawEntry is num ? rawEntry.toInt() : int.tryParse('$rawEntry') ?? 0);
+        if (entryPs == 0 && lcyPs != 0) {
+          entryPs = lcyPs;
+        }
+        await sqlTxn.insert(DBConstants.INVESTMENT_LOT, <String, Object?>{
+          'id': r['id'],
+          'holding_id': r['holding_id'],
+          'occurred_at_ms': r['occurred_at_ms'],
+          'quantity_delta': r['quantity_delta'],
+          'purchase_price_minor_per_share': lcyPs,
+          'purchase_entry_currency': ec == 'fcy' ? 'fcy' : 'lcy',
+          'purchase_price_entry_minor': entryPs,
+          'note': r['note'] ?? '',
+        });
+      }
+      for (final Map<String, dynamic> r in investmentPrices) {
+        final Object? rawDay = r['as_of_day'];
+        int asOfDay = rawDay is int ? rawDay : (rawDay is num ? rawDay.toInt() : int.tryParse('$rawDay') ?? 0);
+        final Object? rawMs = r['as_of_ms'];
+        int asOfMs = rawMs is int ? rawMs : (rawMs is num ? rawMs.toInt() : int.tryParse('$rawMs') ?? 0);
+        if (asOfDay <= 0 && asOfMs > 0) {
+          final DateTime t = DateTime.fromMillisecondsSinceEpoch(asOfMs);
+          asOfDay = t.year * 10000 + t.month * 100 + t.day;
+        }
+        if (asOfMs <= 0 && asOfDay > 0) {
+          final int y = asOfDay ~/ 10000;
+          final int m = (asOfDay % 10000) ~/ 100;
+          final int d = asOfDay % 100;
+          asOfMs = DateTime(y, m, d).millisecondsSinceEpoch;
+        }
+        final int lcyPrice = r['price_minor_per_share'] is int
+            ? r['price_minor_per_share'] as int
+            : int.tryParse('${r['price_minor_per_share']}') ?? 0;
+        final String pEc = '${r['entry_currency'] ?? 'lcy'}'.toLowerCase();
+        final Object? rawPe = r['price_entry_minor'];
+        int entryPrice = rawPe is int ? rawPe : (rawPe is num ? rawPe.toInt() : int.tryParse('$rawPe') ?? 0);
+        if (entryPrice == 0 && lcyPrice != 0) {
+          entryPrice = lcyPrice;
+        }
+        await sqlTxn.insert(DBConstants.INVESTMENT_PRICE, <String, Object?>{
+          'id': r['id'],
+          'holding_id': r['holding_id'],
+          'as_of_ms': asOfMs,
+          'as_of_day': asOfDay,
+          'price_minor_per_share': lcyPrice,
+          'entry_currency': pEc == 'fcy' ? 'fcy' : 'lcy',
+          'price_entry_minor': entryPrice,
         });
       }
     });
@@ -273,6 +473,11 @@ class BackupService {
     if (Get.isRegistered<BudgetController>()) {
       final BudgetController budget = Get.find<BudgetController>();
       await budget.reloadFocusMonth();
+    }
+
+    if (Get.isRegistered<InvestmentController>()) {
+      final InvestmentController investments = Get.find<InvestmentController>();
+      await investments.reload();
     }
   }
 }
