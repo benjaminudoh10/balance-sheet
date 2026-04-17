@@ -1459,9 +1459,28 @@ class _PortfolioChart extends StatelessWidget {
         if (v > maxV) maxV = v;
         spots.add(FlSpot(i.toDouble(), v / 100.0));
       }
-      final double pad = (maxV - minV) * 0.08 + 1;
-      final double minY = (minV / 100.0) - pad;
-      final double maxY = (maxV / 100.0) + pad;
+      final double minDisplay = minV / 100.0;
+      final double maxDisplay = maxV / 100.0;
+      final double range = maxDisplay - minDisplay;
+      const double headroomFrac = 0.08;
+      final double minY;
+      final double maxY;
+      if (range <= 1e-9) {
+        if (maxDisplay <= 0) {
+          minY = maxDisplay - 1;
+          maxY = maxDisplay + 1;
+        } else {
+          minY = 0;
+          maxY = math.max(maxDisplay * 1.1, maxDisplay + 1);
+        }
+      } else {
+        if (minDisplay >= 0) {
+          minY = 0;
+        } else {
+          minY = minDisplay - range * headroomFrac;
+        }
+        maxY = maxDisplay + math.max(range * headroomFrac, maxDisplay.abs() * 0.02 + 1e-6);
+      }
       return Padding(
         padding: const EdgeInsets.only(top: 8, bottom: 8),
         child: Column(
