@@ -9,3 +9,4 @@
 - [ ] **PDF export (roll out):** export the current (or saved-view) snapshot to PDF for the same areas as above; shared file/share plumbing, per-feature PDF content (tables vs charts may differ by screen).
 - [ ] Other platforms (web, macos)
 - [x] Security pin or fingerprint
+- [ ] Sent a local notification when a budget is completed as a result of a transaction entry

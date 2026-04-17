@@ -11,6 +11,8 @@ import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/plan_hub_fab.dart';
+import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -80,16 +82,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          color: p.textPrimary,
-          onPressed: () {
-            AppHaptics.light();
-            Get.back();
-          },
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
-          'Monthly budget',
+          'Budgets',
           style: Theme.of(context).textTheme.headlineSmall!.copyWith(
                 color: p.textPrimary,
                 letterSpacing: -0.4,
@@ -106,16 +101,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'budget_add_line',
-        backgroundColor: p.mint,
-        foregroundColor: const Color(0xFF0D1117),
-        onPressed: () {
-          AppHaptics.light();
-          _openEditor();
-        },
-        child: const Icon(Icons.add_rounded),
-      ),
+      bottomNavigationBar: _BudgetAddLineBar(onPressed: () => _openEditor()),
       body: Stack(
         fit: StackFit.expand,
         children: <Widget>[
@@ -182,22 +168,24 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                   'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
                             ),
                           ],
-                          const SizedBox(height: 20),
-                          Text(
-                            'Planned items',
-                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                  color: p.textPrimary,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  color: p.textSecondary,
-                                  height: 1.35,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
+                          if (_budget.lines.isNotEmpty) ...<Widget>[
+                            const SizedBox(height: 20),
+                            Text(
+                              'Planned items',
+                              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: p.textPrimary,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: p.textSecondary,
+                                    height: 1.35,
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ],
                       ),
                     ),
@@ -206,18 +194,20 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
-                        child: Text(
-                          'Tap + to add what you plan to spend on this month.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                color: p.textSecondary,
-                              ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: _horizontalPad),
+                          child: const _BudgetLinesEmptyCard(),
                         ),
                       ),
                     )
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 100),
+                      padding: EdgeInsets.fromLTRB(
+                        _horizontalPad,
+                        0,
+                        _horizontalPad,
+                        20,
+                      ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (BuildContext context, int index) {
@@ -303,6 +293,111 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (ok == true) {
       await _budget.deleteLine(line.id);
     }
+  }
+}
+
+class _BudgetLinesEmptyCard extends StatelessWidget {
+  const _BudgetLinesEmptyCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    const String detail =
+        'Use “Add budget line” below to plan what you expect to spend this month.';
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 26, 22, 26),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: p.surfaceElevated,
+          border: Border.all(color: p.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            EmptyStateIconFrame(
+              padding: const EdgeInsets.all(20),
+              child: Icon(
+                Icons.event_note_rounded,
+                size: 40,
+                color: p.mint.withValues(alpha: 0.85),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Nothing planned yet',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    color: p.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              detail,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: p.textSecondary,
+                    height: 1.4,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BudgetAddLineBar extends StatelessWidget {
+  const _BudgetAddLineBar({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    return Material(
+      color: p.surface,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: p.border.withValues(alpha: 0.6)),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              _horizontalPad,
+              10,
+              _horizontalPad + kPlanHubFabTrailingClearance,
+              10,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: FilledButton.icon(
+                onPressed: AppHaptics.wrap(onPressed),
+                icon: const Icon(Icons.add_rounded, size: 22),
+                label: const Text('Add budget line'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: p.mint,
+                  foregroundColor: const Color(0xFF0D1117),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -657,6 +752,8 @@ class _BudgetLineEditorSheet extends StatefulWidget {
 class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   late final TextEditingController _desc;
   late final TextEditingController _amount;
+  late final FocusNode _descFocus;
+  late final FocusNode _amountFocus;
   int _contactId = 0;
   String _categoryKey = '';
   bool _planEntryIsFcy = false;
@@ -667,6 +764,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   @override
   void initState() {
     super.initState();
+    _descFocus = FocusNode();
+    _amountFocus = FocusNode();
     final BudgetLine? e = widget.existing;
     _desc = TextEditingController(text: e?.description ?? '');
     _planEntryIsFcy = e?.planEntryIsFcy ?? false;
@@ -678,10 +777,16 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
     );
     _contactId = e?.contactId ?? 0;
     _categoryKey = e?.categoryKey ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _descFocus.requestFocus();
+    });
   }
 
   @override
   void dispose() {
+    _descFocus.dispose();
+    _amountFocus.dispose();
     _desc.dispose();
     _amount.dispose();
     super.dispose();
@@ -768,6 +873,11 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               const SizedBox(height: 16),
               TextField(
                 controller: _desc,
+                focusNode: _descFocus,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_amountFocus);
+                },
                 decoration: InputDecoration(
                   labelText: 'What you plan to spend on',
                   labelStyle: TextStyle(color: p.textSecondary),
@@ -846,8 +956,11 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               const SizedBox(height: 8),
               TextField(
                 controller: _amount,
+                focusNode: _amountFocus,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   labelText: 'Planned amount (${_planEntryIsFcy ? _currency.fcyCode.value : _currency.lcyCode.value})',
                   hintText: '0.00',

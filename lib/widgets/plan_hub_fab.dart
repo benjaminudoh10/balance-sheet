@@ -1,4 +1,3 @@
-import 'package:balance_sheet/screens/budget_screen.dart';
 import 'package:balance_sheet/screens/plan_stocks_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
@@ -8,7 +7,7 @@ import 'package:get/get.dart';
 /// Extra end padding for bottom controls on [Home] so they sit clear of [PlanHubFab] (58px + margin).
 const double kPlanHubFabTrailingClearance = 76.0;
 
-/// Expandable hub for plan-related flows (monthly budget, investments) without adding nav tabs.
+/// Expandable hub for plan-related flows (e.g. investments) without adding nav tabs.
 class PlanHubFab extends StatelessWidget {
   const PlanHubFab({
     super.key,
@@ -43,14 +42,6 @@ class PlanHubFab extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      _HubActionPill(
-                        label: 'Monthly budget',
-                        subtitle: 'Planned spending',
-                        icon: Icons.event_note_rounded,
-                        accent: p.mint,
-                        onTap: () => _go(const BudgetScreen()),
-                      ),
-                      const SizedBox(height: 10),
                       _HubActionPill(
                         label: 'Investments',
                         subtitle: 'Stocks & manual prices',

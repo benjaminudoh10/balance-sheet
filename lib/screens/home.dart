@@ -2,7 +2,7 @@ import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/insights_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
-import 'package:balance_sheet/screens/placeholder_tab.dart';
+import 'package:balance_sheet/screens/budget_screen.dart';
 import 'package:balance_sheet/screens/profile_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
@@ -81,7 +81,7 @@ class _HomeState extends State<Home> {
       case 1:
         return ContactView();
       case 2:
-        return const PlaceholderTab(title: 'Activity');
+        return const BudgetScreen();
       case 3:
         return const InsightsView();
       case 4:

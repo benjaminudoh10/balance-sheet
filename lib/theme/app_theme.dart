@@ -4,25 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// User-selectable UI fonts (Google Fonts). Keys are persisted in storage.
 ///
-/// Sans options are visually distinct (neutral, rounded, humanist). Monospace
-/// options are for code-like / tabular readability — not duplicates of the sans set.
+/// Two sans families and one monospace — each visually distinct.
 abstract final class AppFontIds {
   static const String inter = 'inter';
   static const String nunitoSans = 'nunito_sans';
-  static const String sourceSans3 = 'source_sans_3';
   static const String jetbrainsMono = 'jetbrains_mono';
-  static const String sourceCodePro = 'source_code_pro';
-  static const String ibmPlexMono = 'ibm_plex_mono';
 
   static const String defaultId = inter;
 
   static const List<AppFontOption> choices = [
     AppFontOption(id: inter, label: 'Inter'),
     AppFontOption(id: nunitoSans, label: 'Nunito Sans'),
-    AppFontOption(id: sourceSans3, label: 'Source Sans 3'),
     AppFontOption(id: jetbrainsMono, label: 'JetBrains Mono'),
-    AppFontOption(id: sourceCodePro, label: 'Source Code Pro'),
-    AppFontOption(id: ibmPlexMono, label: 'IBM Plex Mono'),
   ];
 
   static bool isValid(String id) =>
@@ -40,14 +33,8 @@ TextTheme _googleTextThemeForId(String id, TextTheme base) {
   switch (id) {
     case AppFontIds.nunitoSans:
       return GoogleFonts.nunitoSansTextTheme(base);
-    case AppFontIds.sourceSans3:
-      return GoogleFonts.sourceSans3TextTheme(base);
     case AppFontIds.jetbrainsMono:
       return GoogleFonts.jetBrainsMonoTextTheme(base);
-    case AppFontIds.sourceCodePro:
-      return GoogleFonts.sourceCodeProTextTheme(base);
-    case AppFontIds.ibmPlexMono:
-      return GoogleFonts.ibmPlexMonoTextTheme(base);
     case AppFontIds.inter:
     default:
       return GoogleFonts.interTextTheme(base);

@@ -44,9 +44,9 @@ class MidnightBottomNav extends StatelessWidget {
                 ),
                 _NavItem(
                   selected: index == 2,
-                  icon: Icons.format_list_bulleted_outlined,
-                  selectedIcon: Icons.format_list_bulleted_rounded,
-                  label: 'Activity',
+                  icon: Icons.pie_chart_outline_rounded,
+                  selectedIcon: Icons.pie_chart_rounded,
+                  label: 'Budgets',
                   onTap: () => controller.setIndex(2),
                 ),
                 _NavItem(
