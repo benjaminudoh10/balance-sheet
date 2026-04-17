@@ -73,7 +73,7 @@ class _EntryDateTimeField extends StatelessWidget {
           onTap: AppHaptics.wrap(onPick),
           borderRadius: BorderRadius.circular(10),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
                 Icon(Icons.schedule_rounded, color: accent, size: 22),
@@ -139,12 +139,12 @@ class IncomeForm extends StatelessWidget {
               child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
                     Center(
                       child: Container(
                         width: 40,
@@ -155,7 +155,7 @@ class IncomeForm extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -214,7 +214,7 @@ class IncomeForm extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 14),
                     _FormSection(
                       label: 'Description',
                       child: DescriptionInput(compact: true),
@@ -225,6 +225,10 @@ class IncomeForm extends StatelessWidget {
                           : Get.find<CurrencyController>().lcyCode.value;
                       return _FormSection(
                         label: 'Amount ($code)',
+                        labelTrailing: Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: TransactionAmountCurrencySelector(isIncome: _isIncome),
+                        ),
                         child: AmountInput(compact: true, isIncome: _isIncome),
                       );
                     }),
@@ -250,7 +254,7 @@ class IncomeForm extends StatelessWidget {
                       ),
                       categoryChild: CategoryInput(compact: true),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     SizedBox(
                       width: double.infinity,
                       height: 52,
@@ -342,24 +346,36 @@ class _FormSection extends StatelessWidget {
   const _FormSection({
     required this.label,
     required this.child,
+    this.labelTrailing,
   });
 
   final String label;
   final Widget child;
+  final Widget? labelTrailing;
 
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 11),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            label.toUpperCase(),
-            style: _fieldLabelStyle(Theme.of(context).textTheme, p),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  label.toUpperCase(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: _fieldLabelStyle(Theme.of(context).textTheme, p),
+                ),
+              ),
+              if (labelTrailing != null) labelTrailing!,
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           child,
         ],
       ),
@@ -389,7 +405,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
         contactName != null && contactName!.trim().isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 11),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -413,7 +429,7 @@ class _CategoryAndContactBlock extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

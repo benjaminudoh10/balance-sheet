@@ -83,91 +83,98 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
           ),
         ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: p.surface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: p.border),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                width: 4,
-                color: accent,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(color: accent.withValues(alpha: 0.55)),
-                          color: accent.withValues(alpha: 0.12),
-                        ),
-                        child: Icon(
-                          Categories.iconForKey(transaction.category),
-                          color: accent,
-                          size: 22.0,
-                        ),
-                      ),
-                      const SizedBox(width: 12.0),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              transaction.description,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: textTheme.titleSmall!.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: p.textPrimary,
-                              ),
+          onTap: AppHaptics.wrap(() => _openEditModalFor(transaction)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: p.surface,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: p.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    width: 4,
+                    color: accent,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(color: accent.withValues(alpha: 0.55)),
+                              color: accent.withValues(alpha: 0.12),
                             ),
-                            const SizedBox(height: 6.0),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                            child: Icon(
+                              Categories.iconForKey(transaction.category),
+                              color: accent,
+                              size: 22.0,
+                            ),
+                          ),
+                          const SizedBox(width: 12.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                if (categoryLabel.isNotEmpty) ...[
-                                  Flexible(
-                                    child: CategoryPillLabel(
-                                      categoryKey: transaction.category,
-                                      label: categoryLabel,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8.0),
-                                ],
                                 Text(
-                                  DateFormat.jm().format(transaction.date),
-                                  style: textTheme.bodySmall!.copyWith(
-                                    color: p.textSecondary,
+                                  transaction.description,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: textTheme.titleSmall!.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: p.textPrimary,
                                   ),
+                                ),
+                                const SizedBox(height: 6.0),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if (categoryLabel.isNotEmpty) ...[
+                                      Flexible(
+                                        child: CategoryPillLabel(
+                                          categoryKey: transaction.category,
+                                          label: categoryLabel,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8.0),
+                                    ],
+                                    Text(
+                                      DateFormat.jm().format(transaction.date),
+                                      style: textTheme.bodySmall!.copyWith(
+                                        color: p.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          Text(
+                            formatTransactionDisplayAmount(transaction),
+                            style: textTheme.titleSmall!.copyWith(
+                              color: p.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        formatTransactionDisplayAmount(transaction),
-                        style: textTheme.titleSmall!.copyWith(
-                          color: p.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

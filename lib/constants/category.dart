@@ -213,7 +213,7 @@ class Categories {
     },
     {
       "key": "utilities",
-      "label": "Utilities (e.g. Subscription, etc)",
+      "label": "Utilities",
     },
     {
       "key": "misc",

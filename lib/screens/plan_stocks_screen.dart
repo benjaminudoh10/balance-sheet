@@ -192,66 +192,83 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
           ),
           const SizedBox(height: 12),
           Obx(
-            () => Row(
-              children: <Widget>[
-                Text('Currency', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
-                const Spacer(),
-                SegmentedButton<bool>(
-                  segments: <ButtonSegment<bool>>[
-                    ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                    ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
-                  ],
-                  selected: <bool>{_entryIsFcy},
-                  onSelectionChanged: (Set<bool> next) {
-                    if (next.isEmpty) return;
-                    final bool toFcy = next.single;
-                    if (toFcy == _entryIsFcy) return;
-                    AppHaptics.selection();
-                    setState(() {
-                      final int m = parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
-                      if (m <= 0) {
-                        _entryIsFcy = toFcy;
-                        return;
-                      }
-                      if (toFcy) {
-                        _amountCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = true;
-                      } else {
-                        _amountCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = false;
-                      }
-                    });
-                  },
-                  style: SegmentedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    selectedBackgroundColor: _kInvestAccent,
-                    selectedForegroundColor: Colors.white,
+            () {
+              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          'Value ($code)',
+                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                color: p.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SegmentedButton<bool>(
+                        segments: <ButtonSegment<bool>>[
+                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                        ],
+                        selected: <bool>{_entryIsFcy},
+                        onSelectionChanged: (Set<bool> next) {
+                          if (next.isEmpty) return;
+                          final bool toFcy = next.single;
+                          if (toFcy == _entryIsFcy) return;
+                          AppHaptics.selection();
+                          setState(() {
+                            final int m = parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
+                            if (m <= 0) {
+                              _entryIsFcy = toFcy;
+                              return;
+                            }
+                            if (toFcy) {
+                              _amountCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = true;
+                            } else {
+                              _amountCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = false;
+                            }
+                          });
+                        },
+                        style: SegmentedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          selectedBackgroundColor: _kInvestAccent,
+                          selectedForegroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Obx(
-            () => TextField(
-              controller: _amountCtrl,
-              focusNode: _amountFocus,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              textInputAction: TextInputAction.done,
-              inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
-              style: TextStyle(color: p.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Value (${_entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value})',
-                labelStyle: TextStyle(color: p.textSecondary),
-                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
-              ),
-              onSubmitted: (_) async {
-                AppHaptics.light();
-                await _save();
-              },
-            ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _amountCtrl,
+                    focusNode: _amountFocus,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    style: TextStyle(color: p.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: '0.00',
+                      hintStyle: TextStyle(color: p.textSecondary),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
+                    ),
+                    onSubmitted: (_) async {
+                      AppHaptics.light();
+                      await _save();
+                    },
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           FilledButton(
@@ -488,65 +505,80 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
           ),
           const SizedBox(height: 12),
           Obx(
-            () => Row(
-              children: <Widget>[
-                Text(
-                  'Price currency',
-                  style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
-                ),
-                const Spacer(),
-                SegmentedButton<bool>(
-                  segments: <ButtonSegment<bool>>[
-                    ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                    ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
-                  ],
-                  selected: <bool>{_entryIsFcy},
-                  onSelectionChanged: (Set<bool> next) {
-                    if (next.isEmpty) return;
-                    final bool toFcy = next.single;
-                    if (toFcy == _entryIsFcy) return;
-                    AppHaptics.selection();
-                    setState(() {
-                      final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
-                      if (m <= 0) {
-                        _entryIsFcy = toFcy;
-                        return;
-                      }
-                      if (toFcy) {
-                        _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = true;
-                      } else {
-                        _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = false;
-                      }
-                    });
-                  },
-                  style: SegmentedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    selectedBackgroundColor: _kInvestAccent,
-                    selectedForegroundColor: Colors.white,
+            () {
+              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          'Price per share ($code)',
+                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                color: p.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SegmentedButton<bool>(
+                        segments: <ButtonSegment<bool>>[
+                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                        ],
+                        selected: <bool>{_entryIsFcy},
+                        onSelectionChanged: (Set<bool> next) {
+                          if (next.isEmpty) return;
+                          final bool toFcy = next.single;
+                          if (toFcy == _entryIsFcy) return;
+                          AppHaptics.selection();
+                          setState(() {
+                            final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
+                            if (m <= 0) {
+                              _entryIsFcy = toFcy;
+                              return;
+                            }
+                            if (toFcy) {
+                              _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = true;
+                            } else {
+                              _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = false;
+                            }
+                          });
+                        },
+                        style: SegmentedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          selectedBackgroundColor: _kInvestAccent,
+                          selectedForegroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Obx(
-            () => TextField(
-              controller: _priceCtrl,
-              focusNode: _priceFocus,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              textInputAction: TextInputAction.done,
-              inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
-              decoration: InputDecoration(
-                labelText: 'Price per share (${_entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value})',
-              ),
-              onSubmitted: (_) async {
-                AppHaptics.light();
-                await _save();
-              },
-            ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _priceCtrl,
+                    focusNode: _priceFocus,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    decoration: InputDecoration(
+                      hintText: '0.00',
+                      hintStyle: TextStyle(color: p.textSecondary),
+                    ),
+                    onSubmitted: (_) async {
+                      AppHaptics.light();
+                      await _save();
+                    },
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 8),
           ListTile(
@@ -660,65 +692,80 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
           ),
           const SizedBox(height: 12),
           Obx(
-            () => Row(
-              children: <Widget>[
-                Text(
-                  'Currency',
-                  style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
-                ),
-                const Spacer(),
-                SegmentedButton<bool>(
-                  segments: <ButtonSegment<bool>>[
-                    ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                    ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
-                  ],
-                  selected: <bool>{_entryIsFcy},
-                  onSelectionChanged: (Set<bool> next) {
-                    if (next.isEmpty) return;
-                    final bool toFcy = next.single;
-                    if (toFcy == _entryIsFcy) return;
-                    AppHaptics.selection();
-                    setState(() {
-                      final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
-                      if (m <= 0) {
-                        _entryIsFcy = toFcy;
-                        return;
-                      }
-                      if (toFcy) {
-                        _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = true;
-                      } else {
-                        _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
-                        _entryIsFcy = false;
-                      }
-                    });
-                  },
-                  style: SegmentedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    selectedBackgroundColor: _kInvestAccent,
-                    selectedForegroundColor: Colors.white,
+            () {
+              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          'Amount ($code)',
+                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                color: p.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SegmentedButton<bool>(
+                        segments: <ButtonSegment<bool>>[
+                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                        ],
+                        selected: <bool>{_entryIsFcy},
+                        onSelectionChanged: (Set<bool> next) {
+                          if (next.isEmpty) return;
+                          final bool toFcy = next.single;
+                          if (toFcy == _entryIsFcy) return;
+                          AppHaptics.selection();
+                          setState(() {
+                            final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
+                            if (m <= 0) {
+                              _entryIsFcy = toFcy;
+                              return;
+                            }
+                            if (toFcy) {
+                              _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = true;
+                            } else {
+                              _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _entryIsFcy = false;
+                            }
+                          });
+                        },
+                        style: SegmentedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          selectedBackgroundColor: _kInvestAccent,
+                          selectedForegroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Obx(
-            () => TextField(
-              controller: _priceCtrl,
-              focusNode: _priceFocus,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              textInputAction: TextInputAction.done,
-              inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
-              decoration: InputDecoration(
-                labelText: 'Amount (${_entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value})',
-              ),
-              onSubmitted: (_) async {
-                AppHaptics.light();
-                await _save();
-              },
-            ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _priceCtrl,
+                    focusNode: _priceFocus,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    decoration: InputDecoration(
+                      hintText: '0.00',
+                      hintStyle: TextStyle(color: p.textSecondary),
+                    ),
+                    onSubmitted: (_) async {
+                      AppHaptics.light();
+                      await _save();
+                    },
+                  ),
+                ],
+              );
+            },
           ),
           ListTile(
             title: Text(DateFormat.yMMMd().format(_priceDay)),

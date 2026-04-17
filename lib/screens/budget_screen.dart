@@ -898,85 +898,96 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               Obx(() {
                 final String lCode = _currency.lcyCode.value;
                 final String fCode = _currency.fcyCode.value;
-                return Row(
+                final String code = _planEntryIsFcy ? fCode : lCode;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(
-                      'Currency',
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                            color: p.textSecondary,
-                            letterSpacing: 0.3,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            'PLANNED AMOUNT ($code)',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                  letterSpacing: 1.15,
+                                  height: 1.2,
+                                  color: p.textPrimary.withValues(alpha: 0.88),
+                                ),
                           ),
-                    ),
-                    const Spacer(),
-                    SegmentedButton<bool>(
-                      segments: <ButtonSegment<bool>>[
-                        ButtonSegment<bool>(
-                          value: false,
-                          label: Text(lCode),
                         ),
-                        ButtonSegment<bool>(
-                          value: true,
-                          label: Text(fCode),
+                        const SizedBox(width: 8),
+                        SegmentedButton<bool>(
+                          segments: <ButtonSegment<bool>>[
+                            ButtonSegment<bool>(
+                              value: false,
+                              label: Text(lCode),
+                            ),
+                            ButtonSegment<bool>(
+                              value: true,
+                              label: Text(fCode),
+                            ),
+                          ],
+                          selected: <bool>{_planEntryIsFcy},
+                          onSelectionChanged: (Set<bool> next) {
+                            if (next.isEmpty) return;
+                            final bool toFcy = next.single;
+                            if (toFcy == _planEntryIsFcy) return;
+                            setState(() {
+                              final int cur = _minorFromAmountText(_amount.text);
+                              if (cur <= 0) {
+                                _planEntryIsFcy = toFcy;
+                                return;
+                              }
+                              if (toFcy) {
+                                final int fcy = _currency.fcyMinorFromLcyMinor(cur);
+                                _planEntryIsFcy = true;
+                                _amount.text = (fcy / 100).toStringAsFixed(2);
+                              } else {
+                                final int lcy = _currency.lcyMinorFromFcyMinor(cur);
+                                _planEntryIsFcy = false;
+                                _amount.text = (lcy / 100).toStringAsFixed(2);
+                              }
+                            });
+                          },
+                          style: SegmentedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            backgroundColor: p.surface,
+                            foregroundColor: p.textPrimary,
+                            side: BorderSide(color: p.border),
+                            selectedBackgroundColor: p.coral,
+                            selectedForegroundColor: Colors.white,
+                          ),
                         ),
                       ],
-                      selected: <bool>{_planEntryIsFcy},
-                      onSelectionChanged: (Set<bool> next) {
-                        if (next.isEmpty) return;
-                        final bool toFcy = next.single;
-                        if (toFcy == _planEntryIsFcy) return;
-                        setState(() {
-                          final int cur = _minorFromAmountText(_amount.text);
-                          if (cur <= 0) {
-                            _planEntryIsFcy = toFcy;
-                            return;
-                          }
-                          if (toFcy) {
-                            final int fcy = _currency.fcyMinorFromLcyMinor(cur);
-                            _planEntryIsFcy = true;
-                            _amount.text = (fcy / 100).toStringAsFixed(2);
-                          } else {
-                            final int lcy = _currency.lcyMinorFromFcyMinor(cur);
-                            _planEntryIsFcy = false;
-                            _amount.text = (lcy / 100).toStringAsFixed(2);
-                          }
-                        });
-                      },
-                      style: SegmentedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        backgroundColor: p.surface,
-                        foregroundColor: p.textPrimary,
-                        side: BorderSide(color: p.border),
-                        selectedBackgroundColor: p.coral,
-                        selectedForegroundColor: Colors.white,
+                    ),
+                    const SizedBox(height: 4),
+                    TextField(
+                      controller: _amount,
+                      focusNode: _amountFocus,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                      decoration: InputDecoration(
+                        hintText: '0.00',
+                        hintStyle: TextStyle(color: p.textSecondary),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: p.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: p.mint.withValues(alpha: 0.8)),
+                        ),
                       ),
+                      style: TextStyle(color: p.textPrimary),
                     ),
                   ],
                 );
               }),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _amount,
-                focusNode: _amountFocus,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                decoration: InputDecoration(
-                  labelText: 'Planned amount (${_planEntryIsFcy ? _currency.fcyCode.value : _currency.lcyCode.value})',
-                  hintText: '0.00',
-                  labelStyle: TextStyle(color: p.textSecondary),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: p.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: p.mint.withValues(alpha: 0.8)),
-                  ),
-                ),
-                style: TextStyle(color: p.textPrimary),
-              ),
               const SizedBox(height: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
