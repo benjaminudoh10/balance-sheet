@@ -125,6 +125,19 @@ Future<int> deleteContact(Contact contact) async {
   return res;
 }
 
+Future<int> updateContact(Contact contact) async {
+  if (contact.id <= 0) {
+    return 0;
+  }
+  final dbClient = await AppDb().db;
+  return dbClient.update(
+    "${DBConstants.CONTACT}",
+    <String, dynamic>{'name': contact.name},
+    where: 'id = ?',
+    whereArgs: <dynamic>[contact.id],
+  );
+}
+
 Future<List<Contact>> getContacts() async {
   var dbClient = await AppDb().db;
   final contacts = await dbClient.rawQuery("SELECT * FROM ${DBConstants.CONTACT} ORDER BY name ASC");

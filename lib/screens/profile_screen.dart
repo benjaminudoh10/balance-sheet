@@ -16,11 +16,13 @@ import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 /// Matches [pubspec.yaml] version (update when bumping release).
 const String _kAppVersion = '1.3.0';
@@ -240,6 +242,14 @@ class ProfileView extends StatelessWidget {
                           icon: Icons.file_download_outlined,
                           onTap: () => _importBackup(context),
                         ),
+                        const SizedBox(height: 8),
+                        _BackupActionRow(
+                          label: 'Reset swipe row hints',
+                          subtitle:
+                              'Show the one-time swipe demos again on recent transactions, budget, contacts, stock holdings, and other investments',
+                          icon: Icons.swipe_vertical_rounded,
+                          onTap: () => _resetSlidablePeekHints(context),
+                        ),
                         if (kDebugMode) ...[
                           const SizedBox(height: 8),
                           _BackupActionRow(
@@ -412,6 +422,19 @@ class ProfileView extends StatelessWidget {
         colorText: Colors.white,
       );
     }
+  }
+
+  Future<void> _resetSlidablePeekHints(BuildContext context) async {
+    AppHaptics.medium();
+    await clearSlidablePeekCompletionRecords(GetStorage());
+    if (!context.mounted) return;
+    Get.snackbar(
+      'Swipe hints reset',
+      'The next time you open each screen, the row will peek again.',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+      colorText: Colors.white,
+    );
   }
 }
 

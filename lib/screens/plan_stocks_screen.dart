@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/database/investment_operations.dart' as inv;
@@ -14,6 +15,7 @@ import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -1025,91 +1027,95 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                               ),
                             ],
                           ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                AppHaptics.light();
-                                _showHoldingDetailSheet(context, p, h);
-                              },
-                              child: Ink(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: p.surface.withValues(alpha: 0.85),
-                                  border: Border.all(color: p.border.withValues(alpha: 0.6)),
-                                ),
-                                child: Row(
-                                  children: <Widget>[
-                                    CircleAvatar(
-                                      backgroundColor: p.surfaceElevated,
-                                      child: Text(
-                                        h.ticker.length <= 4 ? h.ticker : h.ticker.substring(0, 4),
-                                        style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                              color: _kInvestAccent,
-                                              fontWeight: FontWeight.w800,
-                                            ),
+                          child: SlidablePeekHint(
+                            storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS,
+                            enabled: i == 0,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  AppHaptics.light();
+                                  _showHoldingDetailSheet(context, p, h);
+                                },
+                                child: Ink(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: p.surface.withValues(alpha: 0.85),
+                                    border: Border.all(color: p.border.withValues(alpha: 0.6)),
+                                  ),
+                                  child: Row(
+                                    children: <Widget>[
+                                      CircleAvatar(
+                                        backgroundColor: p.surfaceElevated,
+                                        child: Text(
+                                          h.ticker.length <= 4 ? h.ticker : h.ticker.substring(0, 4),
+                                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                                color: _kInvestAccent,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Text(
+                                              h.ticker,
+                                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                                    color: p.textPrimary,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                            Text(
+                                              h.displayName.isEmpty ? '—' : h.displayName,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+                                            ),
+                                            if (row != null)
+                                              Text(
+                                                _fmtQty(row.quantity),
+                                                style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: <Widget>[
-                                          Text(
-                                            h.ticker,
-                                            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                          DualCurrencyTotal(
+                                            lcyMinor: row?.valueMinor ?? 0,
+                                            textAlign: TextAlign.end,
+                                            compactSecondary: true,
+                                            primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
                                                   color: p.textPrimary,
                                                   fontWeight: FontWeight.w700,
                                                 ),
+                                            secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                                  color: p.textSecondary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
-                                          Text(
-                                            h.displayName.isEmpty ? '—' : h.displayName,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
-                                          ),
-                                          if (row != null)
+                                          if (row != null && row.deltaMinor != null && row.deltaPct != null)
                                             Text(
-                                              _fmtQty(row.quantity),
+                                              'P/L ${row.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(row.deltaMinor!.abs())} '
+                                              '(${row.deltaPct! >= 0 ? '+' : ''}${row.deltaPct!.toStringAsFixed(2)}% vs cost)',
+                                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                                    color: row.deltaMinor! >= 0 ? p.mint : p.coral,
+                                                  ),
+                                            )
+                                          else
+                                            Text(
+                                              '—',
                                               style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
                                             ),
                                         ],
                                       ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        DualCurrencyTotal(
-                                          lcyMinor: row?.valueMinor ?? 0,
-                                          textAlign: TextAlign.end,
-                                          compactSecondary: true,
-                                          primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                                color: p.textPrimary,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                          secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                                color: p.textSecondary,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                        if (row != null && row.deltaMinor != null && row.deltaPct != null)
-                                          Text(
-                                            'P/L ${row.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(row.deltaMinor!.abs())} '
-                                            '(${row.deltaPct! >= 0 ? '+' : ''}${row.deltaPct!.toStringAsFixed(2)}% vs cost)',
-                                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                                  color: row.deltaMinor! >= 0 ? p.mint : p.coral,
-                                                ),
-                                          )
-                                        else
-                                          Text(
-                                            '—',
-                                            style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -1214,66 +1220,70 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                               ),
                             ],
                           ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                AppHaptics.light();
-                                _showOtherInvestmentSheet(context, p, o);
-                              },
-                              child: Ink(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: p.surface.withValues(alpha: 0.85),
-                                  border: Border.all(color: p.border.withValues(alpha: 0.6)),
-                                ),
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(Icons.account_balance_wallet_outlined, color: _kInvestAccent, size: 26),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Text(
-                                            o.label.isEmpty ? '—' : o.label,
-                                            style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                                  color: p.textPrimary,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                          Obx(() {
-                                            final CurrencyController c = Get.find<CurrencyController>();
-                                            if (o.entryIsFcy) {
+                          child: SlidablePeekHint(
+                            storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
+                            enabled: i == 0,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  AppHaptics.light();
+                                  _showOtherInvestmentSheet(context, p, o);
+                                },
+                                child: Ink(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: p.surface.withValues(alpha: 0.85),
+                                    border: Border.all(color: p.border.withValues(alpha: 0.6)),
+                                  ),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(Icons.account_balance_wallet_outlined, color: _kInvestAccent, size: 26),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Text(
+                                              o.label.isEmpty ? '—' : o.label,
+                                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                                    color: p.textPrimary,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                            Obx(() {
+                                              final CurrencyController c = Get.find<CurrencyController>();
+                                              if (o.entryIsFcy) {
+                                                return Text(
+                                                  '${formatMinorUnits(o.entryMinor, c.fcyCode.value)} • ${formatAmount(o.valueLcyMinor)}',
+                                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+                                                );
+                                              }
                                               return Text(
-                                                '${formatMinorUnits(o.entryMinor, c.fcyCode.value)} • ${formatAmount(o.valueLcyMinor)}',
+                                                formatAmount(o.valueLcyMinor),
                                                 style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
                                               );
-                                            }
-                                            return Text(
-                                              formatAmount(o.valueLcyMinor),
-                                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
-                                            );
-                                          }),
-                                        ],
+                                            }),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    DualCurrencyTotal(
-                                      lcyMinor: o.valueLcyMinor,
-                                      textAlign: TextAlign.end,
-                                      compactSecondary: true,
-                                      primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                            color: p.textPrimary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                      secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                            color: p.textSecondary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                  ],
+                                      DualCurrencyTotal(
+                                        lcyMinor: o.valueLcyMinor,
+                                        textAlign: TextAlign.end,
+                                        compactSecondary: true,
+                                        primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                              color: p.textPrimary,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                        secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                              color: p.textSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

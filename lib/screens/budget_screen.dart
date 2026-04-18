@@ -1,3 +1,4 @@
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
@@ -12,6 +13,7 @@ import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/plan_hub_fab.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -217,6 +219,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                               padding: EdgeInsets.only(bottom: index == _budget.lines.length - 1 ? 0 : 10),
                               child: _BudgetLineTile(
                                 line: line,
+                                applySlidablePeek: index == 0,
                                 spentMinor: line.hasSpendTracker
                                     ? (_budget.spentMinorByLineId[line.id] ?? 0)
                                     : null,
@@ -597,12 +600,14 @@ class _InfoCallout extends StatelessWidget {
 class _BudgetLineTile extends StatelessWidget {
   const _BudgetLineTile({
     required this.line,
+    required this.applySlidablePeek,
     required this.spentMinor,
     required this.onTap,
     required this.onDelete,
   });
 
   final BudgetLine line;
+  final bool applySlidablePeek;
   final int? spentMinor;
   final VoidCallback onTap;
   final VoidCallback onDelete;
@@ -645,23 +650,26 @@ class _BudgetLineTile extends StatelessWidget {
             ),
           ],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: AppHaptics.wrap(onTap),
-            borderRadius: BorderRadius.circular(16),
-            child: Ink(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: p.surface.withValues(alpha: 0.95),
-                border: Border.all(color: p.border.withValues(alpha: 0.75)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Text(
-                    line.description.isEmpty ? 'Untitled' : line.description,
+        child: SlidablePeekHint(
+          storageKey: AppConstants.SLIDABLE_PEEK_BUDGET,
+          enabled: applySlidablePeek,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: AppHaptics.wrap(onTap),
+              borderRadius: BorderRadius.circular(16),
+              child: Ink(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: p.surface.withValues(alpha: 0.95),
+                  border: Border.all(color: p.border.withValues(alpha: 0.75)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      line.description.isEmpty ? 'Untitled' : line.description,
                     style: Theme.of(context).textTheme.titleSmall!.copyWith(
                           color: p.textPrimary,
                           fontWeight: FontWeight.w700,
@@ -735,6 +743,7 @@ class _BudgetLineTile extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ),
       );
     });

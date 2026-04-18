@@ -3,6 +3,7 @@ import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/security/pin_hash.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sqflite/sqflite.dart';
@@ -32,6 +33,9 @@ enum DebugDataClearTarget {
 
   /// PIN hash/salt, legacy PIN key, fingerprint flag in [GetStorage].
   prefSecurity,
+
+  /// One-time slidable row peek flags in [GetStorage].
+  prefSlidablePeek,
 }
 
 /// Clears selected SQLite tables and/or known [GetStorage] keys. **Debug builds only** ([kDebugMode]).
@@ -89,6 +93,9 @@ class DebugDataClearService {
       await PinHash.clearPin(box);
       await box.remove(AppConstants.USE_FINGERPRINT);
     }
+    if (targets.contains(DebugDataClearTarget.prefSlidablePeek)) {
+      await clearSlidablePeekCompletionRecords(box);
+    }
 
     await BackupService.refreshControllersAfterImport();
   }
@@ -106,6 +113,7 @@ class DebugDataClearService {
     DebugDataClearTarget.prefAppearance,
     DebugDataClearTarget.prefCurrency,
     DebugDataClearTarget.prefSecurity,
+    DebugDataClearTarget.prefSlidablePeek,
   };
 
   static const Set<DebugDataClearTarget> allTargets = <DebugDataClearTarget>{

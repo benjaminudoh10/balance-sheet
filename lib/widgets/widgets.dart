@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
@@ -9,6 +10,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
@@ -37,7 +39,11 @@ void _openEditModalFor(Transaction transaction) {
   );
 }
 
-Widget singleTransactionContainer(BuildContext context, Transaction transaction) {
+Widget singleTransactionContainer(
+  BuildContext context,
+  Transaction transaction, {
+  bool applySlidablePeek = false,
+}) {
   final TextTheme textTheme = Theme.of(context).textTheme;
   final AppPalette p = AppPalette.of(context);
   final bool isIncome = transaction.type == TransactionType.income;
@@ -83,12 +89,15 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12.0),
-          onTap: AppHaptics.wrap(() => _openEditModalFor(transaction)),
-          child: Container(
+      child: SlidablePeekHint(
+        storageKey: AppConstants.SLIDABLE_PEEK_TRANSACTIONS,
+        enabled: applySlidablePeek,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12.0),
+            onTap: AppHaptics.wrap(() => _openEditModalFor(transaction)),
+            child: Container(
             decoration: BoxDecoration(
               color: p.surface,
               borderRadius: BorderRadius.circular(12.0),
@@ -176,6 +185,7 @@ Widget singleTransactionContainer(BuildContext context, Transaction transaction)
               ),
             ),
           ),
+        ),
         ),
       ),
     ),

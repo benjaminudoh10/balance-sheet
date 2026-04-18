@@ -143,7 +143,11 @@ class MainView extends StatelessWidget {
                               (context, index) {
                                 return Padding(
                                   padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : 10),
-                                  child: singleTransactionContainer(context, list[index]),
+                                  child: singleTransactionContainer(
+                                    context,
+                                    list[index],
+                                    applySlidablePeek: index == 0,
+                                  ),
                                 );
                               },
                               childCount: list.length,

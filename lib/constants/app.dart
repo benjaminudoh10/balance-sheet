@@ -14,4 +14,13 @@ class AppConstants {
   static const CURRENCY_FCY_KEY = "currency_fcy";
   /// Major LCY per 1 major FCY (e.g. 1400 when 1 USD = 1400 NGN).
   static const CURRENCY_RATE_KEY = "currency_rate";
+
+  /// [GetStorage] flags: one-time slidable row peek (see `slidable_peek_hint.dart`).
+  static const SLIDABLE_PEEK_TRANSACTIONS = 'slidable_peek_transactions';
+  static const SLIDABLE_PEEK_BUDGET = 'slidable_peek_budget';
+  static const SLIDABLE_PEEK_CONTACTS = 'slidable_peek_contacts';
+  /// Stock holdings list on the plan / invest screen.
+  static const SLIDABLE_PEEK_INVESTMENTS = 'slidable_peek_investments';
+  /// “Other investments” tab list (separate from [SLIDABLE_PEEK_INVESTMENTS] so each tab can peek once).
+  static const SLIDABLE_PEEK_INVESTMENTS_OTHER = 'slidable_peek_investments_other';
 }

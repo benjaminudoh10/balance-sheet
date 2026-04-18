@@ -8,6 +8,213 @@ import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Floating bottom sheet to rename a contact (same shell as income/expense modals).
+Future<void> showEditContactSheet(BuildContext context, Contact contact) async {
+  AppHaptics.light();
+  final AppPalette p = AppPalette.of(context);
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: p.overlay,
+    builder: (BuildContext ctx) => Wrap(
+      children: <Widget>[
+        _EditContactSheet(contact: contact),
+      ],
+    ),
+  );
+}
+
+class _EditContactSheet extends StatefulWidget {
+  const _EditContactSheet({required this.contact});
+
+  final Contact contact;
+
+  @override
+  State<_EditContactSheet> createState() => _EditContactSheetState();
+}
+
+class _EditContactSheetState extends State<_EditContactSheet> {
+  late final TextEditingController _nameController;
+  final ContactController _contactController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.contact.name);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    AppHaptics.light();
+    final String name = _nameController.text.trim();
+    await _contactController.updateContact(
+      Contact(id: widget.contact.id, name: name),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final double insetBottom = MediaQuery.viewInsetsOf(context).bottom;
+    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: insetBottom),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        constraints: BoxConstraints(maxHeight: maxSheetHeight),
+        decoration: BoxDecoration(
+          color: p.surfaceElevated,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: p.border),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const SizedBox(height: 6),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: p.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: p.mint.withValues(alpha: 0.12),
+                        border: Border.all(color: p.mint.withValues(alpha: 0.28)),
+                      ),
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: p.mint,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'Edit contact',
+                            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                  color: p.textPrimary,
+                                  letterSpacing: -0.4,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Update how this name appears across transactions.',
+                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  height: 1.35,
+                                  color: p.textSecondary.withValues(alpha: 0.9),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        AppHaptics.light();
+                        Get.back();
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: p.surface,
+                        foregroundColor: p.textSecondary,
+                        padding: const EdgeInsets.all(8),
+                        minimumSize: const Size(40, 40),
+                      ),
+                      icon: const Icon(Icons.close_rounded, size: 22),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'NAME',
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                        letterSpacing: 1.15,
+                        height: 1.2,
+                        color: p.textPrimary.withValues(alpha: 0.88),
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: p.border),
+                    borderRadius: BorderRadius.circular(12),
+                    color: p.surface,
+                  ),
+                  child: TextField(
+                    controller: _nameController,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.words,
+                    keyboardType: TextInputType.name,
+                    cursorColor: p.mint,
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                          color: p.textPrimary,
+                        ),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Jane Doe',
+                      hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: p.textSecondary,
+                          ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: p.mint,
+                      foregroundColor: Colors.black87,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                    ),
+                    onPressed: _save,
+                    child: Text(
+                      'Save',
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Opens a searchable bottom sheet to pick a contact. Works with any controller
 /// that exposes a reactive `.contact` with `.value` assignable to [Contact]
 /// (e.g. [TransactionController], [ReportController]).

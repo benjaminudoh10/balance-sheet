@@ -65,6 +65,71 @@ class ContactController extends GetxController {
     );
   }
 
+  Future<void> updateContact(Contact updated) async {
+    final String trimmed = updated.name.trim();
+    if (trimmed.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Name is required",
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+      );
+      return;
+    }
+    if (updated.id <= 0) {
+      return;
+    }
+    try {
+      final List<Map<String, dynamic>> existing = await db.getContactWithName(trimmed);
+      final bool duplicate = existing.any((Map<String, dynamic> row) {
+        final dynamic rawId = row['id'];
+        final int id = rawId is int
+            ? rawId
+            : rawId is num
+                ? rawId.toInt()
+                : int.tryParse('$rawId') ?? 0;
+        return id != updated.id;
+      });
+      if (duplicate) {
+        Get.snackbar(
+          "Error",
+          "Contact with given name already exist.",
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.SNACKBAR_RED,
+        );
+        return;
+      }
+
+      await db.updateContact(Contact(id: updated.id, name: trimmed));
+
+      final int idx = contacts.indexWhere((Contact c) => c.id == updated.id);
+      if (idx >= 0) {
+        contacts[idx] = Contact(id: updated.id, name: trimmed);
+        contacts.sort((a, b) => a.name.compareTo(b.name));
+      }
+
+      Get.back();
+      Get.snackbar(
+        "Successful",
+        "Contact updated successfully",
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.GREEN,
+      );
+    } catch (error) {
+      print(error);
+      Get.snackbar(
+        "Error",
+        "Error occured while updating contact",
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.SNACKBAR_RED,
+      );
+    }
+  }
+
   deleteContact(Contact contact) async {
     await db.deleteContact(contact);
     contacts.value = contacts.where((_contact) => contact.id != _contact.id).toList();

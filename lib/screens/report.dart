@@ -178,6 +178,7 @@ List<Widget> _buildGroupedTransactionSlivers(BuildContext context, ReportControl
   final Map<int, List<Transaction>> map = c.splitTransactions;
   final List<int> keys = map.keys.toList()..sort((a, b) => b.compareTo(a));
   final List<Widget> out = [];
+  bool applyPeekToNextTransaction = true;
 
   for (final int dayStart in keys) {
     final List<Transaction> dayTx = map[dayStart] ?? [];
@@ -194,10 +195,18 @@ List<Widget> _buildGroupedTransactionSlivers(BuildContext context, ReportControl
     out.add(const SizedBox(height: 10));
 
     for (int i = 0; i < dayTx.length; i++) {
+      final bool peek = applyPeekToNextTransaction;
+      if (peek) {
+        applyPeekToNextTransaction = false;
+      }
       out.add(
         Padding(
           padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
-          child: singleTransactionContainer(context, dayTx[i]),
+          child: singleTransactionContainer(
+            context,
+            dayTx[i],
+            applySlidablePeek: peek,
+          ),
         ),
       );
     }

@@ -169,6 +169,12 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         title: 'PIN & biometrics',
                         caption: 'PIN hash/salt and fingerprint flag (GetStorage)',
                       ),
+                      _targetTile(
+                        context,
+                        target: DebugDataClearTarget.prefSlidablePeek,
+                        title: 'Swipe row hints',
+                        caption: 'One-time slidable peek flags (GetStorage)',
+                      ),
                     ],
                   ),
                 ),

@@ -1,12 +1,16 @@
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/plan_hub_fab.dart';
+import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 
 const double _horizontalPad = 20.0;
@@ -124,41 +128,50 @@ class _ContactViewState extends State<ContactView> {
                               final Color accent = _accentForContactName(contact.name, p);
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 8),
-                                child: Dismissible(
-                                  key: Key('contact-${contact.id}'),
-                                  direction: DismissDirection.startToEnd,
-                                  background: Container(
-                                    margin: const EdgeInsets.symmetric(vertical: 2),
-                                    decoration: BoxDecoration(
-                                      borderRadius: _contactTileBorderRadius,
-                                      color: p.coral.withValues(alpha: 0.42),
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                    padding: const EdgeInsets.only(left: 20),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete_outline_rounded,
-                                          color: p.textPrimary,
-                                          size: 24,
+                                child: Slidable(
+                                  key: ValueKey<int>(contact.id),
+                                  groupTag: 'contact_rows',
+                                  closeOnScroll: true,
+                                  startActionPane: ActionPane(
+                                    motion: const DrawerMotion(),
+                                    extentRatio: 0.28,
+                                    children: <Widget>[
+                                      SlidableAction(
+                                        onPressed: AppHaptics.wrapSlidable(
+                                          (_) => showEditContactSheet(context, contact),
                                         ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          'Delete',
-                                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                            color: p.textPrimary.withValues(alpha: 0.95),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                        backgroundColor: p.mint,
+                                        foregroundColor: Colors.black87,
+                                        icon: Icons.edit_rounded,
+                                        label: 'Edit',
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ],
                                   ),
-                                  onDismissed: (_) {
-                                    AppHaptics.medium();
-                                    _contactController.deleteContact(contact);
-                                  },
-                                  child: _ContactTile(
-                                    contact: contact,
-                                    accent: accent,
+                                  endActionPane: ActionPane(
+                                    motion: const DrawerMotion(),
+                                    extentRatio: 0.28,
+                                    children: <Widget>[
+                                      SlidableAction(
+                                        onPressed: AppHaptics.wrapSlidable((_) {
+                                          _contactController.deleteContact(contact);
+                                        }),
+                                        backgroundColor: p.coral,
+                                        foregroundColor: Colors.white,
+                                        icon: Icons.delete_outline_rounded,
+                                        label: 'Delete',
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ],
+                                  ),
+                                  child: SlidablePeekHint(
+                                    storageKey: AppConstants.SLIDABLE_PEEK_CONTACTS,
+                                    enabled: index == 0,
+                                    child: _ContactTile(
+                                      contact: contact,
+                                      accent: accent,
+                                      onTap: () => showEditContactSheet(context, contact),
+                                    ),
                                   ),
                                 ),
                               );
@@ -332,10 +345,12 @@ class _ContactTile extends StatelessWidget {
   const _ContactTile({
     required this.contact,
     required this.accent,
+    required this.onTap,
   });
 
   final Contact contact;
   final Color accent;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -343,7 +358,7 @@ class _ContactTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: AppHaptics.wrap(onTap),
         borderRadius: _contactTileBorderRadius,
         splashColor: accent.withValues(alpha: 0.12),
         highlightColor: accent.withValues(alpha: 0.06),
