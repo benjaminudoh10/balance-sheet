@@ -173,11 +173,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
                             onPrev: () => _budget.shiftMonth(-1),
                             onNext: () => _budget.shiftMonth(1),
                           ),
-                          const SizedBox(height: 16),
-                          _SummaryCard(
-                            plannedMinor: _budget.plannedTotalMinor,
-                            trackedSpentMinor: _budget.trackedSpentTotalMinor,
-                          ),
+                          if (_budget.lines.isNotEmpty) ...<Widget>[
+                            const SizedBox(height: 16),
+                            _SummaryCard(
+                              plannedMinor: _budget.plannedTotalMinor,
+                              trackedSpentMinor: _budget.trackedSpentTotalMinor,
+                            ),
+                          ],
                           if (dupContacts) ...<Widget>[
                             const SizedBox(height: 12),
                             const _InfoCallout(
