@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
-/// PIN entry when unlocking the app, or when confirming removal of the access PIN from Profile.
+/// PIN entry when unlocking the app, or when confirming removal of the access PIN from Settings.
 class LockScreen extends StatefulWidget {
   @override
   State<LockScreen> createState() => _LockScreenState();
@@ -89,7 +89,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
           ? 'Remove access PIN'
           : 'Welcome back';
       final String subtitle = turningOffPin
-          ? 'Enter your current PIN to turn off app lock. You can set a PIN again anytime in Profile.'
+          ? 'Enter your current PIN to turn off app lock. You can set a PIN again anytime in Settings.'
           : 'Enter your 4-digit PIN to open Balanced.';
 
       final IconData heroIcon =

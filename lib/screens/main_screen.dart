@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:balance_sheet/constants/app.dart';
-import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
@@ -44,25 +43,15 @@ class MainView extends StatelessWidget {
                 bottom: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(_horizontalPad, 12, _horizontalPad, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Balanced',
-                        style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                          color: p.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Get.find<AppController>().setIndex(4),
-                        icon: const Icon(Icons.settings_outlined),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Balanced',
+                      style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                         color: p.textPrimary,
-                        style: IconButton.styleFrom(
-                          backgroundColor: p.surface.withValues(alpha: 0.9),
-                        ),
+                        letterSpacing: -0.5,
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

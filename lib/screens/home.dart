@@ -3,7 +3,7 @@ import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/insights_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
 import 'package:balance_sheet/screens/budget_screen.dart';
-import 'package:balance_sheet/screens/profile_screen.dart';
+import 'package:balance_sheet/screens/settings_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
@@ -87,7 +87,7 @@ class _HomeState extends State<Home> {
       case 3:
         return const InsightsView();
       case 4:
-        return ProfileView();
+        return SettingsView();
       default:
         return MainView();
     }

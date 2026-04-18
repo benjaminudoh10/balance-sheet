@@ -27,8 +27,8 @@ import 'package:get_storage/get_storage.dart';
 /// Matches [pubspec.yaml] version (update when bumping release).
 const String _kAppVersion = '1.3.0';
 
-/// Profile tab — identity-style header plus security controls (replaces flat settings list).
-class ProfileView extends StatelessWidget {
+/// Settings tab — identity-style header plus security controls (replaces flat settings list).
+class SettingsView extends StatelessWidget {
   final SecurityController _securityController = Get.find();
   final AppController _appController = Get.find();
 
@@ -58,14 +58,14 @@ class ProfileView extends StatelessWidget {
                       children: [
                         const SizedBox(height: 4),
                         Text(
-                          'Profile',
+                          'Settings',
                           style: textTheme.displayMedium!.copyWith(
                             color: p.textPrimary,
                             letterSpacing: -0.8,
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const _ProfileHeroCard(),
+                        const _SettingsHeroCard(),
                         const SizedBox(height: 28),
                         Text(
                           'THEME',
@@ -510,8 +510,8 @@ class _BackupActionRow extends StatelessWidget {
   }
 }
 
-class _ProfileHeroCard extends StatelessWidget {
-  const _ProfileHeroCard();
+class _SettingsHeroCard extends StatelessWidget {
+  const _SettingsHeroCard();
 
   static const double _radius = 22.0;
 
@@ -548,7 +548,7 @@ class _ProfileHeroCard extends StatelessWidget {
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.10),
               ),
-              gradient: p.profileHeroGradient,
+              gradient: p.settingsHeroGradient,
             ),
             child: Column(
             children: [

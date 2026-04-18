@@ -8,7 +8,7 @@
 
 - **Home (main tab)** — Shows total balance, today’s net (income minus expense for the current day), and a **Recent transactions** list. Add entries via **Income** and **Expense** actions; open **All transactions** for the full report view.
 - **Contacts** — Manage people or entities you attach to transactions (optional linkage from the transaction form).
-- **Profile** — Theme (light / dark / system), font family, app lock (PIN and optional biometrics), and **backup** export/import.
+- **Settings** — Theme (light / dark / system), font family, app lock (PIN and optional biometrics), and **backup** export/import.
 - **Insights** — Period summary (today vs yesterday, this week, this month, last month): total expenses vs the comparison window, category donut + horizontal category bars, weekly income vs expense grouped bars, daily net line chart, and short takeaways. **Activity** remains a placeholder; the shell and bottom navigation are in place.
 
 Money is stored and calculated in **minor units** (integer cents/kobo-style amounts). Display formatting in [`lib/utils.dart`](lib/utils.dart) uses **Nigerian Naira (NGN)** via `intl`; adjust there if you target another currency.
@@ -101,7 +101,7 @@ Platform folders (`android/`, `ios/`) contain standard Flutter embedding; launch
 
 1. **`Splash`** is the initial `home` route (branding + short delay).
 2. **`AppController.onReady`** routes to **`LockScreen`** if a PIN is configured, otherwise **`Home`**.
-3. **`Home`** is a **5-tab** scaffold: Main, Contacts, Activity (placeholder), Insights, Profile. [`PopScope`](lib/screens/home.dart) sends Android back to tab 0 when not on the first tab.
+3. **`Home`** is a **5-tab** scaffold: Main, Contacts, Budgets, Insights, Settings. [`PopScope`](lib/screens/home.dart) sends Android back to tab 0 when not on the first tab.
 
 ### Forms and sheets
 
@@ -192,7 +192,7 @@ flutter test
 ### Version and branding assets
 
 - App version: **`pubspec.yaml`** → `version:` (e.g. `1.3.0+1`).
-- [`ProfileView`](lib/screens/profile_screen.dart) shows a `_kAppVersion` constant — **keep it in sync** with `pubspec.yaml` when releasing.
+- [`SettingsView`](lib/screens/settings_screen.dart) shows a `_kAppVersion` constant — **keep it in sync** with `pubspec.yaml` when releasing.
 - Regenerate launcher icon / splash after asset changes:
 
 ```bash

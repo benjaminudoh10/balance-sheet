@@ -58,9 +58,9 @@ class MidnightBottomNav extends StatelessWidget {
                 ),
                 _NavItem(
                   selected: index == 4,
-                  icon: Icons.person_outline,
-                  selectedIcon: Icons.person_rounded,
-                  label: 'Profile',
+                  icon: Icons.settings_outlined,
+                  selectedIcon: Icons.settings_rounded,
+                  label: 'Settings',
                   onTap: () => controller.setIndex(4),
                 ),
               ],

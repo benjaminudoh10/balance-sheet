@@ -83,7 +83,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     gridLine: Color(0x220D8F72),
   );
 
-  LinearGradient get profileHeroGradient {
+  LinearGradient get settingsHeroGradient {
     if (brightness == Brightness.dark) {
       return const LinearGradient(
         begin: Alignment.topLeft,
