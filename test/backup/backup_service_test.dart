@@ -10,6 +10,7 @@ import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
 import 'package:balance_sheet/models/other_investment.dart';
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -132,6 +133,18 @@ void main() {
       expect(json, contains('"budgetLines"'));
       expect(json, contains('"investmentHoldings"'));
       expect(json, contains('"investmentOtherAssets"'));
+      expect(json, contains('"savedViews"'));
+    });
+
+    test('includes saved view presets when present', () async {
+      await SavedViewsStorage.add(SavedViewsStorage.featureReport, 'Work trips', <String, dynamic>{
+        'type': 'month',
+        'categoryKey': 'Category',
+        'contactId': 0,
+      });
+      final String json = await BackupService.exportJsonString();
+      expect(json, contains('"savedViews"'));
+      expect(json, contains('"Work trips"'));
     });
 
     test('roundtrip preserves investment holdings, lots, prices, and other assets', () async {
@@ -197,6 +210,30 @@ void main() {
       expect(lines.single.plannedAmount, 4200);
       expect(lines.single.contactId, cid);
       expect(lines.single.categoryKey, 'misc');
+    });
+
+    test('roundtrip preserves saved views', () async {
+      await SavedViewsStorage.add(SavedViewsStorage.featureInsights, 'Weekly', <String, dynamic>{
+        'period': 'thisWeek',
+      });
+      final String exported = await BackupService.exportJsonString();
+      await resetAppDatabaseFile();
+      await GetStorage().erase();
+      await BackupService.importFromJsonString(exported);
+
+      final List<SavedViewRecord> rows = SavedViewsStorage.listFor(SavedViewsStorage.featureInsights);
+      expect(rows.length, 1);
+      expect(rows.single.name, 'Weekly');
+      expect(rows.single.payload['period'], 'thisWeek');
+    });
+
+    test('legacy backup without savedViews clears stored presets', () async {
+      await SavedViewsStorage.add(SavedViewsStorage.featureBudget, 'Jan', <String, dynamic>{
+        'year': 2026,
+        'month': 1,
+      });
+      await BackupService.importFromJsonString(validBackupPayload(version: 4));
+      expect(SavedViewsStorage.listFor(SavedViewsStorage.featureBudget), isEmpty);
     });
   });
 }

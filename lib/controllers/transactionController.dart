@@ -57,11 +57,15 @@ class TransactionController extends GetxController {
     final int end = DateTime(now.year, now.month, now.day, 23, 59, 59, 999)
         .millisecondsSinceEpoch;
     await getTransactions(start, end);
+    final List<Future<void>> downstream = <Future<void>>[];
     if (Get.isRegistered<InsightsController>()) {
-      Get.find<InsightsController>().load();
+      downstream.add(Get.find<InsightsController>().load());
     }
     if (Get.isRegistered<BudgetController>()) {
-      Get.find<BudgetController>().reloadFocusMonth();
+      downstream.add(Get.find<BudgetController>().reloadFocusMonth());
+    }
+    if (downstream.isNotEmpty) {
+      await Future.wait<void>(downstream);
     }
   }
 

@@ -1,11 +1,10 @@
 # Things to improve
 - [x] Properly set the category list (using an object) with a key that'll remain static for the lifetime of the app while the name changes.
 - [x] Make contact name in db unique.
-- [ ] **Saved views (roll out):** persist named presets and re-apply screen-specific state from a list. Prefer one storage pattern (e.g. feature key + JSON payload) and implement per surface:
+- [x] **Saved views (roll out):** persist named presets and re-apply screen-specific state from a list. Prefer one storage pattern (e.g. feature key + JSON payload) and implement per surface:
   - All transactions — period + category + contact (`ReportView` / `ReportController`).
   - Insights — whatever filters / range `InsightsController` uses (`InsightsView`).
   - Budget — month (and related state) (`BudgetScreen` / `BudgetController`).
-  - Stocks & other investments — plan tab / holdings snapshot as appropriate (`PlanStocksScreen` / `InvestmentController`).
 - [ ] **PDF export (roll out):** export the current (or saved-view) snapshot to PDF for the same areas as above; shared file/share plumbing, per-feature PDF content (tables vs charts may differ by screen).
 - [ ] Other platforms (web, macos)
 - [x] Security pin or fingerprint

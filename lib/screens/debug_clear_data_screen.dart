@@ -334,13 +334,16 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
         _selected.clear();
         _busy = false;
       });
-      Get.snackbar(
-        'Cleared',
-        'Removed selected data.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.GREEN,
-        colorText: Colors.white,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        Get.snackbar(
+          'Cleared',
+          'Removed selected data.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.GREEN,
+          colorText: Colors.white,
+        );
+      });
     } catch (e, st) {
       debugPrint('$e\n$st');
       if (!mounted) return;

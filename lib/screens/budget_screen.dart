@@ -1,5 +1,7 @@
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
+import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/budget_line.dart';
@@ -95,6 +97,32 @@ class _BudgetScreenState extends State<BudgetScreen> {
         ),
         centerTitle: false,
         actions: <Widget>[
+          IconButton(
+            tooltip: 'Saved views',
+            icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+            onPressed: () {
+              AppHaptics.light();
+              showSavedViewsSheet(
+                context,
+                palette: p,
+                featureKey: SavedViewsStorage.featureBudget,
+                surfaceTitle: 'Budget',
+                capturePayload: () {
+                  final DateTime m = _budget.focusMonth.value;
+                  return <String, dynamic>{
+                    'year': m.year,
+                    'month': m.month,
+                  };
+                },
+                applyPayload: (Map<String, dynamic> payload) async {
+                  final int y = (payload['year'] as num?)?.toInt() ?? DateTime.now().year;
+                  final int mo = (payload['month'] as num?)?.toInt() ?? DateTime.now().month;
+                  _budget.focusMonth.value = DateTime(y, mo, 1);
+                  await _budget.reloadFocusMonth();
+                },
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: p.textPrimary),
             onPressed: () {

@@ -176,6 +176,24 @@ class InsightsController extends GetxController {
     await load();
   }
 
+  Map<String, dynamic> captureSavedViewState() => <String, dynamic>{
+        'period': period.value.name,
+      };
+
+  Future<void> applySavedViewState(Map<String, dynamic> p) async {
+    final String? name = p['period'] as String?;
+    InsightsPeriod next = InsightsPeriod.thisMonth;
+    if (name != null) {
+      for (final InsightsPeriod e in InsightsPeriod.values) {
+        if (e.name == name) {
+          next = e;
+          break;
+        }
+      }
+    }
+    await setPeriod(next);
+  }
+
   Future<void> load() async {
     loading.value = true;
     try {

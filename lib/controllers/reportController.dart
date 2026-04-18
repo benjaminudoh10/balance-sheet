@@ -29,6 +29,9 @@ class ReportController extends GetxController {
 
   List<int> timeFrames = [0, 0];
 
+  /// Avoids duplicate DB work when [applySavedViewState] sets category/contact together.
+  bool _suppressFilterReload = false;
+
   @override
   void onReady() {
     super.onReady();
@@ -43,8 +46,10 @@ class ReportController extends GetxController {
     });
 
     category.listen((_) {
-      getTransactions();
-      getTransactionTotal();
+      if (!_suppressFilterReload) {
+        getTransactions();
+        getTransactionTotal();
+      }
 
       final matches = Categories.CATEGORIES.where(
         (c) => c["key"] == this.category.value
@@ -53,9 +58,107 @@ class ReportController extends GetxController {
     });
 
     contact.listen((_) {
-      getTransactions();
-      getTransactionTotal();
+      if (!_suppressFilterReload) {
+        getTransactions();
+        getTransactionTotal();
+      }
     });
+  }
+
+  /// Serializable snapshot for [SavedViewsStorage] (All transactions).
+  Map<String, dynamic> captureSavedViewState() {
+    final Map<String, dynamic> m = <String, dynamic>{
+      'type': type.value.name,
+      'categoryKey': category.value,
+      'contactId': contact.value.id,
+    };
+    if (type.value == ReportType.singleDay) {
+      m['singleDateIso'] = DateFormat('yyyy-MM-dd').format(singleDate);
+    }
+    if (type.value == ReportType.dateRange) {
+      m['rangeStartIso'] = DateFormat('yyyy-MM-dd').format(dateTimeRange.start);
+      m['rangeEndIso'] = DateFormat('yyyy-MM-dd').format(dateTimeRange.end);
+    }
+    return m;
+  }
+
+  DateTime _parseLocalDay(String? iso) {
+    if (iso == null || iso.isEmpty) {
+      return DateTime.now();
+    }
+    final DateTime? d = DateTime.tryParse(iso);
+    if (d == null) {
+      return DateTime.now();
+    }
+    return DateTime(d.year, d.month, d.day);
+  }
+
+  void _syncLabelFromPeriodState() {
+    switch (type.value) {
+      case ReportType.today:
+        label.value = 'Today';
+        break;
+      case ReportType.month:
+        label.value = 'This month';
+        break;
+      case ReportType.thisWeek:
+        label.value = 'This week';
+        break;
+      case ReportType.lastMonth:
+        label.value = 'Last month';
+        break;
+      case ReportType.singleDay:
+        label.value = DateFormat.yMMMMd().format(singleDate);
+        break;
+      case ReportType.dateRange:
+        label.value =
+            '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
+        break;
+    }
+  }
+
+  Future<void> applySavedViewState(Map<String, dynamic> p) async {
+    final String? typeName = p['type'] as String?;
+    ReportType rt = ReportType.today;
+    if (typeName != null) {
+      for (final ReportType t in ReportType.values) {
+        if (t.name == typeName) {
+          rt = t;
+          break;
+        }
+      }
+    }
+
+    if (rt == ReportType.singleDay) {
+      singleDate = _parseLocalDay(p['singleDateIso'] as String?);
+    }
+    if (rt == ReportType.dateRange) {
+      final DateTime start = _parseLocalDay(p['rangeStartIso'] as String?);
+      final DateTime end = _parseLocalDay(p['rangeEndIso'] as String?);
+      dateTimeRange = DateTimeRange(start: start, end: end);
+    }
+
+    _suppressFilterReload = true;
+    try {
+      type.value = rt;
+      _syncLabelFromPeriodState();
+
+      category.value = p['categoryKey'] as String? ?? 'Category';
+
+      final int cid = (p['contactId'] as num?)?.toInt() ?? 0;
+      if (cid > 0) {
+        final Contact? row = await db.getContactById(cid);
+        contact.value = row ?? Contact(id: cid, name: 'Contact');
+      } else {
+        contact.value = Contact(name: 'Contact');
+      }
+    } finally {
+      _suppressFilterReload = false;
+    }
+
+    timeFrames = getTimeFrame();
+    await getTransactions();
+    await getTransactionTotal();
   }
 
   /// Updates period from UI (e.g. report screen dropdown).

@@ -9,7 +9,6 @@ import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
-import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/database/db.dart';
@@ -18,8 +17,10 @@ import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart' as txn_model;
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -65,6 +66,8 @@ class BackupService {
       AppConstants.CURRENCY_RATE_KEY: box.read(AppConstants.CURRENCY_RATE_KEY),
     };
 
+    final Object? savedViewsRoot = box.read(SavedViewsStorage.rootKey);
+
     final Map<String, Object?> payload = <String, Object?>{
       'format': BackupConstants.formatId,
       'version': BackupConstants.formatVersion,
@@ -79,6 +82,7 @@ class BackupService {
       'investmentPrices': investmentPriceRows,
       'investmentOtherAssets': investmentOtherAssetRows,
       'preferences': preferences,
+      'savedViews': savedViewsRoot,
     };
 
     return const JsonEncoder.withIndent('  ').convert(payload);
@@ -112,7 +116,7 @@ class BackupService {
       throw BackupException('Not a Balanced backup file.');
     }
     final int? v = map['version'] is int ? map['version'] as int : int.tryParse('${map['version']}');
-    if (v == null || (v != 2 && v != 3 && v != 4)) {
+    if (v == null || (v != 2 && v != 3 && v != 4 && v != 5)) {
       throw BackupException('This backup version is not supported. Update the app and try again.');
     }
 
@@ -413,10 +417,11 @@ class BackupService {
       }
     });
 
+    final GetStorage box = GetStorage();
+
     final Object? prefsRaw = map['preferences'];
     if (prefsRaw is Map) {
       final Map<String, dynamic> prefs = Map<String, dynamic>.from(prefsRaw);
-      final GetStorage box = GetStorage();
       Future<void> writeKey(String key, Object? value) async {
         if (value == null) {
           await box.remove(key);
@@ -448,6 +453,18 @@ class BackupService {
         await box.remove(AppConstants.USER_PIN_KEY);
       }
     }
+
+    final Object? savedViewsRaw = map['savedViews'];
+    if (savedViewsRaw != null && savedViewsRaw is Map) {
+      box.write(
+        SavedViewsStorage.rootKey,
+        Map<String, dynamic>.from(
+          savedViewsRaw.map((Object? k, Object? v) => MapEntry(k.toString(), v)),
+        ),
+      );
+    } else {
+      await box.remove(SavedViewsStorage.rootKey);
+    }
   }
 
   /// Refreshes in-memory state from SQLite + [GetStorage].
@@ -456,6 +473,10 @@ class BackupService {
   /// unlock session and sends the user to [LockScreen] so the restored secrets match a fresh unlock.
   /// Debug-only data clears pass false so autolock keeps working for the unchanged PIN session.
   static Future<void> refreshControllersAfterImport({bool invalidateSecuritySession = false}) async {
+    // Avoid mass GetX / DB-driven rebuilds during an in-flight frame (e.g. debug clear spinner),
+    // which can trigger framework assertions around the element tree.
+    await SchedulerBinding.instance.endOfFrame;
+
     final AppController app = Get.find<AppController>();
     app.syncFromStorage();
 
@@ -486,11 +507,6 @@ class BackupService {
       final ReportController report = Get.find<ReportController>();
       await report.getTransactions();
       await report.getTransactionTotal();
-    }
-
-    if (Get.isRegistered<BudgetController>()) {
-      final BudgetController budget = Get.find<BudgetController>();
-      await budget.reloadFocusMonth();
     }
 
     if (Get.isRegistered<InvestmentController>()) {

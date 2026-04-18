@@ -3,7 +3,9 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/screens/report.dart';
+import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
@@ -132,6 +134,21 @@ class _InsightsViewState extends State<InsightsView> {
                           ],
                         );
                       }),
+                      IconButton(
+                        tooltip: 'Saved views',
+                        icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+                        onPressed: () {
+                          AppHaptics.light();
+                          showSavedViewsSheet(
+                            context,
+                            palette: p,
+                            featureKey: SavedViewsStorage.featureInsights,
+                            surfaceTitle: 'Insights',
+                            capturePayload: () => _controller.captureSavedViewState(),
+                            applyPayload: _controller.applySavedViewState,
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),

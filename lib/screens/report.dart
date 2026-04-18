@@ -2,6 +2,8 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
+import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -96,6 +98,23 @@ class _ReportViewState extends State<ReportView> {
           ),
         ),
         centerTitle: false,
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Saved views',
+            icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+            onPressed: () {
+              AppHaptics.light();
+              showSavedViewsSheet(
+                context,
+                palette: p,
+                featureKey: SavedViewsStorage.featureReport,
+                surfaceTitle: 'All transactions',
+                capturePayload: () => _reportController.captureSavedViewState(),
+                applyPayload: _reportController.applySavedViewState,
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         fit: StackFit.expand,
