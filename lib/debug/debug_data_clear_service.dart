@@ -34,7 +34,7 @@ enum DebugDataClearTarget {
   /// PIN hash/salt, legacy PIN key, fingerprint flag in [GetStorage].
   prefSecurity,
 
-  /// One-time slidable row peek flags in [GetStorage].
+  /// Slidable row peeks + home balance / net worth coach ([clearAllFirstRunUiHints]).
   prefSlidablePeek,
 }
 
@@ -94,7 +94,7 @@ class DebugDataClearService {
       await box.remove(AppConstants.USE_FINGERPRINT);
     }
     if (targets.contains(DebugDataClearTarget.prefSlidablePeek)) {
-      await clearSlidablePeekCompletionRecords(box);
+      await clearAllFirstRunUiHints(box);
     }
 
     await BackupService.refreshControllersAfterImport();

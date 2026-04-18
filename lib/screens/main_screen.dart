@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
@@ -15,6 +16,7 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 const double _horizontalPad = 20.0;
 
@@ -189,6 +191,7 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
   final GlobalKey _balanceKey = GlobalKey();
   int _index = 0;
   double? _pageHeight;
+  bool _coachScheduled = false;
 
   @override
   void initState() {
@@ -223,10 +226,59 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
     _scheduleMeasureBalanceHeight();
   }
 
+  void _maybeScheduleCoach() {
+    if (_coachScheduled || _pageHeight == null) {
+      return;
+    }
+    final GetStorage box = GetStorage();
+    if (box.read(AppConstants.HOME_BALANCE_PAGER_COACH_DONE) == true) {
+      return;
+    }
+    _coachScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _runBalancePagerCoach();
+    });
+  }
+
+  Future<void> _runBalancePagerCoach() async {
+    await Future<void>.delayed(const Duration(milliseconds: 420));
+    if (!mounted || !_pageController.hasClients) {
+      return;
+    }
+    await _pageController.animateToPage(
+      1,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+    if (!mounted) {
+      return;
+    }
+    AppHaptics.selection();
+    await Future<void>.delayed(const Duration(milliseconds: 620));
+    if (!mounted || !_pageController.hasClients) {
+      return;
+    }
+    await _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeInOutCubic,
+    );
+    if (!mounted) {
+      return;
+    }
+    await GetStorage().write(AppConstants.HOME_BALANCE_PAGER_COACH_DONE, true);
+  }
+
+  static const Duration _kPagerTapDuration = Duration(milliseconds: 280);
+
   @override
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
     _scheduleMeasureBalanceHeight();
+    _maybeScheduleCoach();
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double w = constraints.maxWidth;
@@ -241,6 +293,10 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
             child: balance,
           );
         }
+
+        final TextTheme textTheme = Theme.of(context).textTheme;
+        final bool emphasizeNext = _index == 0;
+        final bool emphasizePrev = _index == 1;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -274,14 +330,108 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                _PagerChevron(
+                  icon: Icons.chevron_left_rounded,
+                  palette: p,
+                  emphasized: emphasizePrev,
+                  onPressed: _index == 1
+                      ? () {
+                          AppHaptics.selection();
+                          _pageController.previousPage(
+                            duration: _kPagerTapDuration,
+                            curve: Curves.easeOutCubic,
+                          );
+                        }
+                      : null,
+                ),
+                const SizedBox(width: 2),
                 _HomeCardPagerDot(active: _index == 0, palette: p),
                 const SizedBox(width: 6),
                 _HomeCardPagerDot(active: _index == 1, palette: p),
+                const SizedBox(width: 2),
+                _PagerChevron(
+                  icon: Icons.chevron_right_rounded,
+                  palette: p,
+                  emphasized: emphasizeNext,
+                  onPressed: _index == 0
+                      ? () {
+                          AppHaptics.selection();
+                          _pageController.nextPage(
+                            duration: _kPagerTapDuration,
+                            curve: Curves.easeOutCubic,
+                          );
+                        }
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'Balance',
+                  style: textTheme.labelMedium!.copyWith(
+                    letterSpacing: 0.2,
+                    color: _index == 0 ? p.mint : p.textSecondary.withValues(alpha: 0.75),
+                    fontWeight: _index == 0 ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '·',
+                    style: textTheme.labelMedium!.copyWith(
+                      color: p.textSecondary.withValues(alpha: 0.45),
+                    ),
+                  ),
+                ),
+                Text(
+                  'Net worth',
+                  style: textTheme.labelMedium!.copyWith(
+                    letterSpacing: 0.2,
+                    color: _index == 1 ? p.mint : p.textSecondary.withValues(alpha: 0.75),
+                    fontWeight: _index == 1 ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _PagerChevron extends StatelessWidget {
+  const _PagerChevron({
+    required this.icon,
+    required this.palette,
+    required this.emphasized,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final AppPalette palette;
+  final bool emphasized;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = palette;
+    final double a = emphasized ? 0.95 : 0.32;
+    return IconButton(
+      onPressed: onPressed,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      icon: Icon(
+        icon,
+        size: 26,
+        color: onPressed != null
+            ? p.mint.withValues(alpha: a)
+            : p.textSecondary.withValues(alpha: 0.28),
+      ),
     );
   }
 }

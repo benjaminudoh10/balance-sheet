@@ -244,11 +244,11 @@ class ProfileView extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         _BackupActionRow(
-                          label: 'Reset swipe row hints',
+                          label: 'Reset first-run tips',
                           subtitle:
-                              'Show the one-time swipe demos again on recent transactions, budget, contacts, stock holdings, and other investments',
-                          icon: Icons.swipe_vertical_rounded,
-                          onTap: () => _resetSlidablePeekHints(context),
+                              'Swipe row demos (transactions, budget, contacts, investments) and the balance / net worth card nudge on Home',
+                          icon: Icons.touch_app_outlined,
+                          onTap: () => _resetFirstRunUiHints(context),
                         ),
                         if (kDebugMode) ...[
                           const SizedBox(height: 8),
@@ -424,13 +424,13 @@ class ProfileView extends StatelessWidget {
     }
   }
 
-  Future<void> _resetSlidablePeekHints(BuildContext context) async {
+  Future<void> _resetFirstRunUiHints(BuildContext context) async {
     AppHaptics.medium();
-    await clearSlidablePeekCompletionRecords(GetStorage());
+    await clearAllFirstRunUiHints(GetStorage());
     if (!context.mounted) return;
     Get.snackbar(
-      'Swipe hints reset',
-      'The next time you open each screen, the row will peek again.',
+      'Tips reset',
+      'The next time you use Home or a list with swipe actions, hints can show again.',
       snackPosition: SnackPosition.TOP,
       backgroundColor: AppColors.GREEN,
       colorText: Colors.white,

@@ -172,8 +172,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                       _targetTile(
                         context,
                         target: DebugDataClearTarget.prefSlidablePeek,
-                        title: 'Swipe row hints',
-                        caption: 'One-time slidable peek flags (GetStorage)',
+                        title: 'First-run UI tips',
+                        caption: 'Slidable row peeks and home balance / net worth coach (GetStorage)',
                       ),
                     ],
                   ),

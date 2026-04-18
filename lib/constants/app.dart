@@ -23,4 +23,7 @@ class AppConstants {
   static const SLIDABLE_PEEK_INVESTMENTS = 'slidable_peek_investments';
   /// “Other investments” tab list (separate from [SLIDABLE_PEEK_INVESTMENTS] so each tab can peek once).
   static const SLIDABLE_PEEK_INVESTMENTS_OTHER = 'slidable_peek_investments_other';
+
+  /// Home screen: one-time balance ↔ net worth [PageView] coach animation (see `main_screen.dart`).
+  static const HOME_BALANCE_PAGER_COACH_DONE = 'home_balance_pager_coach_done';
 }
