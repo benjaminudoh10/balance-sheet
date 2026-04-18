@@ -91,6 +91,7 @@ class DecimalTextInputFormatter extends TextInputFormatter {
   }
 
   /// Drops redundant leading zeros (e.g. `012` → `12`, `00.5` → `0.5`); keeps a single `0` before `.` for values &lt; 1.
+  /// Signed values (e.g. `-007` → `-7`, `-.5` unchanged) so share quantities can record sales.
   (String, int) _stripLeadingZerosFromAmount(String input) {
     if (input.isEmpty) return ('', 0);
     final int dot = input.indexOf('.');
@@ -100,14 +101,29 @@ class DecimalTextInputFormatter extends TextInputFormatter {
       String intPart = input.substring(0, dot);
       final String frac = input.substring(dot);
       final int origIntLen = intPart.length;
-      intPart = intPart.replaceFirst(RegExp(r'^0+'), '');
-      if (intPart.isEmpty) intPart = '0';
-      removed = origIntLen - intPart.length;
-      result = '$intPart$frac';
+      if (intPart == '-') {
+        // Mid-edit "-.34" — keep until user finishes the integer part.
+        result = input;
+        removed = 0;
+      } else {
+        final bool neg = intPart.startsWith('-');
+        String core = neg ? intPart.substring(1) : intPart;
+        core = core.replaceFirst(RegExp(r'^0+'), '');
+        if (core.isEmpty) core = '0';
+        intPart = neg ? '-$core' : core;
+        removed = origIntLen - intPart.length;
+        result = '$intPart$frac';
+      }
     } else {
       final int origLen = input.length;
-      String s = input.replaceFirst(RegExp(r'^0+'), '');
-      if (s.isEmpty) s = '0';
+      if (input == '-') {
+        return ('-', 0);
+      }
+      final bool neg = input.startsWith('-');
+      String core = neg ? input.substring(1) : input;
+      core = core.replaceFirst(RegExp(r'^0+'), '');
+      if (core.isEmpty) core = '0';
+      final String s = neg ? '-$core' : core;
       removed = origLen - s.length;
       result = s;
     }

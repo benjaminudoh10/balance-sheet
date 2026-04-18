@@ -26,6 +26,13 @@ import 'package:intl/intl.dart';
 
 const Color _kInvestAccent = Color(0xFF818CF8);
 
+String _formatShareQtyPlain(double q) {
+  if ((q - q.roundToDouble()).abs() < 1e-9) {
+    return '${q.toInt()}';
+  }
+  return q.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
 /// Same floating card treatment as the budget planned-item editor.
 Widget _floatingModalCard({
   required BuildContext context,
@@ -418,6 +425,8 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   late final FocusNode _qtyFocus;
   late final FocusNode _priceFocus;
   bool _entryIsFcy = true;
+  /// When true, quantity is stored as negative (sale). Avoids relying on `-` on keyboards where `.` and `-` share one key.
+  bool _isSale = false;
   late DateTime _purchaseDay;
   final CurrencyController _cur = Get.find<CurrencyController>();
 
@@ -426,7 +435,8 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
     super.initState();
     _qtyFocus = FocusNode();
     _priceFocus = FocusNode();
-    _qtyCtrl = TextEditingController(text: '0');
+    // Empty so `-` can be typed as the first character (sales). Hint suggests a default.
+    _qtyCtrl = TextEditingController();
     _priceCtrl = TextEditingController();
     _purchaseDay = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -446,15 +456,40 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   }
 
   Future<void> _save() async {
-    final double? qty = double.tryParse(_qtyCtrl.text.replaceAll(',', ''));
-    if (qty == null) {
+    final double? parsed = double.tryParse(_qtyCtrl.text.replaceAll(',', ''));
+    if (parsed == null) {
       Get.snackbar('Quantity', 'Enter a valid quantity.');
       return;
     }
-    if (qty == 0) {
-      Get.snackbar('Quantity', 'Enter a non-zero quantity (use negative for sales).');
+    final double mag = parsed.abs();
+    if (mag == 0) {
+      Get.snackbar('Quantity', 'Enter a non-zero quantity.');
       return;
     }
+    final DateTime atMidnight = DateTime(_purchaseDay.year, _purchaseDay.month, _purchaseDay.day);
+    final int lotMs = atMidnight.millisecondsSinceEpoch;
+
+    if (_isSale) {
+      final double available = await inv.totalQuantityForHoldingAtMs(widget.holding.id, lotMs);
+      final double maxSell = math.max(0.0, available);
+      if (mag > maxSell + 1e-9) {
+        if (maxSell <= 1e-9) {
+          Get.snackbar(
+            'Cannot sell',
+            'No shares are available to sell on this date (based on prior lots).',
+          );
+        } else {
+          Get.snackbar(
+            'Cannot sell',
+            'You have ${_formatShareQtyPlain(maxSell)} shares available on this date; '
+            '${_formatShareQtyPlain(mag)} is too many.',
+          );
+        }
+        return;
+      }
+    }
+
+    final double qty = _isSale ? -mag : mag;
     final int? pxEntry = parseMoneyStringToMinor(_priceCtrl.text);
     if (pxEntry == null) {
       Get.snackbar('Price required', 'Enter the per-share price for this lot.');
@@ -465,10 +500,9 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
       return;
     }
     final int lcyPx = _entryIsFcy ? _cur.lcyMinorFromFcyMinor(pxEntry) : pxEntry;
-    final DateTime atMidnight = DateTime(_purchaseDay.year, _purchaseDay.month, _purchaseDay.day);
     await inv.insertInvestmentLot(
       holdingId: widget.holding.id,
-      occurredAtMs: atMidnight.millisecondsSinceEpoch,
+      occurredAtMs: lotMs,
       quantityDelta: qty,
       purchasePriceMinorPerShare: lcyPx,
       purchaseEntryIsFcy: _entryIsFcy,
@@ -489,20 +523,47 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('Add / remove shares', style: Theme.of(context).textTheme.titleMedium),
+          Text('Buy / sell shares', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Enter the price paid (or received) per share for this lot. Sales use a negative quantity.',
+            'Choose Buy or Sell, then enter quantity and price. For sales, use a positive amount — no minus key needed. Decimals use the dedicated . key on the number keyboard.',
             style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<bool>(
+            segments: const <ButtonSegment<bool>>[
+              ButtonSegment<bool>(value: false, label: Text('Buy')),
+              ButtonSegment<bool>(value: true, label: Text('Sell')),
+            ],
+            selected: <bool>{_isSale},
+            onSelectionChanged: (Set<bool> next) {
+              if (next.isEmpty) return;
+              AppHaptics.selection();
+              setState(() {
+                _isSale = next.single;
+              });
+            },
+            style: SegmentedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedBackgroundColor: _kInvestAccent,
+              selectedForegroundColor: Colors.white,
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _qtyCtrl,
             focusNode: _qtyFocus,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
-            inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter(decimalRange: 8)],
-            decoration: const InputDecoration(labelText: 'Quantity (fractional ok)'),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.deny(RegExp(r'-')),
+              DecimalTextInputFormatter(decimalRange: 8),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Quantity (fractional ok)',
+              hintText: '0',
+            ),
             onSubmitted: (_) => _priceFocus.requestFocus(),
           ),
           const SizedBox(height: 12),

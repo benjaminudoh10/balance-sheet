@@ -37,5 +37,20 @@ void main() {
       final TextEditingValue out = apply('', '007');
       expect(out.text, '7');
     });
+
+    test('strips leading zeros after minus (share sales)', () {
+      final TextEditingValue out = apply('', '-007');
+      expect(out.text, '-7');
+    });
+
+    test('preserves lone minus while typing negative quantity', () {
+      final TextEditingValue out = apply('', '-');
+      expect(out.text, '-');
+    });
+
+    test('preserves minus before fractional dot (-.5 style)', () {
+      final TextEditingValue out = apply('', '-.5');
+      expect(out.text, '-.5');
+    });
   });
 }
