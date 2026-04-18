@@ -2,4 +2,5 @@
 <resources>
     <!-- Matches AppPalette.light.background — native window behind Flutter / task snapshot base. -->
     <color name="app_window_background">#F5F3FA</color>
+	<color name="ic_launcher_background">#F5F3FA</color>
 </resources>

@@ -61,13 +61,16 @@ dependency_overrides:
   file: ^7.0.0
   platform: ^3.1.0
 
-# flutter pub run flutter_launcher_icons:main (run this to generate app icon)
-flutter_icons:
+# pip3 install pillow && python3 tool/render_launcher_icon.py  (Material menu_book_rounded U+F8B4 + AppPalette.light)
+# dart run flutter_launcher_icons
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "lib/assets/logo.png"
-  adaptive_icon_background: "#C77DFF"
+  adaptive_icon_background: "#F5F3FA"
+  adaptive_icon_foreground: "lib/assets/app_icon_foreground.png"
   remove_alpha_ios: true
+  background_color_ios: "#F5F3FA"
 
 # flutter pub run flutter_native_splash:create (run this to generate splash screen)
 # Colors match AppPalette.light.background / AppPalette.dark.background.
