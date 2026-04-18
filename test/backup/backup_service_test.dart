@@ -227,12 +227,12 @@ void main() {
       expect(rows.single.payload['period'], 'thisWeek');
     });
 
-    test('legacy backup without savedViews clears stored presets', () async {
+    test('backup without savedViews clears stored presets', () async {
       await SavedViewsStorage.add(SavedViewsStorage.featureBudget, 'Jan', <String, dynamic>{
         'year': 2026,
         'month': 1,
       });
-      await BackupService.importFromJsonString(validBackupPayload(version: 4));
+      await BackupService.importFromJsonString(validBackupPayload());
       expect(SavedViewsStorage.listFor(SavedViewsStorage.featureBudget), isEmpty);
     });
   });

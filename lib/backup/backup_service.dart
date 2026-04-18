@@ -116,7 +116,7 @@ class BackupService {
       throw BackupException('Not a Balanced backup file.');
     }
     final int? v = map['version'] is int ? map['version'] as int : int.tryParse('${map['version']}');
-    if (v == null || (v != 2 && v != 3 && v != 4 && v != 5)) {
+    if (v == null || v != BackupConstants.formatVersion) {
       throw BackupException('This backup version is not supported. Update the app and try again.');
     }
 
@@ -183,37 +183,33 @@ class BackupService {
     final List<Map<String, dynamic>> investmentPrices = <Map<String, dynamic>>[];
     final List<Map<String, dynamic>> investmentOtherAssets = <Map<String, dynamic>>[];
     Map<String, dynamic>? investmentCashLegacy;
-    if (v >= 3) {
-      final List<dynamic>? ih = map['investmentHoldings'] as List<dynamic>?;
-      final List<dynamic>? il = map['investmentLots'] as List<dynamic>?;
-      final List<dynamic>? ip = map['investmentPrices'] as List<dynamic>?;
-      if (ih != null) {
-        for (final dynamic e in ih) {
-          investmentHoldings.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
-        }
+    final List<dynamic>? ih = map['investmentHoldings'] as List<dynamic>?;
+    final List<dynamic>? il = map['investmentLots'] as List<dynamic>?;
+    final List<dynamic>? ip = map['investmentPrices'] as List<dynamic>?;
+    if (ih != null) {
+      for (final dynamic e in ih) {
+        investmentHoldings.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
       }
-      if (il != null) {
-        for (final dynamic e in il) {
-          investmentLots.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
-        }
+    }
+    if (il != null) {
+      for (final dynamic e in il) {
+        investmentLots.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
       }
-      if (ip != null) {
-        for (final dynamic e in ip) {
-          investmentPrices.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
-        }
+    }
+    if (ip != null) {
+      for (final dynamic e in ip) {
+        investmentPrices.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
       }
-      if (v >= 4) {
-        final List<dynamic>? io = map['investmentOtherAssets'] as List<dynamic>?;
-        if (io != null) {
-          for (final dynamic e in io) {
-            investmentOtherAssets.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
-          }
-        }
+    }
+    final List<dynamic>? io = map['investmentOtherAssets'] as List<dynamic>?;
+    if (io != null) {
+      for (final dynamic e in io) {
+        investmentOtherAssets.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
       }
-      final Object? ic = map['investmentCash'];
-      if (ic is Map) {
-        investmentCashLegacy = Map<String, dynamic>.from(ic);
-      }
+    }
+    final Object? ic = map['investmentCash'];
+    if (ic is Map) {
+      investmentCashLegacy = Map<String, dynamic>.from(ic);
     }
     if (investmentOtherAssets.isEmpty && investmentCashLegacy != null) {
       final int bal = investmentCashLegacy['balance_minor'] is int
