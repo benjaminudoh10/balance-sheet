@@ -4,6 +4,7 @@ import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
+import 'package:balance_sheet/services/budget_completion_notifier.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
@@ -92,6 +93,7 @@ class TransactionController extends GetxController {
       return;
     }
     transaction.id = id;
+    await notifyBudgetCompletionsAfterTransactionSave(transaction);
     Get.back();
 
     await loadHomeScreenData();
@@ -112,6 +114,7 @@ class TransactionController extends GetxController {
     );
 
     await db.updateTransaction(update);
+    await notifyBudgetCompletionsAfterTransactionSave(update, previous: previousTransaction);
     await loadHomeScreenData();
     updateControllerDataAfterUpdate(update, previousTransaction);
     Get.back();
