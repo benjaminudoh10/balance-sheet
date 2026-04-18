@@ -39,7 +39,7 @@ class MidnightBottomNav extends StatelessWidget {
                   selected: index == 1,
                   icon: Icons.account_balance_wallet_outlined,
                   selectedIcon: Icons.account_balance_wallet_rounded,
-                  label: 'Accounts',
+                  label: 'Contacts',
                   onTap: () => controller.setIndex(1),
                 ),
                 _NavItem(

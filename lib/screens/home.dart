@@ -66,10 +66,12 @@ class _HomeState extends State<Home> {
               ],
             ),
             bottomNavigationBar: const MidnightBottomNav(),
-            floatingActionButton: PlanHubFab(
-              expanded: _planHubOpen,
-              onExpandedChanged: (bool v) => setState(() => _planHubOpen = v),
-            ),
+            floatingActionButton: _appController.index.value == 0
+                ? PlanHubFab(
+                    expanded: _planHubOpen,
+                    onExpandedChanged: (bool v) => setState(() => _planHubOpen = v),
+                  )
+                : null,
           ),
         ));
   }

@@ -6,7 +6,6 @@ import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
-import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +100,7 @@ class _ContactViewState extends State<ContactView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _AccountsHeader(
+                        _ContactsHeader(
                           isFiltering: all.isNotEmpty && _searchQuery.isNotEmpty,
                         ),
                         if (all.isNotEmpty) ...[
@@ -182,7 +181,7 @@ class _ContactViewState extends State<ContactView> {
                     padding: const EdgeInsets.fromLTRB(
                       _horizontalPad,
                       6,
-                      _horizontalPad + kPlanHubFabTrailingClearance,
+                      _horizontalPad,
                       10,
                     ),
                     child: _ComposerDock(
@@ -220,8 +219,8 @@ class _ContactViewState extends State<ContactView> {
   }
 }
 
-class _AccountsHeader extends StatelessWidget {
-  const _AccountsHeader({required this.isFiltering});
+class _ContactsHeader extends StatelessWidget {
+  const _ContactsHeader({required this.isFiltering});
 
   final bool isFiltering;
 
@@ -253,7 +252,7 @@ class _AccountsHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Accounts',
+                'Contacts',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
@@ -266,7 +265,7 @@ class _AccountsHeader extends StatelessWidget {
               Text(
                 isFiltering
                     ? 'Showing matches in your network'
-                    : 'Names you attach to income and expenses',
+                    : 'Names you attach to income, expenses, and budgets',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   height: 1.4,
                   color: p.textSecondary.withValues(alpha: 0.95),

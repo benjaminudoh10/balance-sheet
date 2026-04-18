@@ -462,7 +462,7 @@ class DescriptionInput extends StatelessWidget {
 class ContactInput extends StatelessWidget {
   ContactInput({super.key, this.compact = false});
 
-  /// When true (e.g. Accounts composer dock), removes extra vertical margin for alignment with adjacent controls.
+  /// When true (e.g. Contacts composer dock), removes extra vertical margin for alignment with adjacent controls.
   final bool compact;
 
   final ContactController _contactController = Get.find();

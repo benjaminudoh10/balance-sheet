@@ -14,7 +14,6 @@ import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
-import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -405,7 +404,7 @@ class _BudgetAddLineBar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(
               _horizontalPad,
               10,
-              _horizontalPad + kPlanHubFabTrailingClearance,
+              _horizontalPad,
               10,
             ),
             child: SizedBox(

@@ -13,6 +13,7 @@ import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -116,30 +117,38 @@ class MainView extends StatelessWidget {
                       if (list.isEmpty)
                         SliverFillRemaining(
                           hasScrollBody: false,
-                          child: EmptyState(
-                            icon: Icon(
-                              Icons.receipt_long_outlined,
-                              size: 48,
-                              color: p.mint.withValues(alpha: 0.7),
-                            ),
-                            primaryText: Text(
-                              'Add your first transaction today',
-                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: p.textPrimary,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: kPlanHubFabTrailingClearance),
+                            child: EmptyState(
+                              icon: Icon(
+                                Icons.receipt_long_outlined,
+                                size: 48,
+                                color: p.mint.withValues(alpha: 0.7),
                               ),
-                            ),
-                            secondaryText: Text(
-                              'Tap Income or Expense above.',
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                color: p.textSecondary,
+                              primaryText: Text(
+                                'Add your first transaction today',
+                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: p.textPrimary,
+                                ),
+                              ),
+                              secondaryText: Text(
+                                'Tap Income or Expense above.',
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  color: p.textSecondary,
+                                ),
                               ),
                             ),
                           ),
                         )
                       else
                         SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 24),
+                          padding: const EdgeInsets.fromLTRB(
+                            _horizontalPad,
+                            0,
+                            _horizontalPad,
+                            24 + kPlanHubFabTrailingClearance,
+                          ),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
