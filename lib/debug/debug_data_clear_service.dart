@@ -2,6 +2,7 @@ import 'package:balance_sheet/backup/backup_service.dart';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/db.dart';
+import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/security/pin_hash.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:flutter/foundation.dart';
@@ -36,6 +37,9 @@ enum DebugDataClearTarget {
 
   /// Slidable row peeks + home balance / net worth coach ([clearAllFirstRunUiHints]).
   prefSlidablePeek,
+
+  /// Named saved views (All transactions, Insights, Budget) under [SavedViewsStorage.rootKey].
+  savedViews,
 }
 
 /// Clears selected SQLite tables and/or known [GetStorage] keys. **Debug builds only** ([kDebugMode]).
@@ -96,6 +100,9 @@ class DebugDataClearService {
     if (targets.contains(DebugDataClearTarget.prefSlidablePeek)) {
       await clearAllFirstRunUiHints(box);
     }
+    if (targets.contains(DebugDataClearTarget.savedViews)) {
+      await box.remove(SavedViewsStorage.rootKey);
+    }
 
     await BackupService.refreshControllersAfterImport();
   }
@@ -114,6 +121,7 @@ class DebugDataClearService {
     DebugDataClearTarget.prefCurrency,
     DebugDataClearTarget.prefSecurity,
     DebugDataClearTarget.prefSlidablePeek,
+    DebugDataClearTarget.savedViews,
   };
 
   static const Set<DebugDataClearTarget> allTargets = <DebugDataClearTarget>{

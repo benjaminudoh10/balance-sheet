@@ -175,6 +175,12 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         title: 'First-run UI tips',
                         caption: 'Slidable row peeks and home balance / net worth coach (GetStorage)',
                       ),
+                      _targetTile(
+                        context,
+                        target: DebugDataClearTarget.savedViews,
+                        title: 'Saved views',
+                        caption: 'Named presets for All transactions, Insights, and Budget (GetStorage)',
+                      ),
                     ],
                   ),
                 ),
