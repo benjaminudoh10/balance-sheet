@@ -75,6 +75,22 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  /// Swipe left → next month, swipe right → previous (matches chevron buttons).
+  void _onBudgetHorizontalDragEnd(DragEndDetails details) {
+    final double? v = details.primaryVelocity;
+    if (v == null) {
+      return;
+    }
+    const double threshold = 380;
+    if (v < -threshold) {
+      AppHaptics.selection();
+      _budget.shiftMonth(1);
+    } else if (v > threshold) {
+      AppHaptics.selection();
+      _budget.shiftMonth(-1);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
@@ -114,8 +130,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   };
                 },
                 applyPayload: (Map<String, dynamic> payload) async {
-                  final int y = (payload['year'] as num?)?.toInt() ?? DateTime.now().year;
-                  final int mo = (payload['month'] as num?)?.toInt() ?? DateTime.now().month;
+                  final int y =
+                      (payload['year'] as num?)?.toInt() ?? DateTime.now().year;
+                  final int mo = (payload['month'] as num?)?.toInt() ??
+                      DateTime.now().month;
                   _budget.focusMonth.value = DateTime(y, mo, 1);
                   await _budget.reloadFocusMonth();
                 },
@@ -137,134 +155,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
         children: <Widget>[
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
             child: Obx(() {
-              if (_budget.loading.value && _budget.lines.isEmpty) {
-                return Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: p.mint,
-                    ),
-                  ),
-                );
-              }
-              final DateTime m = _budget.focusMonth.value;
-              final bool dupContacts = _hasDuplicateContactLinks(_budget.lines);
-              final bool dupCategories = _hasDuplicateCategoryLinks(_budget.lines);
-              final bool dupComposite = _hasDuplicateCompositeTrackers(_budget.lines);
-              return CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: <Widget>[
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(_horizontalPad, 8, _horizontalPad, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          _MonthSwitcher(
-                            label: DateFormat('MMMM yyyy').format(m),
-                            onPrev: () => _budget.shiftMonth(-1),
-                            onNext: () => _budget.shiftMonth(1),
+              return GestureDetector(
+                onHorizontalDragEnd: _onBudgetHorizontalDragEnd,
+                behavior: HitTestBehavior.deferToChild,
+                child: _budget.loading.value && _budget.lines.isEmpty
+                    ? Center(
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: p.mint,
                           ),
-                          if (_budget.lines.isNotEmpty) ...<Widget>[
-                            const SizedBox(height: 16),
-                            _SummaryCard(
-                              plannedMinor: _budget.plannedTotalMinor,
-                              trackedSpentMinor: _budget.trackedSpentTotalMinor,
-                            ),
-                          ],
-                          if (dupContacts) ...<Widget>[
-                            const SizedBox(height: 12),
-                            const _InfoCallout(
-                              text:
-                                  'Some lines share the same contact. “Spent” can count the same transactions on more than one line.',
-                            ),
-                          ],
-                          if (dupCategories) ...<Widget>[
-                            const SizedBox(height: 12),
-                            const _InfoCallout(
-                              text:
-                                  'Some lines share the same category tag. “Spent” is the full category total, so totals can overlap across lines.',
-                            ),
-                          ],
-                          if (dupComposite) ...<Widget>[
-                            const SizedBox(height: 12),
-                            const _InfoCallout(
-                              text:
-                                  'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
-                            ),
-                          ],
-                          if (_budget.lines.isNotEmpty) ...<Widget>[
-                            const SizedBox(height: 20),
-                            Text(
-                              'Planned items',
-                              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: p.textPrimary,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    color: p.textSecondary,
-                                    height: 1.35,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_budget.lines.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: _horizontalPad),
-                          child: const _BudgetLinesEmptyCard(),
                         ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        _horizontalPad,
-                        0,
-                        _horizontalPad,
-                        20,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
-                            final BudgetLine line = _budget.lines[index];
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: index == _budget.lines.length - 1 ? 0 : 10),
-                              child: _BudgetLineTile(
-                                line: line,
-                                applySlidablePeek: index == 0,
-                                spentMinor: line.hasSpendTracker
-                                    ? (_budget.spentMinorByLineId[line.id] ?? 0)
-                                    : null,
-                                onTap: () {
-                                  AppHaptics.light();
-                                  _openEditor(line: line);
-                                },
-                                onDelete: () => _confirmDelete(context, line),
-                              ),
-                            );
-                          },
-                          childCount: _budget.lines.length,
-                        ),
-                      ),
-                    ),
-                ],
+                      )
+                    : _buildBudgetScrollContent(context, p),
               );
             }),
           ),
@@ -273,14 +184,136 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
+  Widget _buildBudgetScrollContent(BuildContext context, AppPalette p) {
+    final DateTime m = _budget.focusMonth.value;
+    final bool dupContacts = _hasDuplicateContactLinks(_budget.lines);
+    final bool dupCategories = _hasDuplicateCategoryLinks(_budget.lines);
+    final bool dupComposite = _hasDuplicateCompositeTrackers(_budget.lines);
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: <Widget>[
+        SliverPadding(
+          padding:
+              const EdgeInsets.fromLTRB(_horizontalPad, 8, _horizontalPad, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _MonthSwitcher(
+                  label: DateFormat('MMMM yyyy').format(m),
+                  onPrev: () => _budget.shiftMonth(-1),
+                  onNext: () => _budget.shiftMonth(1),
+                ),
+                if (_budget.lines.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  _SummaryCard(
+                    plannedMinor: _budget.plannedTotalMinor,
+                    trackedSpentMinor: _budget.trackedSpentTotalMinor,
+                  ),
+                ],
+                if (dupContacts) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoCallout(
+                    text:
+                        'Some lines share the same contact. “Spent” can count the same transactions on more than one line.',
+                  ),
+                ],
+                if (dupCategories) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoCallout(
+                    text:
+                        'Some lines share the same category tag. “Spent” is the full category total, so totals can overlap across lines.',
+                  ),
+                ],
+                if (dupComposite) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoCallout(
+                    text:
+                        'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
+                  ),
+                ],
+                if (_budget.lines.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Planned items',
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: p.textPrimary,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: p.textSecondary,
+                          height: 1.35,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ],
+            ),
+          ),
+        ),
+        if (_budget.lines.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _horizontalPad),
+                child: const _BudgetLinesEmptyCard(),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              _horizontalPad,
+              0,
+              _horizontalPad,
+              20,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final BudgetLine line = _budget.lines[index];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                        bottom: index == _budget.lines.length - 1 ? 0 : 10),
+                    child: _BudgetLineTile(
+                      line: line,
+                      applySlidablePeek: index == 0,
+                      spentMinor: line.hasSpendTracker
+                          ? (_budget.spentMinorByLineId[line.id] ?? 0)
+                          : null,
+                      onTap: () {
+                        AppHaptics.light();
+                        _openEditor(line: line);
+                      },
+                      onDelete: () => _confirmDelete(context, line),
+                    ),
+                  );
+                },
+                childCount: _budget.lines.length,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   bool _hasDuplicateContactLinks(List<BudgetLine> lines) {
-    final List<int> ids = lines.where((BudgetLine l) => l.contactId > 0).map((BudgetLine l) => l.contactId).toList();
+    final List<int> ids = lines
+        .where((BudgetLine l) => l.contactId > 0)
+        .map((BudgetLine l) => l.contactId)
+        .toList();
     return ids.length != ids.toSet().length;
   }
 
   bool _hasDuplicateCategoryLinks(List<BudgetLine> lines) {
-    final List<String> keys =
-        lines.where((BudgetLine l) => l.categoryKey.isNotEmpty).map((BudgetLine l) => l.categoryKey).toList();
+    final List<String> keys = lines
+        .where((BudgetLine l) => l.categoryKey.isNotEmpty)
+        .map((BudgetLine l) => l.categoryKey)
+        .toList();
     return keys.length != keys.toSet().length;
   }
 
@@ -301,7 +334,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
           backgroundColor: p.surfaceElevated,
           title: Text('Remove item?', style: TextStyle(color: p.textPrimary)),
           content: Text(
-            line.description.isEmpty ? 'This budget line will be deleted.' : '“${line.description}” will be removed.',
+            line.description.isEmpty
+                ? 'This budget line will be deleted.'
+                : '“${line.description}” will be removed.',
             style: TextStyle(color: p.textSecondary),
           ),
           actions: <Widget>[
@@ -422,8 +457,8 @@ class _BudgetAddLineBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   textStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
             ),
@@ -462,7 +497,8 @@ class _MonthSwitcher extends StatelessWidget {
               AppHaptics.selection();
               onPrev();
             },
-            icon: Icon(Icons.chevron_left_rounded, color: p.textPrimary, size: 28),
+            icon: Icon(Icons.chevron_left_rounded,
+                color: p.textPrimary, size: 28),
           ),
           Expanded(
             child: Text(
@@ -479,7 +515,8 @@ class _MonthSwitcher extends StatelessWidget {
               AppHaptics.selection();
               onNext();
             },
-            icon: Icon(Icons.chevron_right_rounded, color: p.textPrimary, size: 28),
+            icon: Icon(Icons.chevron_right_rounded,
+                color: p.textPrimary, size: 28),
           ),
         ],
       ),
@@ -540,21 +577,26 @@ class _SummaryCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Spent (tracked)',
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(color: p.textSecondary),
                     ),
                     const SizedBox(height: 2),
                     DualCurrencyTotal(
                       lcyMinor: trackedSpentMinor,
                       textAlign: TextAlign.start,
                       compactSecondary: true,
-                      primaryStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-                            color: p.mint,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: p.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      primaryStyle:
+                          Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: p.mint,
+                                fontWeight: FontWeight.w600,
+                              ),
+                      secondaryStyle:
+                          Theme.of(context).textTheme.bodySmall!.copyWith(
+                                color: p.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                     ),
                   ],
                 ),
@@ -565,20 +607,25 @@ class _SummaryCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Remaining vs tracked',
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(color: p.textSecondary),
                     ),
                     const SizedBox(height: 2),
                     DualCurrencySignedNet(
                       netMinor: remaining,
                       textAlign: TextAlign.end,
-                      primaryStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-                            color: over ? p.coral : p.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                      secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: p.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      primaryStyle:
+                          Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: over ? p.coral : p.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                      secondaryStyle:
+                          Theme.of(context).textTheme.bodySmall!.copyWith(
+                                color: p.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                     ),
                   ],
                 ),
@@ -662,7 +709,8 @@ class _BudgetLineTile extends StatelessWidget {
       final double progress = hasTrack && line.plannedAmount > 0
           ? ((spentMinor ?? 0) / line.plannedAmount).clamp(0.0, 1.0).toDouble()
           : 0.0;
-      final bool overBudget = hasTrack && (spentMinor ?? 0) > line.plannedAmount;
+      final bool overBudget =
+          hasTrack && (spentMinor ?? 0) > line.plannedAmount;
 
       return Slidable(
         key: ValueKey<int>(line.id),
@@ -699,80 +747,96 @@ class _BudgetLineTile extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       line.description.isEmpty ? 'Untitled' : line.description,
-                    style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                          color: p.textPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  if (line.categoryKey.isNotEmpty || resolvedContact.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        if (line.categoryKey.isNotEmpty)
-                          CategoryPillLabel(
-                            categoryKey: line.categoryKey,
-                            label: _categoryLabelForKey(line.categoryKey),
-                            compact: true,
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                            color: p.textPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
-                        if (line.categoryKey.isNotEmpty && resolvedContact.isNotEmpty)
-                          const SizedBox(width: 10),
-                        if (resolvedContact.isNotEmpty) ...<Widget>[
-                          Icon(Icons.person_outline_rounded, size: 16, color: p.textSecondary),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              resolvedContact,
-                              style: Theme.of(context).textTheme.labelMedium!.copyWith(color: p.mint),
-                              overflow: TextOverflow.ellipsis,
+                    ),
+                    if (line.categoryKey.isNotEmpty ||
+                        resolvedContact.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          if (line.categoryKey.isNotEmpty)
+                            CategoryPillLabel(
+                              categoryKey: line.categoryKey,
+                              label: _categoryLabelForKey(line.categoryKey),
+                              compact: true,
                             ),
-                          ),
+                          if (line.categoryKey.isNotEmpty &&
+                              resolvedContact.isNotEmpty)
+                            const SizedBox(width: 10),
+                          if (resolvedContact.isNotEmpty) ...<Widget>[
+                            Icon(Icons.person_outline_rounded,
+                                size: 16, color: p.textSecondary),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                resolvedContact,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium!
+                                    .copyWith(color: p.mint),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ],
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          'Plan ${formatBudgetPlannedDisplay(line)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge!
+                              .copyWith(color: p.textSecondary),
+                        ),
+                        const Spacer(),
+                        if (hasTrack)
+                          Text(
+                            'Spent ${formatAmount(spentMinor!)}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge!
+                                .copyWith(
+                                  color: overBudget ? p.coral : p.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          )
+                        else
+                          Text(
+                            'No category or contact',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .copyWith(
+                                  color:
+                                      p.textSecondary.withValues(alpha: 0.85),
+                                ),
+                          ),
                       ],
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        'Plan ${formatBudgetPlannedDisplay(line)}',
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
-                      ),
-                      const Spacer(),
-                      if (hasTrack)
-                        Text(
-                          'Spent ${formatAmount(spentMinor!)}',
-                          style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                color: overBudget ? p.coral : p.textPrimary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        )
-                      else
-                        Text(
-                          'No category or contact',
-                          style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                                color: p.textSecondary.withValues(alpha: 0.85),
-                              ),
+                    if (hasTrack && line.plannedAmount > 0) ...<Widget>[
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 5,
+                          backgroundColor: p.border.withValues(alpha: 0.5),
+                          color: overBudget ? p.coral : p.mint,
                         ),
-                    ],
-                  ),
-                  if (hasTrack && line.plannedAmount > 0) ...<Widget>[
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 5,
-                        backgroundColor: p.border.withValues(alpha: 0.5),
-                        color: overBudget ? p.coral : p.mint,
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
-        ),
         ),
       );
     });
@@ -834,7 +898,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   Future<void> _save() async {
     final String d = _desc.text.trim();
     if (d.isEmpty) {
-      Get.snackbar('Missing description', 'Add a short label for this planned item.');
+      Get.snackbar(
+          'Missing description', 'Add a short label for this planned item.');
       return;
     }
     final int entryMinor = _minorFromAmountText(_amount.text);
@@ -903,7 +968,9 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                widget.existing == null ? 'Add planned item' : 'Edit planned item',
+                widget.existing == null
+                    ? 'Add planned item'
+                    : 'Edit planned item',
                 style: Theme.of(context).textTheme.titleLarge!.copyWith(
                       color: p.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -926,7 +993,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: p.mint.withValues(alpha: 0.8)),
+                    borderSide:
+                        BorderSide(color: p.mint.withValues(alpha: 0.8)),
                   ),
                 ),
                 style: TextStyle(color: p.textPrimary),
@@ -948,7 +1016,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                             'PLANNED AMOUNT ($code)',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .copyWith(
                                   letterSpacing: 1.15,
                                   height: 1.2,
                                   color: p.textPrimary.withValues(alpha: 0.88),
@@ -973,17 +1044,20 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                             final bool toFcy = next.single;
                             if (toFcy == _planEntryIsFcy) return;
                             setState(() {
-                              final int cur = _minorFromAmountText(_amount.text);
+                              final int cur =
+                                  _minorFromAmountText(_amount.text);
                               if (cur <= 0) {
                                 _planEntryIsFcy = toFcy;
                                 return;
                               }
                               if (toFcy) {
-                                final int fcy = _currency.fcyMinorFromLcyMinor(cur);
+                                final int fcy =
+                                    _currency.fcyMinorFromLcyMinor(cur);
                                 _planEntryIsFcy = true;
                                 _amount.text = (fcy / 100).toStringAsFixed(2);
                               } else {
-                                final int lcy = _currency.lcyMinorFromFcyMinor(cur);
+                                final int lcy =
+                                    _currency.lcyMinorFromFcyMinor(cur);
                                 _planEntryIsFcy = false;
                                 _amount.text = (lcy / 100).toStringAsFixed(2);
                               }
@@ -1005,8 +1079,11 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                     TextField(
                       controller: _amount,
                       focusNode: _amountFocus,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: <TextInputFormatter>[
+                        DecimalTextInputFormatter()
+                      ],
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => FocusScope.of(context).unfocus(),
                       decoration: InputDecoration(
@@ -1018,7 +1095,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: p.mint.withValues(alpha: 0.8)),
+                          borderSide:
+                              BorderSide(color: p.mint.withValues(alpha: 0.8)),
                         ),
                       ),
                       style: TextStyle(color: p.textPrimary),
@@ -1044,8 +1122,11 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                           .map((Map<String, Object> m) => m['key']! as String)
                           .toList();
                       final String value =
-                          _categoryKey.isEmpty || !keys.contains(_categoryKey) ? '' : _categoryKey;
-                      final List<Map<String, Object>> list = Categories.CATEGORIES;
+                          _categoryKey.isEmpty || !keys.contains(_categoryKey)
+                              ? ''
+                              : _categoryKey;
+                      final List<Map<String, Object>> list =
+                          Categories.CATEGORIES;
                       return Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: p.border),
@@ -1066,7 +1147,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                             borderRadius: BorderRadius.circular(14.0),
                             itemHeight: null,
                             menuMaxHeight: 320,
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                             selectedItemBuilder: (BuildContext buttonContext) {
@@ -1080,7 +1164,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                                   final String lbl = c['label']! as String;
                                   return Align(
                                     alignment: Alignment.centerLeft,
-                                    child: CategoryPillLabel(categoryKey: k, label: lbl),
+                                    child: CategoryPillLabel(
+                                        categoryKey: k, label: lbl),
                                   );
                                 }),
                               ];
@@ -1099,10 +1184,12 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                                 return DropdownMenuItem<String>(
                                   value: k,
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 1.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 1.0),
                                     child: Align(
                                       alignment: Alignment.centerLeft,
-                                      child: CategoryPillLabel(categoryKey: k, label: lbl),
+                                      child: CategoryPillLabel(
+                                          categoryKey: k, label: lbl),
                                     ),
                                   ),
                                 );
@@ -1121,10 +1208,12 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               ),
               const SizedBox(height: 8),
               Obx(() {
-                final List<DropdownMenuItem<int>> items = <DropdownMenuItem<int>>[
+                final List<DropdownMenuItem<int>> items =
+                    <DropdownMenuItem<int>>[
                   DropdownMenuItem<int>(
                     value: 0,
-                    child: Text('No contact', style: TextStyle(color: p.textPrimary)),
+                    child: Text('No contact',
+                        style: TextStyle(color: p.textPrimary)),
                   ),
                   ..._contacts.contacts.map(
                     (c) => DropdownMenuItem<int>(
@@ -1133,12 +1222,15 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                     ),
                   ),
                 ];
-                final int dropdownContactId =
-                    _contactId > 0 && _contacts.contacts.any((c) => c.id == _contactId) ? _contactId : 0;
+                final int dropdownContactId = _contactId > 0 &&
+                        _contacts.contacts.any((c) => c.id == _contactId)
+                    ? _contactId
+                    : 0;
                 return InputDecorator(
                   decoration: InputDecoration(
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 15),
                     labelText: 'Contact (optional)',
                     labelStyle: TextStyle(color: p.textSecondary, fontSize: 15),
                     enabledBorder: OutlineInputBorder(
@@ -1147,7 +1239,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: p.mint.withValues(alpha: 0.8)),
+                      borderSide:
+                          BorderSide(color: p.mint.withValues(alpha: 0.8)),
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
@@ -1169,7 +1262,10 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
               const SizedBox(height: 8),
               Text(
                 'Spent = category expenses, contact expenses, or — if both are set — their union (either condition).',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary, height: 1.35),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall!
+                    .copyWith(color: p.textSecondary, height: 1.35),
               ),
               const SizedBox(height: 20),
               FilledButton(
@@ -1181,7 +1277,8 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                   backgroundColor: p.mint,
                   foregroundColor: const Color(0xFF0D1117),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
                 child: Text(widget.existing == null ? 'Add' : 'Save'),
               ),
