@@ -196,6 +196,9 @@ flutter test
 - Regenerate launcher icon / splash after asset changes:
 
 ```bash
+pip3 install pillow   # once
+python3 tool/render_launcher_icon.py
+python3 tool/render_native_splash.py
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```

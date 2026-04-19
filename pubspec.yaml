@@ -72,9 +72,9 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   background_color_ios: "#F5F3FA"
 
-# flutter pub run flutter_native_splash:create (run this to generate splash screen)
-# Colors match AppPalette.light.background / AppPalette.dark.background.
-# Center art: lib/assets/splash/ — mark PNGs + generated wordmark (see tool/generate_splash_assets.dart).
+# pip3 install pillow && python3 tool/render_native_splash.py
+# dart run flutter_native_splash:create
+# Colors match AppPalette.light / .dark; art matches lib/screens/splash.dart (Material book + Roboto text).
 # Light vs dark follows the *system* appearance (native splash runs before Flutter).
 flutter_native_splash:
   color: "#F5F3FA"
