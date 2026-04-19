@@ -40,20 +40,17 @@ Widget _floatingModalCard({
   required Widget child,
 }) {
   final double inset = MediaQuery.viewInsetsOf(context).bottom;
-  return Align(
-    alignment: Alignment.bottomCenter,
-    child: Padding(
-      padding: EdgeInsets.only(bottom: inset),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        decoration: BoxDecoration(
-          color: palette.surfaceElevated,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: palette.border),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: child,
+  return Padding(
+    padding: EdgeInsets.only(bottom: inset),
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      decoration: BoxDecoration(
+        color: palette.surfaceElevated,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: palette.border),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     ),
   );
 }
@@ -1769,14 +1766,22 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
-    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.92;
+    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.80;
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
-      child: ListView(
-        shrinkWrap: true,
-        physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-        children: <Widget>[
+      child: DraggableScrollableSheet(
+        expand: false,
+        snap: true,
+        initialChildSize: 1.0,
+        minChildSize: 0,
+        maxChildSize: 1.0,
+        snapAnimationDuration: const Duration(milliseconds: 220),
+        builder: (BuildContext context, ScrollController scrollController) {
+          return ListView(
+            controller: scrollController,
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+            children: <Widget>[
           Center(
             child: Container(
               width: 40,
@@ -1910,6 +1915,8 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
               );
             }),
         ],
+          );
+        },
       ),
     );
   }
