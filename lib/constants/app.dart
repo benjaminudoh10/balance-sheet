@@ -31,4 +31,16 @@ class AppConstants {
   static const SHOW_HOME_SUMMARY_AMOUNTS_KEY = 'show_home_summary_amounts';
   /// Summary cards: show amounts on portfolio + other investments summaries (`plan_stocks_screen.dart`).
   static const SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY = 'show_investment_summary_amounts';
+
+  /// [LayoutBuilder] / screen width: [MidnightBottomNav] below this, [MidnightNavigationRail] at or above (`home.dart`).
+  static const double adaptiveNavRailMinWidth = 600;
+
+  /// Home hero: balance + net worth side-by-side when content width is at least this (`main_screen.dart`).
+  static const double homeHeroSideBySideMinWidth = 700;
+
+  /// Home transaction list uses two columns when content width is at least this (`main_screen.dart`).
+  static const double homeTransactionTwoColumnMinWidth = 680;
+
+  /// Max width for centered body when using the navigation rail (`home.dart`).
+  static const double adaptiveContentMaxWidth = 1040;
 }

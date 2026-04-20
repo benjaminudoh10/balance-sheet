@@ -36,6 +36,8 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final AppPalette p = AppPalette.of(context);
+    final bool landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return Scaffold(
       backgroundColor: p.background,
       body: Stack(
@@ -55,7 +57,7 @@ class SettingsView extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                      children: <Widget>[
                         const SizedBox(height: 4),
                         Text(
                           'Settings',
@@ -65,208 +67,52 @@ class SettingsView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const _SettingsHeroCard(),
-                        const SizedBox(height: 28),
-                        Text(
-                          'THEME',
-                          style: textTheme.labelMedium!.copyWith(
-                            letterSpacing: 1.4,
-                            color: p.textSecondary.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Obx(() {
-                          final ThemeMode current = _appController.themeMode.value;
-                          return Column(
-                            children: [
-                              _ThemeModeOptionRow(
-                                selected: current == ThemeMode.light,
-                                label: 'Light',
-                                icon: Icons.light_mode_outlined,
-                                onTap: () => _appController.setThemeMode(ThemeMode.light),
+                        if (!landscape) ...<Widget>[
+                          const _SettingsHeroCard(),
+                          const SizedBox(height: 28),
+                        ],
+                        if (landscape) ...<Widget>[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Expanded(
+                                child: _settingsThemeSection(
+                                    context, textTheme, p),
                               ),
-                              const SizedBox(height: 8),
-                              _ThemeModeOptionRow(
-                                selected: current == ThemeMode.dark,
-                                label: 'Dark',
-                                icon: Icons.dark_mode_outlined,
-                                onTap: () => _appController.setThemeMode(ThemeMode.dark),
-                              ),
-                              const SizedBox(height: 8),
-                              _ThemeModeOptionRow(
-                                selected: current == ThemeMode.system,
-                                label: 'System default',
-                                icon: Icons.brightness_auto_outlined,
-                                onTap: () => _appController.setThemeMode(ThemeMode.system),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _settingsAppearanceSection(
+                                    context, textTheme, p),
                               ),
                             ],
-                          );
-                        }),
-                        const SizedBox(height: 24),
-                        Text(
-                          'APPEARANCE',
-                          style: textTheme.labelMedium!.copyWith(
-                            letterSpacing: 1.4,
-                            color: p.textSecondary.withValues(alpha: 0.9),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Obx(() {
-                          final String current = _appController.fontId.value;
-                          return Column(
-                            children: AppFontIds.choices.map((AppFontOption o) {
-                              final bool selected = current == o.id;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      AppHaptics.selection();
-                                      _appController.setAppFont(o.id);
-                                    },
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Ink(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        color: p.surface,
-                                        border: Border.all(
-                                          color: selected
-                                              ? p.mint.withValues(alpha: 0.45)
-                                              : p.border,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            selected
-                                                ? Icons.radio_button_checked_rounded
-                                                : Icons.radio_button_off_rounded,
-                                            color: selected
-                                                ? p.mint
-                                                : p.textSecondary,
-                                            size: 22,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              o.label,
-                                              style: textTheme.titleMedium!.copyWith(
-                                                color: p.textPrimary,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          );
-                        }),
-                        const SizedBox(height: 24),
-                        Text(
-                          'CURRENCIES',
-                          style: textTheme.labelMedium!.copyWith(
-                            letterSpacing: 1.4,
-                            color: p.textSecondary.withValues(alpha: 0.9),
+                          const SizedBox(height: 24),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Expanded(
+                                child: _settingsCurrenciesSection(
+                                    context, textTheme, p),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _settingsSecuritySection(
+                                    context, textTheme, p),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Ledger totals use local currency (LCY). Entries can be in LCY or foreign (FCY). Set how many LCY units equal 1 FCY.',
-                          style: textTheme.bodySmall!.copyWith(
-                            color: p.textSecondary.withValues(alpha: 0.9),
-                            height: 1.35,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const _CurrencySettingsBlock(),
-                        const SizedBox(height: 20),
-                        Text(
-                          'SECURITY',
-                          style: textTheme.labelMedium!.copyWith(
-                            letterSpacing: 1.4,
-                            color: p.textSecondary.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Obx(() => _SecuritySwitchRow(
-                              title: !_securityController.pinIsSet.value
-                                  ? 'Access PIN'
-                                  : 'Change access PIN',
-                              subtitle: !_securityController.pinIsSet.value
-                                  ? 'Protect the app with a 4-digit PIN'
-                                  : 'PIN is enabled for this device',
-                              icon: Icons.lock_rounded,
-                              switchValue: _securityController.pinIsSet.value,
-                              switchDisabled: false,
-                              onSwitch: (v) => _goToPinView(v),
-                              onRowTap: () => Get.to(() => Pin()),
-                            )),
-                        const SizedBox(height: 10),
-                        Obx(() => _SecuritySwitchRow(
-                              title: _securityController.fingerprintInUse.value
-                                  ? 'Fingerprint unlock'
-                                  : 'Use fingerprint',
-                              subtitle: !_securityController.pinIsSet.value
-                                  ? 'Set a PIN first to use fingerprint'
-                                  : 'Unlock with Face ID / fingerprint when available',
-                              icon: Icons.fingerprint_rounded,
-                              switchValue: _securityController.fingerprintInUse.value,
-                              switchDisabled: !_securityController.pinIsSet.value,
-                              onSwitch: (v) => _securityController.activateFingerPrint(v),
-                            )),
-                        const SizedBox(height: 20),
-                        Text(
-                          'DATA',
-                          style: textTheme.labelMedium!.copyWith(
-                            letterSpacing: 1.4,
-                            color: p.textSecondary.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _BackupActionRow(
-                          label: 'Export backup',
-                          subtitle:
-                              'Choose where to save a JSON file (e.g. Files or Downloads). PIN is stored as hash + salt only — keep the file private.',
-                          icon: Icons.save_alt_rounded,
-                          onTap: () => _exportBackup(context),
-                        ),
-                        const SizedBox(height: 8),
-                        _BackupActionRow(
-                          label: 'Import backup',
-                          subtitle: 'Replace everything on this device from a Balanced backup file',
-                          icon: Icons.file_download_outlined,
-                          onTap: () => _importBackup(context),
-                        ),
-                        const SizedBox(height: 8),
-                        _BackupActionRow(
-                          label: 'Reset first-run tips',
-                          subtitle:
-                              'Swipe row demos (transactions, budget, contacts, investments) and the balance / net worth card nudge on Home',
-                          icon: Icons.touch_app_outlined,
-                          onTap: () => _resetFirstRunUiHints(context),
-                        ),
-                        if (kDebugMode) ...[
-                          const SizedBox(height: 8),
-                          _BackupActionRow(
-                            label: 'Clear local data (debug)',
-                            subtitle:
-                                'Remove selected SQLite tables and GetStorage keys — not shown in release builds',
-                            icon: Icons.delete_forever_outlined,
-                            onTap: () => Get.to(() => const DebugClearDataScreen()),
-                          ),
-                          const SizedBox(height: 8),
-                          _BackupActionRow(
-                            label: 'Seed sample data (debug)',
-                            subtitle:
-                                'Replace DB with a randomized multi-month demo (ledger, budget, stocks, other assets)',
-                            icon: Icons.grass_outlined,
-                            onTap: () => Get.to(() => const DebugSeedDataScreen()),
-                          ),
+                          const SizedBox(height: 24),
+                          _settingsDataSection(context, textTheme, p),
+                        ] else ...<Widget>[
+                          _settingsThemeSection(context, textTheme, p),
+                          const SizedBox(height: 24),
+                          _settingsAppearanceSection(context, textTheme, p),
+                          const SizedBox(height: 24),
+                          _settingsCurrenciesSection(context, textTheme, p),
+                          const SizedBox(height: 20),
+                          _settingsSecuritySection(context, textTheme, p),
+                          const SizedBox(height: 20),
+                          _settingsDataSection(context, textTheme, p),
                         ],
                       ],
                     ),
@@ -300,6 +146,250 @@ class SettingsView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _settingsThemeSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'THEME',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Obx(() {
+          final ThemeMode current = _appController.themeMode.value;
+          return Column(
+            children: <Widget>[
+              _ThemeModeOptionRow(
+                selected: current == ThemeMode.light,
+                label: 'Light',
+                icon: Icons.light_mode_outlined,
+                onTap: () => _appController.setThemeMode(ThemeMode.light),
+              ),
+              const SizedBox(height: 8),
+              _ThemeModeOptionRow(
+                selected: current == ThemeMode.dark,
+                label: 'Dark',
+                icon: Icons.dark_mode_outlined,
+                onTap: () => _appController.setThemeMode(ThemeMode.dark),
+              ),
+              const SizedBox(height: 8),
+              _ThemeModeOptionRow(
+                selected: current == ThemeMode.system,
+                label: 'System default',
+                icon: Icons.brightness_auto_outlined,
+                onTap: () => _appController.setThemeMode(ThemeMode.system),
+              ),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _settingsAppearanceSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'APPEARANCE',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Obx(() {
+          final String current = _appController.fontId.value;
+          return Column(
+            children: AppFontIds.choices.map((AppFontOption o) {
+              final bool selected = current == o.id;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      AppHaptics.selection();
+                      _appController.setAppFont(o.id);
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: p.surface,
+                        border: Border.all(
+                          color: selected
+                              ? p.mint.withValues(alpha: 0.45)
+                              : p.border,
+                        ),
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            selected
+                                ? Icons.radio_button_checked_rounded
+                                : Icons.radio_button_off_rounded,
+                            color:
+                                selected ? p.mint : p.textSecondary,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              o.label,
+                              style: textTheme.titleMedium!.copyWith(
+                                color: p.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _settingsCurrenciesSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'CURRENCIES',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Ledger totals use local currency (LCY). Entries can be in LCY or foreign (FCY). Set how many LCY units equal 1 FCY.',
+          style: textTheme.bodySmall!.copyWith(
+            color: p.textSecondary.withValues(alpha: 0.9),
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: 12),
+        const _CurrencySettingsBlock(),
+      ],
+    );
+  }
+
+  Widget _settingsSecuritySection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'SECURITY',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Obx(() => _SecuritySwitchRow(
+              title: !_securityController.pinIsSet.value
+                  ? 'Access PIN'
+                  : 'Change access PIN',
+              subtitle: !_securityController.pinIsSet.value
+                  ? 'Protect the app with a 4-digit PIN'
+                  : 'PIN is enabled for this device',
+              icon: Icons.lock_rounded,
+              switchValue: _securityController.pinIsSet.value,
+              switchDisabled: false,
+              onSwitch: (bool v) => _goToPinView(v),
+              onRowTap: () => Get.to(() => Pin()),
+            )),
+        const SizedBox(height: 10),
+        Obx(() => _SecuritySwitchRow(
+              title: _securityController.fingerprintInUse.value
+                  ? 'Fingerprint unlock'
+                  : 'Use fingerprint',
+              subtitle: !_securityController.pinIsSet.value
+                  ? 'Set a PIN first to use fingerprint'
+                  : 'Unlock with Face ID / fingerprint when available',
+              icon: Icons.fingerprint_rounded,
+              switchValue: _securityController.fingerprintInUse.value,
+              switchDisabled: !_securityController.pinIsSet.value,
+              onSwitch: (bool v) =>
+                  _securityController.activateFingerPrint(v),
+            )),
+      ],
+    );
+  }
+
+  Widget _settingsDataSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'DATA',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _BackupActionRow(
+          label: 'Export backup',
+          subtitle:
+              'Choose where to save a JSON file (e.g. Files or Downloads). PIN is stored as hash + salt only — keep the file private.',
+          icon: Icons.save_alt_rounded,
+          onTap: () => _exportBackup(context),
+        ),
+        const SizedBox(height: 8),
+        _BackupActionRow(
+          label: 'Import backup',
+          subtitle:
+              'Replace everything on this device from a Balanced backup file',
+          icon: Icons.file_download_outlined,
+          onTap: () => _importBackup(context),
+        ),
+        const SizedBox(height: 8),
+        _BackupActionRow(
+          label: 'Reset first-run tips',
+          subtitle:
+              'Swipe row demos (transactions, budget, contacts, investments) and the balance / net worth card nudge on Home',
+          icon: Icons.touch_app_outlined,
+          onTap: () => _resetFirstRunUiHints(context),
+        ),
+        if (kDebugMode) ...<Widget>[
+          const SizedBox(height: 8),
+          _BackupActionRow(
+            label: 'Clear local data (debug)',
+            subtitle:
+                'Remove selected SQLite tables and GetStorage keys — not shown in release builds',
+            icon: Icons.delete_forever_outlined,
+            onTap: () => Get.to(() => const DebugClearDataScreen()),
+          ),
+          const SizedBox(height: 8),
+          _BackupActionRow(
+            label: 'Seed sample data (debug)',
+            subtitle:
+                'Replace DB with a randomized multi-month demo (ledger, budget, stocks, other assets)',
+            icon: Icons.grass_outlined,
+            onTap: () => Get.to(() => const DebugSeedDataScreen()),
+          ),
+        ],
+      ],
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
+import 'package:balance_sheet/widgets/adaptive_card_sliver_list.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -94,6 +95,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
+    final bool landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return Scaffold(
       backgroundColor: p.background,
       extendBodyBehindAppBar: true,
@@ -103,13 +106,43 @@ class _BudgetScreenState extends State<BudgetScreen> {
         scrolledUnderElevation: 0,
         systemOverlayStyle: p.systemUiOverlayStyle,
         automaticallyImplyLeading: false,
-        title: Text(
-          'Budgets',
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: p.textPrimary,
-                letterSpacing: -0.4,
+        toolbarHeight: landscape ? 64 : kToolbarHeight,
+        titleSpacing: landscape ? 16 : NavigationToolbar.kMiddleSpacing,
+        title: landscape
+            ? Obx(() {
+                final DateTime m = _budget.focusMonth.value;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Budgets',
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                color: p.textPrimary,
+                                letterSpacing: -0.4,
+                              ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: _MonthSwitcher(
+                          dense: true,
+                          label: DateFormat('MMMM yyyy').format(m),
+                          onPrev: () => _budget.shiftMonth(-1),
+                          onNext: () => _budget.shiftMonth(1),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              })
+            : Text(
+                'Budgets',
+                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                      color: p.textPrimary,
+                      letterSpacing: -0.4,
+                    ),
               ),
-        ),
         centerTitle: false,
         actions: <Widget>[
           IconButton(
@@ -186,6 +219,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   Widget _buildBudgetScrollContent(BuildContext context, AppPalette p) {
     final DateTime m = _budget.focusMonth.value;
+    final bool landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    final double listLayoutWidth =
+        (MediaQuery.sizeOf(context).width - 2 * _horizontalPad)
+            .clamp(0.0, double.infinity);
     final bool dupContacts = _hasDuplicateContactLinks(_budget.lines);
     final bool dupCategories = _hasDuplicateCategoryLinks(_budget.lines);
     final bool dupComposite = _hasDuplicateCompositeTrackers(_budget.lines);
@@ -199,56 +237,131 @@ class _BudgetScreenState extends State<BudgetScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _MonthSwitcher(
-                  label: DateFormat('MMMM yyyy').format(m),
-                  onPrev: () => _budget.shiftMonth(-1),
-                  onNext: () => _budget.shiftMonth(1),
-                ),
+                if (!landscape)
+                  _MonthSwitcher(
+                    label: DateFormat('MMMM yyyy').format(m),
+                    onPrev: () => _budget.shiftMonth(-1),
+                    onNext: () => _budget.shiftMonth(1),
+                  ),
                 if (_budget.lines.isNotEmpty) ...<Widget>[
                   const SizedBox(height: 16),
-                  _SummaryCard(
-                    plannedMinor: _budget.plannedTotalMinor,
-                    trackedSpentMinor: _budget.trackedSpentTotalMinor,
-                  ),
-                ],
-                if (dupContacts) ...<Widget>[
-                  const SizedBox(height: 12),
-                  const _InfoCallout(
-                    text:
-                        'Some lines share the same contact. “Spent” can count the same transactions on more than one line.',
-                  ),
-                ],
-                if (dupCategories) ...<Widget>[
-                  const SizedBox(height: 12),
-                  const _InfoCallout(
-                    text:
-                        'Some lines share the same category tag. “Spent” is the full category total, so totals can overlap across lines.',
-                  ),
-                ],
-                if (dupComposite) ...<Widget>[
-                  const SizedBox(height: 12),
-                  const _InfoCallout(
-                    text:
-                        'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
-                  ),
-                ],
-                if (_budget.lines.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 20),
-                  Text(
-                    'Planned items',
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: p.textPrimary,
+                  if (landscape)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          child: _SummaryCard(
+                            plannedMinor: _budget.plannedTotalMinor,
+                            trackedSpentMinor: _budget.trackedSpentTotalMinor,
+                          ),
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: p.textSecondary,
-                          height: 1.35,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              if (dupContacts)
+                                const _InfoCallout(
+                                  text:
+                                      'Some lines share the same contact. “Spent” can count the same transactions on more than one line.',
+                                ),
+                              if (dupCategories) ...<Widget>[
+                                if (dupContacts) const SizedBox(height: 12),
+                                const _InfoCallout(
+                                  text:
+                                      'Some lines share the same category tag. “Spent” is the full category total, so totals can overlap across lines.',
+                                ),
+                              ],
+                              if (dupComposite) ...<Widget>[
+                                if (dupContacts || dupCategories)
+                                  const SizedBox(height: 12),
+                                const _InfoCallout(
+                                  text:
+                                      'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
+                                ),
+                              ],
+                              SizedBox(
+                                height: (dupContacts ||
+                                        dupCategories ||
+                                        dupComposite)
+                                    ? 20
+                                    : 0,
+                              ),
+                              Text(
+                                'Planned items',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .copyWith(
+                                      color: p.textPrimary,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                      color: p.textSecondary,
+                                      height: 1.35,
+                                    ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
-                  ),
-                  const SizedBox(height: 16),
+                      ],
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        _SummaryCard(
+                          plannedMinor: _budget.plannedTotalMinor,
+                          trackedSpentMinor: _budget.trackedSpentTotalMinor,
+                        ),
+                        if (dupContacts) ...<Widget>[
+                          const SizedBox(height: 12),
+                          const _InfoCallout(
+                            text:
+                                'Some lines share the same contact. “Spent” can count the same transactions on more than one line.',
+                          ),
+                        ],
+                        if (dupCategories) ...<Widget>[
+                          const SizedBox(height: 12),
+                          const _InfoCallout(
+                            text:
+                                'Some lines share the same category tag. “Spent” is the full category total, so totals can overlap across lines.',
+                          ),
+                        ],
+                        if (dupComposite) ...<Widget>[
+                          const SizedBox(height: 12),
+                          const _InfoCallout(
+                            text:
+                                'Some lines share the same category + contact pair. “Spent” uses the same union for each, so the summary can double-count.',
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                        Text(
+                          'Planned items',
+                          style:
+                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: p.textPrimary,
+                                  ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Optionally pick a category tag and/or a contact. With both, “Spent” includes expenses in that tag or to that contact (union).',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: p.textSecondary,
+                                    height: 1.35,
+                                  ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
                 ],
               ],
             ),
@@ -265,37 +378,30 @@ class _BudgetScreenState extends State<BudgetScreen> {
             ),
           )
         else
-          SliverPadding(
+          adaptiveCardListSliver(
+            contentWidth: listLayoutWidth,
             padding: EdgeInsets.fromLTRB(
               _horizontalPad,
               0,
               _horizontalPad,
               20,
             ),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  final BudgetLine line = _budget.lines[index];
-                  return Padding(
-                    padding: EdgeInsets.only(
-                        bottom: index == _budget.lines.length - 1 ? 0 : 10),
-                    child: _BudgetLineTile(
-                      line: line,
-                      applySlidablePeek: index == 0,
-                      spentMinor: line.hasSpendTracker
-                          ? (_budget.spentMinorByLineId[line.id] ?? 0)
-                          : null,
-                      onTap: () {
-                        AppHaptics.light();
-                        _openEditor(line: line);
-                      },
-                      onDelete: () => _confirmDelete(context, line),
-                    ),
-                  );
+            itemCount: _budget.lines.length,
+            itemBuilder: (BuildContext context, int index) {
+              final BudgetLine line = _budget.lines[index];
+              return _BudgetLineTile(
+                line: line,
+                applySlidablePeek: index == 0,
+                spentMinor: line.hasSpendTracker
+                    ? (_budget.spentMinorByLineId[line.id] ?? 0)
+                    : null,
+                onTap: () {
+                  AppHaptics.light();
+                  _openEditor(line: line);
                 },
-                childCount: _budget.lines.length,
-              ),
-            ),
+                onDelete: () => _confirmDelete(context, line),
+              );
+            },
           ),
       ],
     );
@@ -474,49 +580,77 @@ class _MonthSwitcher extends StatelessWidget {
     required this.label,
     required this.onPrev,
     required this.onNext,
+    this.dense = false,
   });
 
   final String label;
   final VoidCallback onPrev;
   final VoidCallback onNext;
 
+  /// Tighter padding and icons for the landscape [AppBar] so content is not clipped.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
+    final double iconSize = dense ? 24 : 28;
+    final ButtonStyle? iconStyle = dense
+        ? IconButton.styleFrom(
+            padding: const EdgeInsets.all(4),
+            minimumSize: const Size(40, 40),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+          )
+        : null;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: dense ? 4 : 8,
+        vertical: dense ? 4 : 6,
+      ),
       decoration: BoxDecoration(
         color: p.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(dense ? 14 : 16),
         border: Border.all(color: p.border.withValues(alpha: 0.7)),
       ),
       child: Row(
         children: <Widget>[
           IconButton(
+            style: iconStyle,
             onPressed: () {
               AppHaptics.selection();
               onPrev();
             },
-            icon: Icon(Icons.chevron_left_rounded,
-                color: p.textPrimary, size: 28),
+            icon: Icon(
+              Icons.chevron_left_rounded,
+              color: p.textPrimary,
+              size: iconSize,
+            ),
           ),
           Expanded(
             child: Text(
               label,
               textAlign: TextAlign.center,
+              maxLines: dense ? 1 : null,
+              overflow: dense ? TextOverflow.ellipsis : TextOverflow.visible,
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: p.textPrimary,
                     fontWeight: FontWeight.w700,
+                    fontSize: dense ? 15 : null,
                   ),
             ),
           ),
           IconButton(
+            style: iconStyle,
             onPressed: () {
               AppHaptics.selection();
               onNext();
             },
-            icon: Icon(Icons.chevron_right_rounded,
-                color: p.textPrimary, size: 28),
+            icon: Icon(
+              Icons.chevron_right_rounded,
+              color: p.textPrimary,
+              size: iconSize,
+            ),
           ),
         ],
       ),

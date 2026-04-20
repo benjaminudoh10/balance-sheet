@@ -13,6 +13,7 @@ import 'package:balance_sheet/models/other_investment.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
+import 'package:balance_sheet/widgets/adaptive_card_sliver_list.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -998,53 +999,54 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
       if (_inv.loading.value && _inv.holdings.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
-      return RefreshIndicator(
-        onRefresh: _reload,
-        color: _kInvestAccent,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: <Widget>[
-            if (_inv.holdings.isNotEmpty) ...<Widget>[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                sliver: SliverToBoxAdapter(child: _PortfolioSummary(p: p, inv: _inv)),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(child: _PortfolioChart(p: p, inv: _inv)),
-              ),
-              const SliverPadding(padding: EdgeInsets.only(top: 8), sliver: SliverToBoxAdapter(child: SizedBox())),
-            ],
-            if (_inv.holdings.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: EmptyState(
-                    icon: Icon(Icons.inventory_2_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
-                    primaryText: Text(
-                      'No positions yet',
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
-                    ),
-                    secondaryText: Text(
-                      'Add a ticker, log fractional shares over time, and enter prices manually to track value and growth.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.4),
-                    ),
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double contentWidth = constraints.maxWidth;
+          return RefreshIndicator(
+            onRefresh: _reload,
+            color: _kInvestAccent,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: <Widget>[
+                if (_inv.holdings.isNotEmpty) ...<Widget>[
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                    sliver: SliverToBoxAdapter(child: _PortfolioSummary(p: p, inv: _inv)),
                   ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 20, 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int i) {
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverToBoxAdapter(child: _PortfolioChart(p: p, inv: _inv)),
+                  ),
+                  const SliverPadding(padding: EdgeInsets.only(top: 8), sliver: SliverToBoxAdapter(child: SizedBox())),
+                ],
+                if (_inv.holdings.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: EmptyState(
+                        icon: Icon(Icons.inventory_2_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                        primaryText: Text(
+                          'No positions yet',
+                          style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                        ),
+                        secondaryText: Text(
+                          'Add a ticker, log fractional shares over time, and enter prices manually to track value and growth.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.4),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  adaptiveCardListSliver(
+                    contentWidth: contentWidth,
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                    itemCount: _inv.holdings.length,
+                    itemBuilder: (BuildContext context, int i) {
                       final InvestmentHolding h = _inv.holdings[i];
                       final HoldingRowData? row = _inv.rowByHoldingId[h.id];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Slidable(
+                      return Slidable(
                           key: ValueKey<String>('holding_${h.id}'),
                           endActionPane: ActionPane(
                             motion: const DrawerMotion(),
@@ -1179,15 +1181,13 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                               ),
                             ),
                           ),
-                        ),
-                      );
+                        );
                     },
-                    childCount: _inv.holdings.length,
                   ),
-                ),
-              ),
           ],
         ),
+      );
+        },
       );
     });
   }
@@ -1197,48 +1197,49 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
       if (_inv.loading.value && _inv.otherInvestments.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
-      return RefreshIndicator(
-        onRefresh: _reload,
-        color: _kInvestAccent,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: <Widget>[
-            if (_inv.otherInvestments.isNotEmpty) ...<Widget>[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                sliver: SliverToBoxAdapter(child: _OtherInvestmentsSummary(p: p, inv: _inv)),
-              ),
-              const SliverPadding(padding: EdgeInsets.only(top: 4), sliver: SliverToBoxAdapter(child: SizedBox())),
-            ],
-            if (_inv.otherInvestments.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: EmptyState(
-                    icon: Icon(Icons.savings_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
-                    primaryText: Text(
-                      'No other investments yet',
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
-                    ),
-                    secondaryText: Text(
-                      'Add cash, land, gold, or anything else. Each line is converted to your local currency and included in net worth.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.45),
-                    ),
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double contentWidth = constraints.maxWidth;
+          return RefreshIndicator(
+            onRefresh: _reload,
+            color: _kInvestAccent,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: <Widget>[
+                if (_inv.otherInvestments.isNotEmpty) ...<Widget>[
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                    sliver: SliverToBoxAdapter(child: _OtherInvestmentsSummary(p: p, inv: _inv)),
                   ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int i) {
+                  const SliverPadding(padding: EdgeInsets.only(top: 4), sliver: SliverToBoxAdapter(child: SizedBox())),
+                ],
+                if (_inv.otherInvestments.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: EmptyState(
+                        icon: Icon(Icons.savings_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                        primaryText: Text(
+                          'No other investments yet',
+                          style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                        ),
+                        secondaryText: Text(
+                          'Add cash, land, gold, or anything else. Each line is converted to your local currency and included in net worth.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.45),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  adaptiveCardListSliver(
+                    contentWidth: contentWidth,
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                    itemCount: _inv.otherInvestments.length,
+                    itemBuilder: (BuildContext context, int i) {
                       final OtherInvestment o = _inv.otherInvestments[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Slidable(
+                      return Slidable(
                           key: ValueKey<String>('other_invest_${o.id}'),
                           endActionPane: ActionPane(
                             motion: const DrawerMotion(),
@@ -1347,15 +1348,13 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                               ),
                             ),
                           ),
-                        ),
-                      );
+                        );
                     },
-                    childCount: _inv.otherInvestments.length,
                   ),
-                ),
-              ),
           ],
         ),
+      );
+        },
       );
     });
   }

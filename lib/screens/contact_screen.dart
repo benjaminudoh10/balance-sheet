@@ -71,147 +71,214 @@ class _ContactViewState extends State<ContactView> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final AppPalette p = AppPalette.of(context);
-      final List<Contact> all = _contactController.contacts;
-      final List<Contact> shown = _filtered(all);
+    final AppPalette palette = AppPalette.of(context);
+    final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
-      return Scaffold(
-        backgroundColor: p.background,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+    return Scaffold(
+      backgroundColor: palette.background,
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          Positioned.fill(
+            child: CustomPaint(
+              painter: MidnightGridPainter(
+                heightFraction: 1.0,
+                gridLineColor: palette.gridLine,
               ),
             ),
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      _horizontalPad,
-                      8,
-                      _horizontalPad,
-                      0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _ContactsHeader(
-                          isFiltering: all.isNotEmpty && _searchQuery.isNotEmpty,
+          ),
+          SafeArea(
+            // When the keyboard is up, omit bottom safe padding so the column has a few
+            // extra pixels; header + list + composer otherwise overflow in short viewports.
+            bottom: keyboardInset == 0,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                // [Obx] must wrap the subtree that reads observables — not sit above
+                // [LayoutBuilder], or GetX may not register [RxList] subscriptions.
+                return Obx(() {
+                  final AppPalette p = AppPalette.of(context);
+                  final RxList<Contact> rxContacts = _contactController.contacts;
+                  // Explicit read so Obx registers this [RxList] (GetX 4.7+).
+                  rxContacts.length;
+                  final List<Contact> all = rxContacts;
+                  final List<Contact> shown = _filtered(all);
+
+                  final Orientation orientation =
+                      MediaQuery.orientationOf(context);
+                  final bool landscapeContactsHeader =
+                      orientation == Orientation.landscape && all.isNotEmpty;
+
+                  final bool tightVertical = constraints.maxHeight < 220;
+                  final double headerTopPad = tightVertical ? 4 : 8;
+                  final double afterHeaderGap = tightVertical
+                      ? 8
+                      : (landscapeContactsHeader ? 14 : 20);
+                  final EdgeInsets composerOuter = tightVertical
+                      ? const EdgeInsets.fromLTRB(
+                          _horizontalPad,
+                          4,
+                          _horizontalPad,
+                          6,
+                        )
+                      : const EdgeInsets.fromLTRB(
+                          _horizontalPad,
+                          6,
+                          _horizontalPad,
+                          10,
+                        );
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          _horizontalPad,
+                          headerTopPad,
+                          _horizontalPad,
+                          0,
                         ),
-                        if (all.isNotEmpty) ...[
-                          const SizedBox(height: 18),
-                          _SearchField(controller: _searchController),
-                          const SizedBox(height: 20),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: shown.isEmpty
-                        ? _EmptyContactsState(hasQuery: _searchQuery.isNotEmpty)
-                        : ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(
-                              _horizontalPad,
-                              0,
-                              _horizontalPad,
-                              8,
-                            ),
-                            itemCount: shown.length,
-                            itemBuilder: (context, index) {
-                              final Contact contact = shown[index];
-                              final Color accent = _accentForContactName(contact.name, p);
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Slidable(
-                                  key: ValueKey<int>(contact.id),
-                                  groupTag: 'contact_rows',
-                                  closeOnScroll: true,
-                                  startActionPane: ActionPane(
-                                    motion: const DrawerMotion(),
-                                    extentRatio: 0.28,
-                                    children: <Widget>[
-                                      SlidableAction(
-                                        onPressed: AppHaptics.wrapSlidable(
-                                          (_) => showEditContactSheet(context, contact),
-                                        ),
-                                        backgroundColor: p.mint,
-                                        foregroundColor: Colors.black87,
-                                        icon: Icons.edit_rounded,
-                                        label: 'Edit',
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ],
-                                  ),
-                                  endActionPane: ActionPane(
-                                    motion: const DrawerMotion(),
-                                    extentRatio: 0.28,
-                                    children: <Widget>[
-                                      SlidableAction(
-                                        onPressed: AppHaptics.wrapSlidable((_) {
-                                          _contactController.deleteContact(contact);
-                                        }),
-                                        backgroundColor: p.coral,
-                                        foregroundColor: Colors.white,
-                                        icon: Icons.delete_outline_rounded,
-                                        label: 'Delete',
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ],
-                                  ),
-                                  child: SlidablePeekHint(
-                                    storageKey: AppConstants.SLIDABLE_PEEK_CONTACTS,
-                                    enabled: index == 0,
-                                    child: _ContactTile(
-                                      contact: contact,
-                                      accent: accent,
-                                      onTap: () => showEditContactSheet(context, contact),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (landscapeContactsHeader)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Expanded(
+                                    flex: 3,
+                                    child: _ContactsHeader(
+                                      isFiltering: _searchQuery.isNotEmpty,
                                     ),
                                   ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    flex: 2,
+                                    child: _SearchField(controller: _searchController),
+                                  ),
+                                ],
+                              )
+                            else ...<Widget>[
+                              _ContactsHeader(
+                                isFiltering:
+                                    all.isNotEmpty && _searchQuery.isNotEmpty,
+                              ),
+                              if (all.isNotEmpty) ...<Widget>[
+                                SizedBox(height: tightVertical ? 12 : 18),
+                                _SearchField(controller: _searchController),
+                              ],
+                            ],
+                            if (all.isNotEmpty) SizedBox(height: afterHeaderGap),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: shown.isEmpty
+                            ? _EmptyContactsState(
+                                hasQuery: _searchQuery.isNotEmpty,
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                  _horizontalPad,
+                                  0,
+                                  _horizontalPad,
+                                  8,
                                 ),
+                                itemCount: shown.length,
+                                itemBuilder: (context, index) {
+                                  final Contact contact = shown[index];
+                                  final Color accent =
+                                      _accentForContactName(contact.name, p);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Slidable(
+                                      key: ValueKey<int>(contact.id),
+                                      groupTag: 'contact_rows',
+                                      closeOnScroll: true,
+                                      startActionPane: ActionPane(
+                                        motion: const DrawerMotion(),
+                                        extentRatio: 0.28,
+                                        children: <Widget>[
+                                          SlidableAction(
+                                            onPressed: AppHaptics.wrapSlidable(
+                                              (_) => showEditContactSheet(
+                                                  context, contact),
+                                            ),
+                                            backgroundColor: p.mint,
+                                            foregroundColor: Colors.black87,
+                                            icon: Icons.edit_rounded,
+                                            label: 'Edit',
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ],
+                                      ),
+                                      endActionPane: ActionPane(
+                                        motion: const DrawerMotion(),
+                                        extentRatio: 0.28,
+                                        children: <Widget>[
+                                          SlidableAction(
+                                            onPressed:
+                                                AppHaptics.wrapSlidable((_) {
+                                              _contactController
+                                                  .deleteContact(contact);
+                                            }),
+                                            backgroundColor: p.coral,
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.delete_outline_rounded,
+                                            label: 'Delete',
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ],
+                                      ),
+                                      child: SlidablePeekHint(
+                                        storageKey:
+                                            AppConstants.SLIDABLE_PEEK_CONTACTS,
+                                        enabled: index == 0,
+                                        child: _ContactTile(
+                                          contact: contact,
+                                          accent: accent,
+                                          onTap: () => showEditContactSheet(
+                                              context, contact),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      Padding(
+                        padding: composerOuter,
+                        child: _ComposerDock(
+                          contactController: _contactController,
+                          onAddTap: () {
+                            if (contactDataInvalid()) {
+                              Get.snackbar(
+                                'Error',
+                                'Name is required',
+                                colorText: p.textPrimary,
+                                snackPosition: SnackPosition.TOP,
+                                backgroundColor: p.coral.withValues(alpha: 0.85),
                               );
-                            },
-                          ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      _horizontalPad,
-                      6,
-                      _horizontalPad,
-                      10,
-                    ),
-                    child: _ComposerDock(
-                      contactController: _contactController,
-                      onAddTap: () {
-                        if (contactDataInvalid()) {
-                          Get.snackbar(
-                            'Error',
-                            'Name is required',
-                            colorText: p.textPrimary,
-                            snackPosition: SnackPosition.TOP,
-                            backgroundColor: p.coral.withValues(alpha: 0.85),
-                          );
-                          return;
-                        }
-                        final Contact contact = Contact(
-                          name: _contactController.name.value,
-                        );
-                        _contactController.addContact(contact);
-                      },
-                      contactDataInvalid: contactDataInvalid,
-                    ),
-                  ),
-                ],
-              ),
+                              return;
+                            }
+                            final Contact contact = Contact(
+                              name: _contactController.name.value,
+                            );
+                            _contactController.addContact(contact);
+                          },
+                          contactDataInvalid: contactDataInvalid,
+                        ),
+                      ),
+                    ],
+                  );
+                });
+              },
             ),
-          ],
-        ),
-      );
-    });
+          ),
+        ],
+      ),
+    );
   }
 
   bool contactDataInvalid() {

@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
@@ -125,61 +126,70 @@ class _ReportViewState extends State<ReportView> {
             ),
           ),
           SafeArea(
-            child: Obx(() => CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(_horizontalPad, 8, _horizontalPad, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _ReportPeriodSummaryCard(controller: _reportController),
-                            const SizedBox(height: 14),
-                            _ReportFiltersSection(controller: _reportController),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (_reportController.transactions.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: EmptyState(
-                          icon: Icon(
-                            Icons.receipt_long_outlined,
-                            size: 48,
-                            color: p.mint.withValues(alpha: 0.7),
-                          ),
-                          primaryText: Text(
-                            'No transactions in this period',
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: p.textPrimary,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final double contentWidth = constraints.maxWidth;
+                return Obx(() => CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(_horizontalPad, 8, _horizontalPad, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _ReportPeriodSummaryCard(controller: _reportController),
+                                const SizedBox(height: 14),
+                                _ReportFiltersSection(controller: _reportController),
+                                const SizedBox(height: 16),
+                              ],
                             ),
                           ),
-                          secondaryText: Text(
-                            _hasActiveFilters(_reportController)
-                                ? 'Try clearing filters or choosing another date range'
-                                : 'Change the period above or add entries from Home',
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: p.textSecondary,
+                        ),
+                        if (_reportController.transactions.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: EmptyState(
+                              icon: Icon(
+                                Icons.receipt_long_outlined,
+                                size: 48,
+                                color: p.mint.withValues(alpha: 0.7),
+                              ),
+                              primaryText: Text(
+                                'No transactions in this period',
+                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: p.textPrimary,
+                                    ),
+                              ),
+                              secondaryText: Text(
+                                _hasActiveFilters(_reportController)
+                                    ? 'Try clearing filters or choosing another date range'
+                                    : 'Change the period above or add entries from Home',
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                      color: p.textSecondary,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 28),
+                            sliver: SliverList(
+                              delegate: SliverChildListDelegate(
+                                _buildGroupedTransactionSlivers(
+                                  context,
+                                  _reportController,
+                                  contentWidth,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 28),
-                        sliver: SliverList(
-                          delegate: SliverChildListDelegate(
-                            _buildGroupedTransactionSlivers(context, _reportController),
-                          ),
-                        ),
-                      ),
-                  ],
-                )),
+                      ],
+                    ));
+              },
+            ),
           ),
         ],
       ),
@@ -193,11 +203,16 @@ bool _hasActiveFilters(ReportController c) {
   return cat || contact;
 }
 
-List<Widget> _buildGroupedTransactionSlivers(BuildContext context, ReportController c) {
+List<Widget> _buildGroupedTransactionSlivers(
+  BuildContext context,
+  ReportController c,
+  double contentWidth,
+) {
   final Map<int, List<Transaction>> map = c.splitTransactions;
   final List<int> keys = map.keys.toList()..sort((a, b) => b.compareTo(a));
-  final List<Widget> out = [];
+  final List<Widget> out = <Widget>[];
   bool applyPeekToNextTransaction = true;
+  final bool twoCol = contentWidth >= AppConstants.homeTransactionTwoColumnMinWidth;
 
   for (final int dayStart in keys) {
     final List<Transaction> dayTx = map[dayStart] ?? [];
@@ -213,21 +228,62 @@ List<Widget> _buildGroupedTransactionSlivers(BuildContext context, ReportControl
     ));
     out.add(const SizedBox(height: 10));
 
-    for (int i = 0; i < dayTx.length; i++) {
-      final bool peek = applyPeekToNextTransaction;
-      if (peek) {
-        applyPeekToNextTransaction = false;
-      }
-      out.add(
-        Padding(
-          padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
-          child: singleTransactionContainer(
-            context,
-            dayTx[i],
-            applySlidablePeek: peek,
+    if (!twoCol) {
+      for (int i = 0; i < dayTx.length; i++) {
+        final bool peek = applyPeekToNextTransaction;
+        if (peek) {
+          applyPeekToNextTransaction = false;
+        }
+        out.add(
+          Padding(
+            padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
+            child: singleTransactionContainer(
+              context,
+              dayTx[i],
+              applySlidablePeek: peek,
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } else {
+      final int rows = (dayTx.length + 1) ~/ 2;
+      for (int row = 0; row < rows; row++) {
+        final int i0 = row * 2;
+        final int? i1 = i0 + 1 < dayTx.length ? i0 + 1 : null;
+
+        final bool peekLeft = applyPeekToNextTransaction;
+        if (peekLeft) {
+          applyPeekToNextTransaction = false;
+        }
+
+        out.add(
+          Padding(
+            padding: EdgeInsets.only(bottom: row == rows - 1 ? 18 : 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: singleTransactionContainer(
+                    context,
+                    dayTx[i0],
+                    applySlidablePeek: peekLeft,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: i1 != null
+                      ? singleTransactionContainer(
+                          context,
+                          dayTx[i1],
+                          applySlidablePeek: false,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     }
   }
 

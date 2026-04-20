@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/insights_screen.dart';
@@ -6,6 +9,7 @@ import 'package:balance_sheet/screens/budget_screen.dart';
 import 'package:balance_sheet/screens/settings_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
+import 'package:balance_sheet/widgets/midnight_navigation_rail.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:flutter/material.dart';
@@ -40,40 +44,105 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => PopScope(
-          canPop: _appController.index.value == 0,
-          onPopInvokedWithResult: (bool didPop, Object? result) {
-            if (!didPop && _appController.index.value != 0) {
-              _appController.setIndex(0);
-            }
-          },
-          child: Scaffold(
-            body: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                _bodyForIndex(_appController.index.value),
-                if (_planHubOpen)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        AppHaptics.light();
-                        setState(() => _planHubOpen = false);
-                      },
-                      child: ColoredBox(color: AppPalette.of(context).overlay),
-                    ),
-                  ),
-              ],
-            ),
-            bottomNavigationBar: const MidnightBottomNav(),
-            floatingActionButton: _appController.index.value == 0
-                ? PlanHubFab(
-                    expanded: _planHubOpen,
-                    onExpandedChanged: (bool v) => setState(() => _planHubOpen = v),
-                  )
-                : null,
-          ),
-        ));
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool useRail = constraints.maxWidth >= AppConstants.adaptiveNavRailMinWidth;
+        return Obx(() => PopScope(
+              canPop: _appController.index.value == 0,
+              onPopInvokedWithResult: (bool didPop, Object? result) {
+                if (!didPop && _appController.index.value != 0) {
+                  _appController.setIndex(0);
+                }
+              },
+              child: Scaffold(
+                body: useRail
+                    ? SafeArea(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            const MidnightNavigationRail(),
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (BuildContext context, BoxConstraints inner) {
+                                  final double bodyW = math.min(
+                                    AppConstants.adaptiveContentMaxWidth,
+                                    inner.maxWidth,
+                                  );
+                                  final double trailing =
+                                      (inner.maxWidth - bodyW) / 2 + 24.0;
+                                  final double bottomInset =
+                                      MediaQuery.paddingOf(context).bottom;
+                                  return Stack(
+                                    fit: StackFit.expand,
+                                    clipBehavior: Clip.none,
+                                    children: <Widget>[
+                                      Align(
+                                        alignment: Alignment.topCenter,
+                                        child: SizedBox(
+                                          width: bodyW,
+                                          height: inner.maxHeight,
+                                          child: _bodyForIndex(_appController.index.value),
+                                        ),
+                                      ),
+                                      if (_planHubOpen)
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              AppHaptics.light();
+                                              setState(() => _planHubOpen = false);
+                                            },
+                                            child: ColoredBox(
+                                              color: AppPalette.of(context).overlay,
+                                            ),
+                                          ),
+                                        ),
+                                      if (_appController.index.value == 0)
+                                        Positioned(
+                                          right: trailing,
+                                          bottom: 16 + bottomInset,
+                                          child: PlanHubFab(
+                                            expanded: _planHubOpen,
+                                            onExpandedChanged: (bool v) =>
+                                                setState(() => _planHubOpen = v),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Stack(
+                        fit: StackFit.expand,
+                        children: <Widget>[
+                          _bodyForIndex(_appController.index.value),
+                          if (_planHubOpen)
+                            Positioned.fill(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  AppHaptics.light();
+                                  setState(() => _planHubOpen = false);
+                                },
+                                child: ColoredBox(color: AppPalette.of(context).overlay),
+                              ),
+                            ),
+                        ],
+                      ),
+                bottomNavigationBar: useRail ? null : const MidnightBottomNav(),
+                floatingActionButton: !useRail && _appController.index.value == 0
+                    ? PlanHubFab(
+                        expanded: _planHubOpen,
+                        onExpandedChanged: (bool v) => setState(() => _planHubOpen = v),
+                      )
+                    : null,
+              ),
+            ));
+      },
+    );
   }
 
   Widget _bodyForIndex(int index) {

@@ -7,12 +7,14 @@ import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dar
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
+import 'package:balance_sheet/widgets/adaptive_card_sliver_list.dart';
 import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,84 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 const double _horizontalPad = 20.0;
+
+double _homeHorizontalPad(double contentWidth) {
+  return contentWidth >= AppConstants.adaptiveNavRailMinWidth
+      ? 24.0
+      : _horizontalPad;
+}
+
+/// Compact: pager. Adaptive (no pager): stacked, then side-by-side when wide enough.
+///
+/// [contentWidth] is the main column width (breakpoints). [heroLayoutWidth] is the width inside
+/// [SliverPadding] horizontal insets — use this for the side-by-side [Row] so it does not overflow.
+Widget _homeHeroForContentWidth({
+  required AppPalette palette,
+  required double contentWidth,
+  required double heroLayoutWidth,
+  required Widget balanceCard,
+  required Widget netWorthStrip,
+}) {
+  if (contentWidth < AppConstants.adaptiveNavRailMinWidth) {
+    return _BalanceNetWorthPager(
+      palette: palette,
+      balanceCard: balanceCard,
+      netWorthStrip: netWorthStrip,
+    );
+  }
+  if (contentWidth < AppConstants.homeHeroSideBySideMinWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        balanceCard,
+        const SizedBox(height: 14),
+        netWorthStrip,
+      ],
+    );
+  }
+  // Fixed column widths from [heroLayoutWidth] (already excludes horizontal sliver padding).
+  const double gap = 14.0;
+  final double inner = (heroLayoutWidth - gap).clamp(0.0, double.infinity);
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: <Widget>[
+      SizedBox(
+        width: inner * 11 / 20,
+        child: balanceCard,
+      ),
+      SizedBox(width: gap),
+      SizedBox(
+        width: inner * 9 / 20,
+        child: netWorthStrip,
+      ),
+    ],
+  );
+}
+
+Widget _homeTransactionListSliver({
+  required BuildContext context,
+  required List<Transaction> list,
+  required double contentWidth,
+  required double horizontalPad,
+}) {
+  return adaptiveCardListSliver(
+    contentWidth: contentWidth,
+    padding: EdgeInsets.fromLTRB(
+      horizontalPad,
+      0,
+      horizontalPad,
+      24 + kPlanHubFabTrailingClearance,
+    ),
+    itemCount: list.length,
+    itemBuilder: (BuildContext context, int index) {
+      return singleTransactionContainer(
+        context,
+        list[index],
+        applySlidablePeek: index == 0,
+      );
+    },
+  );
+}
 
 /// Extra [PageView] height so the net-worth strip (header + dual totals + rows) does not clip
 /// when matched to the balance card height.
@@ -38,132 +118,145 @@ class MainView extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(_horizontalPad, 12, _horizontalPad, 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Balanced',
-                      style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                        color: p.textPrimary,
-                        letterSpacing: -0.5,
+          LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints outer) {
+              final double contentWidth = outer.maxWidth;
+              final double hPad = _homeHorizontalPad(contentWidth);
+              final double paddedInnerWidth =
+                  (contentWidth - 2 * hPad).clamp(0.0, double.infinity);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Balanced',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineLarge!
+                              .copyWith(
+                                color: p.textPrimary,
+                                letterSpacing: -0.5,
+                              ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: Obx(() {
-                  final list = _transactionController.transactions;
-                  final int ledgerMinor = _transactionController.total.value;
-                  final InvestmentController inv = Get.find<InvestmentController>();
-                  final int stocksMinor = inv.stocksTotalMinor.value;
-                  final int otherInvestMinor = inv.otherInvestmentsTotalMinor.value;
-                  return CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: _horizontalPad),
-                        sliver: SliverToBoxAdapter(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _BalanceNetWorthPager(
-                                palette: p,
-                                balanceCard: _GlassBalanceCard(
-                                  total: _transactionController.total.value,
-                                  todayIncome: _transactionController.todaysIncome.value,
-                                  todayExpense: _transactionController.todaysExpense.value,
-                                ),
-                                netWorthStrip: _NetWorthStrip(
-                                  ledgerMinor: ledgerMinor,
-                                  stocksMinor: stocksMinor,
-                                  otherInvestmentsMinor: otherInvestMinor,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _IncomeExpenseRow(),
-                              if (list.isNotEmpty) ...[
-                                const SizedBox(height: 28),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Recent Transactions',
-                                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                      color: p.textPrimary,
+                  Expanded(
+                    child: Obx(() {
+                      final list = _transactionController.transactions;
+                      final int ledgerMinor =
+                          _transactionController.total.value;
+                      final InvestmentController inv =
+                          Get.find<InvestmentController>();
+                      final int stocksMinor = inv.stocksTotalMinor.value;
+                      final int otherInvestMinor =
+                          inv.otherInvestmentsTotalMinor.value;
+                      final Widget balanceCard = _GlassBalanceCard(
+                        total: _transactionController.total.value,
+                        todayIncome: _transactionController.todaysIncome.value,
+                        todayExpense:
+                            _transactionController.todaysExpense.value,
+                      );
+                      final Widget netWorthStrip = _NetWorthStrip(
+                        ledgerMinor: ledgerMinor,
+                        stocksMinor: stocksMinor,
+                        otherInvestmentsMinor: otherInvestMinor,
+                      );
+                      return CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: <Widget>[
+                          SliverPadding(
+                            padding: EdgeInsets.symmetric(horizontal: hPad),
+                            sliver: SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  _homeHeroForContentWidth(
+                                    palette: p,
+                                    contentWidth: contentWidth,
+                                    heroLayoutWidth: paddedInnerWidth,
+                                    balanceCard: balanceCard,
+                                    netWorthStrip: netWorthStrip,
+                                  ),
+                                  const SizedBox(height: 18),
+                                  _IncomeExpenseRow(),
+                                  if (list.isNotEmpty) ...<Widget>[
+                                    const SizedBox(height: 28),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Recent Transactions',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge!
+                                            .copyWith(
+                                              color: p.textPrimary,
+                                            ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (list.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: kPlanHubFabTrailingClearance),
-                            child: EmptyState(
-                              icon: Icon(
-                                Icons.receipt_long_outlined,
-                                size: 48,
-                                color: p.mint.withValues(alpha: 0.7),
-                              ),
-                              primaryText: Text(
-                                'Add your first transaction today',
-                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: p.textPrimary,
-                                ),
-                              ),
-                              secondaryText: Text(
-                                'Tap Income or Expense above.',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  color: p.textSecondary,
-                                ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                            _horizontalPad,
-                            0,
-                            _horizontalPad,
-                            24 + kPlanHubFabTrailingClearance,
-                          ),
-                          sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : 10),
-                                  child: singleTransactionContainer(
-                                    context,
-                                    list[index],
-                                    applySlidablePeek: index == 0,
+                          if (list.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: kPlanHubFabTrailingClearance),
+                                child: EmptyState(
+                                  icon: Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 48,
+                                    color: p.mint.withValues(alpha: 0.7),
                                   ),
-                                );
-                              },
-                              childCount: list.length,
+                                  primaryText: Text(
+                                    'Add your first transaction today',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: p.textPrimary,
+                                        ),
+                                  ),
+                                  secondaryText: Text(
+                                    'Tap Income or Expense above.',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                          color: p.textSecondary,
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            _homeTransactionListSliver(
+                              context: context,
+                              list: list,
+                              contentWidth: paddedInnerWidth,
+                              horizontalPad: hPad,
                             ),
-                          ),
-                        ),
-                    ],
-                  );
-                }),
-              ),
-            ],
+                        ],
+                      );
+                    }),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -209,7 +302,8 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
   }
 
   void _scheduleMeasureBalanceHeight() {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureBalanceHeight());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _measureBalanceHeight());
   }
 
   void _measureBalanceHeight() {
@@ -379,7 +473,9 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
                   'Balance',
                   style: textTheme.labelMedium!.copyWith(
                     letterSpacing: 0.2,
-                    color: _index == 0 ? p.mint : p.textSecondary.withValues(alpha: 0.75),
+                    color: _index == 0
+                        ? p.mint
+                        : p.textSecondary.withValues(alpha: 0.75),
                     fontWeight: _index == 0 ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
@@ -396,7 +492,9 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
                   'Net worth',
                   style: textTheme.labelMedium!.copyWith(
                     letterSpacing: 0.2,
-                    color: _index == 1 ? p.mint : p.textSecondary.withValues(alpha: 0.75),
+                    color: _index == 1
+                        ? p.mint
+                        : p.textSecondary.withValues(alpha: 0.75),
                     fontWeight: _index == 1 ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
@@ -458,7 +556,9 @@ class _HomeCardPagerDot extends StatelessWidget {
       height: 7,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
-        color: active ? p.mint.withValues(alpha: 0.95) : p.border.withValues(alpha: 0.9),
+        color: active
+            ? p.mint.withValues(alpha: 0.95)
+            : p.border.withValues(alpha: 0.9),
       ),
     );
   }
@@ -488,7 +588,9 @@ class _CompactAmountVisibilityToggle extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(4),
             child: Icon(
-              amountsVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              amountsVisible
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               size: 20,
               color: iconColor,
             ),
@@ -513,67 +615,100 @@ class _NetWorthStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+    final SummaryAmountsPrivacyController priv =
+        Get.find<SummaryAmountsPrivacyController>();
     final int total = ledgerMinor + stocksMinor + otherInvestmentsMinor;
-    final TextStyle totalPrimary = Theme.of(context).textTheme.titleLarge!.copyWith(
-          color: p.textPrimary,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.3,
-        );
-    final TextStyle totalSecondary = Theme.of(context).textTheme.bodySmall!.copyWith(
-          color: p.textSecondary,
-          fontWeight: FontWeight.w500,
-        );
+    final TextStyle totalPrimary =
+        Theme.of(context).textTheme.titleLarge!.copyWith(
+              color: p.textPrimary,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            );
+    final TextStyle totalSecondary =
+        Theme.of(context).textTheme.bodySmall!.copyWith(
+              color: p.textSecondary,
+              fontWeight: FontWeight.w500,
+            );
     return Obx(() {
       final bool showAmt = priv.showHomeSummaryAmounts.value;
       return Container(
+        width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: p.surface.withValues(alpha: 0.78),
-          border: Border.all(color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
+          border: Border.all(
+              color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            Row(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints c) {
+            // [Spacer] requires a finite max height. In the home pager we match balance height
+            // (bounded); in scroll / wide layouts max height is unbounded — use fixed gap instead.
+            final bool canFillMiddle = c.maxHeight.isFinite;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: canFillMiddle ? MainAxisSize.max : MainAxisSize.min,
               children: <Widget>[
-                Icon(Icons.pie_chart_outline_rounded, size: 18, color: _kNetWorthInvestAccent.withValues(alpha: 0.95)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Net worth',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: p.textSecondary,
-                          letterSpacing: 0.2,
-                        ),
-                  ),
+                Row(
+                  children: <Widget>[
+                    Icon(Icons.pie_chart_outline_rounded,
+                        size: 18,
+                        color:
+                            _kNetWorthInvestAccent.withValues(alpha: 0.95)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Net worth',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge!
+                            .copyWith(
+                              color: p.textSecondary,
+                              letterSpacing: 0.2,
+                            ),
+                      ),
+                    ),
+                    _CompactAmountVisibilityToggle(
+                      amountsVisible: showAmt,
+                      iconColor: p.textSecondary.withValues(alpha: 0.88),
+                      onPressed: () {
+                        AppHaptics.light();
+                        priv.toggleHomeSummaryAmounts();
+                      },
+                    ),
+                  ],
                 ),
-                _CompactAmountVisibilityToggle(
-                  amountsVisible: showAmt,
-                  iconColor: p.textSecondary.withValues(alpha: 0.88),
-                  onPressed: () {
-                    AppHaptics.light();
-                    priv.toggleHomeSummaryAmounts();
-                  },
+                const SizedBox(height: 6),
+                DualCurrencyTotal(
+                  lcyMinor: total,
+                  textAlign: TextAlign.start,
+                  compactSecondary: true,
+                  primaryStyle: totalPrimary,
+                  secondaryStyle: totalSecondary,
+                  obscureAmount: !showAmt,
                 ),
+                if (canFillMiddle)
+                  const Spacer()
+                else
+                  const SizedBox(height: 12),
+                _NetWorthRow(
+                    label: 'Ledger balance',
+                    minor: ledgerMinor,
+                    palette: p,
+                    obscureAmount: !showAmt),
+                _NetWorthRow(
+                    label: 'Investments',
+                    minor: stocksMinor,
+                    palette: p,
+                    obscureAmount: !showAmt),
+                _NetWorthRow(
+                    label: 'Other investments',
+                    minor: otherInvestmentsMinor,
+                    palette: p,
+                    obscureAmount: !showAmt),
               ],
-            ),
-            const SizedBox(height: 6),
-            DualCurrencyTotal(
-              lcyMinor: total,
-              textAlign: TextAlign.start,
-              compactSecondary: true,
-              primaryStyle: totalPrimary,
-              secondaryStyle: totalSecondary,
-              obscureAmount: !showAmt,
-            ),
-            const Spacer(),
-            _NetWorthRow(label: 'Ledger balance', minor: ledgerMinor, palette: p, obscureAmount: !showAmt),
-            _NetWorthRow(label: 'Investments', minor: stocksMinor, palette: p, obscureAmount: !showAmt),
-            _NetWorthRow(label: 'Other investments', minor: otherInvestmentsMinor, palette: p, obscureAmount: !showAmt),
-          ],
+            );
+          },
         ),
       );
     });
@@ -595,14 +730,16 @@ class _NetWorthRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle primaryAmt = Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: palette.textPrimary,
-          fontWeight: FontWeight.w600,
-        );
-    final TextStyle secondaryAmt = Theme.of(context).textTheme.bodySmall!.copyWith(
-          color: palette.textSecondary,
-          fontWeight: FontWeight.w500,
-        );
+    final TextStyle primaryAmt =
+        Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: palette.textPrimary,
+              fontWeight: FontWeight.w600,
+            );
+    final TextStyle secondaryAmt =
+        Theme.of(context).textTheme.bodySmall!.copyWith(
+              color: palette.textSecondary,
+              fontWeight: FontWeight.w500,
+            );
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
@@ -612,7 +749,10 @@ class _NetWorthRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: palette.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: palette.textSecondary),
             ),
           ),
           Obx(() {
@@ -672,7 +812,8 @@ class _GlassBalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+    final SummaryAmountsPrivacyController priv =
+        Get.find<SummaryAmountsPrivacyController>();
     final int todayNet = todayIncome - todayExpense;
     final bool isTotalLoss = total < 0;
     final bool isDailyLoss = todayNet < 0;
@@ -684,6 +825,7 @@ class _GlassBalanceCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
+          width: double.infinity,
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
@@ -710,7 +852,10 @@ class _GlassBalanceCard extends StatelessWidget {
                       lcyMinor: total,
                       textAlign: TextAlign.center,
                       obscureAmount: !showAmt,
-                      primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
+                      primaryStyle: Theme.of(context)
+                          .textTheme
+                          .displaySmall!
+                          .copyWith(
                             color: p.textPrimary,
                             letterSpacing: -0.6,
                           ),
@@ -723,7 +868,10 @@ class _GlassBalanceCard extends StatelessWidget {
                         Text(
                           showAmt ? formatSignedNet(todayNet) : '*****',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(
                                 color: netColor,
                                 letterSpacing: showAmt ? -0.2 : 2.5,
                                 fontWeight: FontWeight.w600,
@@ -733,7 +881,10 @@ class _GlassBalanceCard extends StatelessWidget {
                         Text(
                           'Today',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium!
+                              .copyWith(
                                 color: p.textSecondary,
                                 letterSpacing: 0.8,
                                 height: 1.0,
@@ -752,7 +903,8 @@ class _GlassBalanceCard extends StatelessWidget {
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: cardAccent,
-                          side: BorderSide(color: cardAccent.withValues(alpha: 0.45)),
+                          side: BorderSide(
+                              color: cardAccent.withValues(alpha: 0.45)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
@@ -763,7 +915,10 @@ class _GlassBalanceCard extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               'All transactions',
-                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall!
+                                  .copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),
@@ -874,9 +1029,9 @@ class _ActionPill extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w700,
-                ),
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ],
           ),
