@@ -5,6 +5,7 @@ import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/splash.dart';
@@ -22,6 +23,7 @@ void main() async {
   Get.put(TransactionController());
   Get.put(SecurityController());
   Get.put(AppController());
+  Get.put(SummaryAmountsPrivacyController());
   Get.put(ContactController());
   Get.put(BudgetController());
   Get.put(InvestmentController());

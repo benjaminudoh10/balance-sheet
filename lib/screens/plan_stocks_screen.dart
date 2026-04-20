@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
+import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
 import 'package:balance_sheet/database/investment_operations.dart' as inv;
 import 'package:balance_sheet/investment/investment_days.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
@@ -1470,6 +1471,8 @@ class _PortfolioSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+      final bool showAmt = priv.showInvestmentSummaryAmounts.value;
       final int total = inv.stocksTotalMinor.value;
       final int d = inv.portfolioDayChangeMinor.value;
       final double? pct = inv.portfolioDayChangePct.value;
@@ -1488,6 +1491,7 @@ class _PortfolioSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
                   child: Text(
@@ -1496,32 +1500,70 @@ class _PortfolioSummary extends StatelessWidget {
                   ),
                 ),
                 if (pct != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Icon(up ? Icons.north_east_rounded : Icons.south_east_rounded, size: 16, color: up ? p.mint : p.coral),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${up ? '+' : ''}${pct.toStringAsFixed(2)}% (${up ? '+' : '−'}${formatAmount(d.abs())})',
-                            style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                                  color: up ? p.mint : p.coral,
-                                  fontWeight: FontWeight.w600,
+                  showAmt
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(up ? Icons.north_east_rounded : Icons.south_east_rounded, size: 16, color: up ? p.mint : p.coral),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${up ? '+' : ''}${pct.toStringAsFixed(2)}% (${up ? '+' : '−'}${formatAmount(d.abs())})',
+                                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                        color: up ? p.mint : p.coral,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                 ),
-                          ),
-                        ],
-                      ),
-                      Text('Today', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
-                    ],
+                              ],
+                            ),
+                            Text('Today', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(up ? Icons.north_east_rounded : Icons.south_east_rounded, size: 16, color: up ? p.mint : p.coral),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '****',
+                                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                        color: up ? p.mint : p.coral,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 2,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            Text('Today', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
+                          ],
+                        ),
+                IconButton(
+                  tooltip: showAmt ? 'Hide amounts' : 'Show amounts',
+                  onPressed: () {
+                    AppHaptics.light();
+                    priv.toggleInvestmentSummaryAmounts();
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  icon: Icon(
+                    showAmt ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    size: 22,
+                    color: p.textSecondary.withValues(alpha: 0.88),
                   ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             DualCurrencyTotal(
               lcyMinor: total,
               textAlign: TextAlign.start,
+              obscureAmount: !showAmt,
               primaryStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
                     color: p.textPrimary,
                     fontWeight: FontWeight.w800,
@@ -1553,6 +1595,8 @@ class _OtherInvestmentsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+      final bool showAmt = priv.showInvestmentSummaryAmounts.value;
       final int total = inv.otherInvestmentsTotalMinor.value;
       final int n = inv.otherInvestments.length;
       return Container(
@@ -1568,14 +1612,37 @@ class _OtherInvestmentsSummary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Total other investments',
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    'Total other investments',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
+                  ),
+                ),
+                IconButton(
+                  tooltip: showAmt ? 'Hide amounts' : 'Show amounts',
+                  onPressed: () {
+                    AppHaptics.light();
+                    priv.toggleInvestmentSummaryAmounts();
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  icon: Icon(
+                    showAmt ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    size: 22,
+                    color: p.textSecondary.withValues(alpha: 0.88),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             DualCurrencyTotal(
               lcyMinor: total,
               textAlign: TextAlign.start,
+              obscureAmount: !showAmt,
               primaryStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
                     color: p.textPrimary,
                     fontWeight: FontWeight.w800,

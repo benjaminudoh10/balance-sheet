@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
+import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/enums.dart';
@@ -19,6 +20,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 const double _horizontalPad = 20.0;
+
+/// Extra [PageView] height so the net-worth strip (header + dual totals + rows) does not clip
+/// when matched to the balance card height.
+const double _kHomeBalancePagerHeightSlack = 28.0;
 
 class MainView extends StatelessWidget {
   final TransactionController _transactionController = Get.find();
@@ -212,7 +217,10 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
     if (ctx == null || !mounted) return;
     final RenderObject? ro = ctx.findRenderObject();
     if (ro is! RenderBox || !ro.hasSize) return;
-    final double h = ro.size.height;
+    // Use intrinsic card height + slack. The balance card Column must use
+    // [MainAxisSize.min] so it does not expand to the pager [SizedBox] height;
+    // otherwise each measure grows by slack again (unbounded height).
+    final double h = ro.size.height + _kHomeBalancePagerHeightSlack;
     if (_pageHeight == null || (h - _pageHeight!).abs() > 0.5) {
       setState(() => _pageHeight = h);
     }
@@ -456,6 +464,41 @@ class _HomeCardPagerDot extends StatelessWidget {
   }
 }
 
+/// Tighter than [IconButton] so paired summary cards fit the home pager height.
+class _CompactAmountVisibilityToggle extends StatelessWidget {
+  const _CompactAmountVisibilityToggle({
+    required this.amountsVisible,
+    required this.onPressed,
+    required this.iconColor,
+  });
+
+  final bool amountsVisible;
+  final VoidCallback onPressed;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: amountsVisible ? 'Hide amounts' : 'Show amounts',
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Icon(
+              amountsVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              size: 20,
+              color: iconColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NetWorthStrip extends StatelessWidget {
   const _NetWorthStrip({
     required this.ledgerMinor,
@@ -470,6 +513,7 @@ class _NetWorthStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
+    final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
     final int total = ledgerMinor + stocksMinor + otherInvestmentsMinor;
     final TextStyle totalPrimary = Theme.of(context).textTheme.titleLarge!.copyWith(
           color: p.textPrimary,
@@ -480,45 +524,59 @@ class _NetWorthStrip extends StatelessWidget {
           color: p.textSecondary,
           fontWeight: FontWeight.w500,
         );
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: p.surface.withValues(alpha: 0.78),
-        border: Border.all(color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(Icons.pie_chart_outline_rounded, size: 18, color: _kNetWorthInvestAccent.withValues(alpha: 0.95)),
-              const SizedBox(width: 8),
-              Text(
-                'Net worth',
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      color: p.textSecondary,
-                      letterSpacing: 0.2,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          DualCurrencyTotal(
-            lcyMinor: total,
-            textAlign: TextAlign.start,
-            compactSecondary: true,
-            primaryStyle: totalPrimary,
-            secondaryStyle: totalSecondary,
-          ),
-          const Spacer(),
-          _NetWorthRow(label: 'Ledger balance', minor: ledgerMinor, palette: p),
-          _NetWorthRow(label: 'Investments', minor: stocksMinor, palette: p),
-          _NetWorthRow(label: 'Other investments', minor: otherInvestmentsMinor, palette: p),
-        ],
-      ),
-    );
+    return Obx(() {
+      final bool showAmt = priv.showHomeSummaryAmounts.value;
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: p.surface.withValues(alpha: 0.78),
+          border: Border.all(color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Icon(Icons.pie_chart_outline_rounded, size: 18, color: _kNetWorthInvestAccent.withValues(alpha: 0.95)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Net worth',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          color: p.textSecondary,
+                          letterSpacing: 0.2,
+                        ),
+                  ),
+                ),
+                _CompactAmountVisibilityToggle(
+                  amountsVisible: showAmt,
+                  iconColor: p.textSecondary.withValues(alpha: 0.88),
+                  onPressed: () {
+                    AppHaptics.light();
+                    priv.toggleHomeSummaryAmounts();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            DualCurrencyTotal(
+              lcyMinor: total,
+              textAlign: TextAlign.start,
+              compactSecondary: true,
+              primaryStyle: totalPrimary,
+              secondaryStyle: totalSecondary,
+              obscureAmount: !showAmt,
+            ),
+            const Spacer(),
+            _NetWorthRow(label: 'Ledger balance', minor: ledgerMinor, palette: p, obscureAmount: !showAmt),
+            _NetWorthRow(label: 'Investments', minor: stocksMinor, palette: p, obscureAmount: !showAmt),
+            _NetWorthRow(label: 'Other investments', minor: otherInvestmentsMinor, palette: p, obscureAmount: !showAmt),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -527,11 +585,13 @@ class _NetWorthRow extends StatelessWidget {
     required this.label,
     required this.minor,
     required this.palette,
+    required this.obscureAmount,
   });
 
   final String label;
   final int minor;
   final AppPalette palette;
+  final bool obscureAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -557,6 +617,15 @@ class _NetWorthRow extends StatelessWidget {
           ),
           Obx(() {
             final CurrencyController c = Get.find<CurrencyController>();
+            if (obscureAmount) {
+              return ObscuredAggregateAmount(
+                textAlign: TextAlign.end,
+                primaryStyle: primaryAmt,
+                secondaryStyle: secondaryAmt,
+                compactSecondary: true,
+                dualLine: c.showDualTotals,
+              );
+            }
             if (!c.showDualTotals) {
               return Text(
                 formatAmount(minor),
@@ -603,6 +672,7 @@ class _GlassBalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
+    final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
     final int todayNet = todayIncome - todayExpense;
     final bool isTotalLoss = total < 0;
     final bool isDailyLoss = todayNet < 0;
@@ -627,75 +697,99 @@ class _GlassBalanceCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              DualCurrencyTotal(
-                lcyMinor: total,
-                textAlign: TextAlign.center,
-                primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.6,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    formatSignedNet(todayNet),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      color: netColor,
-                      letterSpacing: -0.2,
+          child: Obx(() {
+            final bool showAmt = priv.showHomeSummaryAmounts.value;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    DualCurrencyTotal(
+                      lcyMinor: total,
+                      textAlign: TextAlign.center,
+                      obscureAmount: !showAmt,
+                      primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
+                            color: p.textPrimary,
+                            letterSpacing: -0.6,
+                          ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Today',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: p.textSecondary,
-                      letterSpacing: 0.8,
-                      height: 1.0,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 10),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          showAmt ? formatSignedNet(todayNet) : '*****',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                                color: netColor,
+                                letterSpacing: showAmt ? -0.2 : 2.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Today',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                color: p.textSecondary,
+                                letterSpacing: 0.8,
+                                height: 1.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    AppHaptics.light();
-                    Get.to(() => const ReportView());
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: cardAccent,
-                    side: BorderSide(color: cardAccent.withValues(alpha: 0.45)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'All transactions',
-                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                          fontWeight: FontWeight.w600,
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          AppHaptics.light();
+                          Get.to(() => const ReportView());
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: cardAccent,
+                          side: BorderSide(color: cardAccent.withValues(alpha: 0.45)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              'All transactions',
+                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.chevron_right_rounded, size: 22),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.chevron_right_rounded, size: 22),
-                    ],
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: _CompactAmountVisibilityToggle(
+                    amountsVisible: showAmt,
+                    iconColor: p.textSecondary.withValues(alpha: 0.88),
+                    onPressed: () {
+                      AppHaptics.light();
+                      priv.toggleHomeSummaryAmounts();
+                    },
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ),
       ),
     );

@@ -26,4 +26,9 @@ class AppConstants {
 
   /// Home screen: one-time balance ↔ net worth [PageView] coach animation (see `main_screen.dart`).
   static const HOME_BALANCE_PAGER_COACH_DONE = 'home_balance_pager_coach_done';
+
+  /// Summary cards: show amounts on home balance + net worth strip (`main_screen.dart`).
+  static const SHOW_HOME_SUMMARY_AMOUNTS_KEY = 'show_home_summary_amounts';
+  /// Summary cards: show amounts on portfolio + other investments summaries (`plan_stocks_screen.dart`).
+  static const SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY = 'show_investment_summary_amounts';
 }
