@@ -6,6 +6,7 @@ import 'package:balance_sheet/controllers/budgetController.dart';
 import 'package:balance_sheet/controllers/contactController.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/contact.dart';
+import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/utils.dart';
@@ -63,6 +64,17 @@ class _BudgetScreenState extends State<BudgetScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _budget.reloadFocusMonth();
     });
+  }
+
+  Future<void> _exportPdf() async {
+    AppHaptics.light();
+    try {
+      await PdfExportService.shareBudget(_budget);
+    } catch (_) {
+      if (!mounted) return;
+      Get.snackbar(
+          'PDF export failed', 'Could not export the current budget snapshot.');
+    }
   }
 
   Future<void> _openEditor({BudgetLine? line}) async {
@@ -145,6 +157,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
         centerTitle: false,
         actions: <Widget>[
+          IconButton(
+            tooltip: 'Export PDF',
+            icon: Icon(Icons.picture_as_pdf_outlined, color: p.textPrimary),
+            onPressed: _exportPdf,
+          ),
           IconButton(
             tooltip: 'Saved views',
             icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),

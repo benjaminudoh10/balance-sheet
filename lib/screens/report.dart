@@ -4,6 +4,7 @@ import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
+import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
@@ -72,6 +73,17 @@ class _ReportViewState extends State<ReportView> {
     super.dispose();
   }
 
+  Future<void> _exportPdf() async {
+    AppHaptics.light();
+    try {
+      await PdfExportService.shareReport(_reportController);
+    } catch (_) {
+      if (!mounted) return;
+      Get.snackbar('PDF export failed',
+          'Could not export the current transactions snapshot.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
@@ -94,12 +106,17 @@ class _ReportViewState extends State<ReportView> {
         title: Text(
           'All transactions',
           style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-            color: p.textPrimary,
-            letterSpacing: -0.4,
-          ),
+                color: p.textPrimary,
+                letterSpacing: -0.4,
+              ),
         ),
         centerTitle: false,
         actions: <Widget>[
+          IconButton(
+            tooltip: 'Export PDF',
+            icon: Icon(Icons.picture_as_pdf_outlined, color: p.textPrimary),
+            onPressed: _exportPdf,
+          ),
           IconButton(
             tooltip: 'Saved views',
             icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
@@ -122,7 +139,8 @@ class _ReportViewState extends State<ReportView> {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -133,14 +151,17 @@ class _ReportViewState extends State<ReportView> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(_horizontalPad, 8, _horizontalPad, 0),
+                          padding: const EdgeInsets.fromLTRB(
+                              _horizontalPad, 8, _horizontalPad, 0),
                           sliver: SliverToBoxAdapter(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _ReportPeriodSummaryCard(controller: _reportController),
+                                _ReportPeriodSummaryCard(
+                                    controller: _reportController),
                                 const SizedBox(height: 14),
-                                _ReportFiltersSection(controller: _reportController),
+                                _ReportFiltersSection(
+                                    controller: _reportController),
                                 const SizedBox(height: 16),
                               ],
                             ),
@@ -157,7 +178,10 @@ class _ReportViewState extends State<ReportView> {
                               ),
                               primaryText: Text(
                                 'No transactions in this period',
-                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: p.textPrimary,
                                     ),
@@ -166,7 +190,10 @@ class _ReportViewState extends State<ReportView> {
                                 _hasActiveFilters(_reportController)
                                     ? 'Try clearing filters or choosing another date range'
                                     : 'Change the period above or add entries from Home',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
                                       color: p.textSecondary,
                                     ),
                                 textAlign: TextAlign.center,
@@ -175,7 +202,8 @@ class _ReportViewState extends State<ReportView> {
                           )
                         else
                           SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 28),
+                            padding: const EdgeInsets.fromLTRB(
+                                _horizontalPad, 0, _horizontalPad, 28),
                             sliver: SliverList(
                               delegate: SliverChildListDelegate(
                                 _buildGroupedTransactionSlivers(
@@ -212,7 +240,8 @@ List<Widget> _buildGroupedTransactionSlivers(
   final List<int> keys = map.keys.toList()..sort((a, b) => b.compareTo(a));
   final List<Widget> out = <Widget>[];
   bool applyPeekToNextTransaction = true;
-  final bool twoCol = contentWidth >= AppConstants.homeTransactionTwoColumnMinWidth;
+  final bool twoCol =
+      contentWidth >= AppConstants.homeTransactionTwoColumnMinWidth;
 
   for (final int dayStart in keys) {
     final List<Transaction> dayTx = map[dayStart] ?? [];
@@ -320,8 +349,8 @@ class _ReportPeriodDropdown extends StatelessWidget {
             itemHeight: null,
             menuMaxHeight: 360,
             style: Theme.of(context).textTheme.titleSmall!.copyWith(
-              color: p.textPrimary,
-            ),
+                  color: p.textPrimary,
+                ),
             selectedItemBuilder: (BuildContext context) {
               return _kPeriodOrder.map((ReportType t) {
                 return Align(
@@ -430,9 +459,9 @@ class _ClearFiltersPill extends StatelessWidget {
               Text(
                 'Clear filters',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: p.mint.withValues(alpha: 0.95),
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: p.mint.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
@@ -477,9 +506,9 @@ class _ContactFilterChip extends StatelessWidget {
                 child: Text(
                   controller.contact.value.name,
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: active ? p.textPrimary : p.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: active ? p.textPrimary : p.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -548,24 +577,26 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                 DualCurrencyTotal(
                   lcyMinor: net,
                   textAlign: TextAlign.center,
-                  primaryStyle: Theme.of(context).textTheme.displayMedium!.copyWith(
-                    color: accent,
-                    letterSpacing: -0.6,
-                  ),
-                  secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: p.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  primaryStyle:
+                      Theme.of(context).textTheme.displayMedium!.copyWith(
+                            color: accent,
+                            letterSpacing: -0.6,
+                          ),
+                  secondaryStyle:
+                      Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   controller.label.value,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: p.textSecondary,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.6,
-                  ),
+                        color: p.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.6,
+                      ),
                 ),
                 const SizedBox(height: 18),
                 Row(
@@ -576,11 +607,14 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                         children: [
                           Text(
                             'INCOME',
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                              color: p.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.0,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
+                                  color: p.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.0,
+                                ),
                           ),
                           const SizedBox(height: 6),
                           DualCurrencyTotal(
@@ -588,14 +622,18 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                             textAlign: TextAlign.start,
                             compactSecondary: true,
                             showFcyEquivalent: false,
-                            primaryStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              color: p.mint,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: p.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            primaryStyle: Theme.of(context)
+                                .textTheme
+                                .titleLarge!
+                                .copyWith(
+                                  color: p.mint,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                            secondaryStyle:
+                                Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: p.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                           ),
                         ],
                       ),
@@ -606,11 +644,14 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                         children: [
                           Text(
                             'EXPENSES',
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                              color: p.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.0,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
+                                  color: p.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.0,
+                                ),
                           ),
                           const SizedBox(height: 6),
                           DualCurrencyTotal(
@@ -618,14 +659,18 @@ class _ReportPeriodSummaryCard extends StatelessWidget {
                             textAlign: TextAlign.end,
                             compactSecondary: true,
                             showFcyEquivalent: false,
-                            primaryStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              color: p.coral,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                              color: p.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            primaryStyle: Theme.of(context)
+                                .textTheme
+                                .titleLarge!
+                                .copyWith(
+                                  color: p.coral,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                            secondaryStyle:
+                                Theme.of(context).textTheme.bodySmall!.copyWith(
+                                      color: p.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                           ),
                         ],
                       ),
@@ -663,10 +708,10 @@ class _DaySectionHeader extends StatelessWidget {
             child: Text(
               title,
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: p.textSecondary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
+                    color: p.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
             ),
           ),
           if (categoryFilterOn)

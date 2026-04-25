@@ -5,7 +5,7 @@
   - All transactions — period + category + contact (`ReportView` / `ReportController`).
   - Insights — whatever filters / range `InsightsController` uses (`InsightsView`).
   - Budget — month (and related state) (`BudgetScreen` / `BudgetController`).
-- [ ] **PDF export (roll out):** export the current (or saved-view) snapshot to PDF for the same areas as above; shared file/share plumbing, per-feature PDF content (tables vs charts may differ by screen).
+- [x] **PDF export (roll out):** export the current (or saved-view) snapshot to PDF for the same areas as above; shared file/share plumbing, per-feature PDF content (tables vs charts may differ by screen).
 - [ ] Other platforms (web, macos)
 - [x] Security pin or fingerprint
 - [x] Sent a local notification when a budget is completed as a result of a transaction entry

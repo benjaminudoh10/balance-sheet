@@ -5,6 +5,7 @@ import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/screens/report.dart';
+import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
@@ -23,23 +24,24 @@ const double _horizontalPad = 20.0;
 TextStyle _pieSlicePercentStyle(BuildContext context, Color sliceFill) {
   final double lum = sliceFill.computeLuminance();
   final bool useDarkGlyph = lum > 0.42;
-  final Color fg = useDarkGlyph ? const Color(0xFF0D1117) : const Color(0xFFF6F8FA);
+  final Color fg =
+      useDarkGlyph ? const Color(0xFF0D1117) : const Color(0xFFF6F8FA);
   return Theme.of(context).textTheme.labelSmall!.copyWith(
-        color: fg,
-        fontWeight: FontWeight.w700,
-        fontSize: 10,
-        height: 1,
-        letterSpacing: 0.15,
-        shadows: [
-          Shadow(
-            offset: const Offset(0, 0.35),
-            blurRadius: useDarkGlyph ? 3 : 2,
-            color: useDarkGlyph
-                ? Colors.white.withValues(alpha: 0.9)
-                : Colors.black.withValues(alpha: 0.78),
-          ),
-        ],
-      );
+    color: fg,
+    fontWeight: FontWeight.w700,
+    fontSize: 10,
+    height: 1,
+    letterSpacing: 0.15,
+    shadows: [
+      Shadow(
+        offset: const Offset(0, 0.35),
+        blurRadius: useDarkGlyph ? 3 : 2,
+        color: useDarkGlyph
+            ? Colors.white.withValues(alpha: 0.9)
+            : Colors.black.withValues(alpha: 0.78),
+      ),
+    ],
+  );
 }
 
 class InsightsView extends StatefulWidget {
@@ -60,6 +62,17 @@ class _InsightsViewState extends State<InsightsView> {
     });
   }
 
+  Future<void> _exportPdf() async {
+    AppHaptics.light();
+    try {
+      await PdfExportService.shareInsights(_controller);
+    } catch (_) {
+      if (!mounted) return;
+      Get.snackbar('PDF export failed',
+          'Could not export the current insights snapshot.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
@@ -70,7 +83,8 @@ class _InsightsViewState extends State<InsightsView> {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           Column(
@@ -79,13 +93,17 @@ class _InsightsViewState extends State<InsightsView> {
               SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(_horizontalPad, 12, _horizontalPad, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                      _horizontalPad, 12, _horizontalPad, 8),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           'Insights',
-                          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineLarge!
+                              .copyWith(
                                 color: p.textPrimary,
                                 letterSpacing: -0.5,
                               ),
@@ -95,48 +113,67 @@ class _InsightsViewState extends State<InsightsView> {
                         return PopupMenuButton<InsightsPeriod>(
                           tooltip: 'Period',
                           initialValue: _controller.period.value,
-                          onSelected: (InsightsPeriod v) => _controller.setPeriod(v),
+                          onSelected: (InsightsPeriod v) =>
+                              _controller.setPeriod(v),
                           color: p.surfaceElevated,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  InsightsController.periodLabel(_controller.period.value),
-                                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                  InsightsController.periodLabel(
+                                      _controller.period.value),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall!
+                                      .copyWith(
                                         color: p.textPrimary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                 ),
                                 const SizedBox(width: 4),
-                                Icon(Icons.expand_more_rounded, color: p.textSecondary, size: 20),
+                                Icon(Icons.expand_more_rounded,
+                                    color: p.textSecondary, size: 20),
                               ],
                             ),
                           ),
-                          itemBuilder: (BuildContext ctx) => <PopupMenuEntry<InsightsPeriod>>[
+                          itemBuilder: (BuildContext ctx) =>
+                              <PopupMenuEntry<InsightsPeriod>>[
                             PopupMenuItem(
                               value: InsightsPeriod.today,
-                              child: Text(InsightsController.periodLabel(InsightsPeriod.today)),
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.today)),
                             ),
                             PopupMenuItem(
                               value: InsightsPeriod.thisWeek,
-                              child: Text(InsightsController.periodLabel(InsightsPeriod.thisWeek)),
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.thisWeek)),
                             ),
                             PopupMenuItem(
                               value: InsightsPeriod.thisMonth,
-                              child: Text(InsightsController.periodLabel(InsightsPeriod.thisMonth)),
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.thisMonth)),
                             ),
                             PopupMenuItem(
                               value: InsightsPeriod.lastMonth,
-                              child: Text(InsightsController.periodLabel(InsightsPeriod.lastMonth)),
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.lastMonth)),
                             ),
                           ],
                         );
                       }),
                       IconButton(
+                        tooltip: 'Export PDF',
+                        icon: Icon(Icons.picture_as_pdf_outlined,
+                            color: p.textPrimary),
+                        onPressed: _exportPdf,
+                      ),
+                      IconButton(
                         tooltip: 'Saved views',
-                        icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+                        icon: Icon(Icons.bookmarks_outlined,
+                            color: p.textPrimary),
                         onPressed: () {
                           AppHaptics.light();
                           showSavedViewsSheet(
@@ -144,7 +181,8 @@ class _InsightsViewState extends State<InsightsView> {
                             palette: p,
                             featureKey: SavedViewsStorage.featureInsights,
                             surfaceTitle: 'Insights',
-                            capturePayload: () => _controller.captureSavedViewState(),
+                            capturePayload: () =>
+                                _controller.captureSavedViewState(),
                             applyPayload: _controller.applySavedViewState,
                           );
                         },
@@ -167,7 +205,8 @@ class _InsightsViewState extends State<InsightsView> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(_horizontalPad, 0, _horizontalPad, 28),
+                        padding: const EdgeInsets.fromLTRB(
+                            _horizontalPad, 0, _horizontalPad, 28),
                         sliver: SliverToBoxAdapter(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -189,10 +228,14 @@ class _InsightsViewState extends State<InsightsView> {
                                   AppHaptics.light();
                                   Get.to(() => const ReportView());
                                 },
-                                icon: Icon(Icons.receipt_long_outlined, color: p.mint, size: 20),
+                                icon: Icon(Icons.receipt_long_outlined,
+                                    color: p.mint, size: 20),
                                 label: Text(
                                   'All transactions',
-                                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall!
+                                      .copyWith(
                                         color: p.mint,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -202,7 +245,10 @@ class _InsightsViewState extends State<InsightsView> {
                               Text(
                                 'Based on recorded transactions through ${_footerDateLabel(_controller.rangeEndMs.value)}.',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .copyWith(
                                       color: p.textSecondary,
                                     ),
                               ),
@@ -276,21 +322,25 @@ class _ExpenseHeroCard extends StatelessWidget {
                 DualCurrencyTotal(
                   lcyMinor: exp,
                   textAlign: TextAlign.start,
-                  primaryStyle: Theme.of(context).textTheme.displaySmall!.copyWith(
-                        color: p.textPrimary,
-                        letterSpacing: -0.6,
-                      ),
-                  secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: p.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  primaryStyle:
+                      Theme.of(context).textTheme.displaySmall!.copyWith(
+                            color: p.textPrimary,
+                            letterSpacing: -0.6,
+                          ),
+                  secondaryStyle:
+                      Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                 ),
                 if (pct != null && prev > 0) ...[
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Icon(
-                        pct > 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                        pct > 0
+                            ? Icons.trending_up_rounded
+                            : Icons.trending_down_rounded,
                         size: 20,
                         color: pct > 0 ? p.coral : p.mint,
                       ),
@@ -300,9 +350,10 @@ class _ExpenseHeroCard extends StatelessWidget {
                           pct == 0
                               ? 'Same as $vs'
                               : '${pct > 0 ? 'Up' : 'Down'} ${pct.abs()}% vs $vs',
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                color: p.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: p.textSecondary,
+                                  ),
                         ),
                       ),
                     ],
@@ -311,7 +362,10 @@ class _ExpenseHeroCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     controller.comparisonEmptyBaselineHint,
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(color: p.textSecondary),
                   ),
                 ],
               ],
@@ -332,7 +386,8 @@ class _CategorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final Brightness b = Theme.of(context).brightness;
-    final Map<String, int> raw = Map<String, int>.from(controller.categoryExpenses);
+    final Map<String, int> raw =
+        Map<String, int>.from(controller.categoryExpenses);
     if (raw.isEmpty) {
       return _GlassPanel(
         child: Column(
@@ -340,18 +395,28 @@ class _CategorySection extends StatelessWidget {
           children: [
             Text(
               'Spending by category',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium!
+                  .copyWith(color: p.textPrimary),
             ),
             const SizedBox(height: 16),
             EmptyState(
-              icon: Icon(Icons.pie_chart_outline_rounded, size: 40, color: p.mint.withValues(alpha: 0.6)),
+              icon: Icon(Icons.pie_chart_outline_rounded,
+                  size: 40, color: p.mint.withValues(alpha: 0.6)),
               primaryText: Text(
                 'No expenses this period',
-                style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall!
+                    .copyWith(color: p.textPrimary),
               ),
               secondaryText: Text(
                 'Category breakdown appears when you log spending.',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium!
+                    .copyWith(color: p.textSecondary),
               ),
             ),
           ],
@@ -403,7 +468,10 @@ class _CategorySection extends StatelessWidget {
         children: [
           Text(
             'Spending by category',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: p.textPrimary),
           ),
           const SizedBox(height: 16),
           Row(
@@ -451,7 +519,8 @@ class _CategorySection extends StatelessWidget {
   }
 
   String _labelForKey(String key) {
-    final matches = Categories.CATEGORIES.where((c) => c['key'] == key).toList();
+    final matches =
+        Categories.CATEGORIES.where((c) => c['key'] == key).toList();
     return matches.isNotEmpty ? matches[0]['label'] as String : key;
   }
 }
@@ -470,7 +539,8 @@ class _CategoryBarsPanel extends StatelessWidget {
       if (rows.isEmpty) {
         return const SizedBox.shrink();
       }
-      final int maxAmt = rows.map((CategoryBarRow r) => r.amountMinor).reduce(max);
+      final int maxAmt =
+          rows.map((CategoryBarRow r) => r.amountMinor).reduce(max);
       if (maxAmt <= 0) {
         return const SizedBox.shrink();
       }
@@ -481,12 +551,18 @@ class _CategoryBarsPanel extends StatelessWidget {
           children: [
             Text(
               'Expenses by category',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium!
+                  .copyWith(color: p.textPrimary),
             ),
             const SizedBox(height: 4),
             Text(
               'Same data as the donut, easier to compare amounts',
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: p.textSecondary),
             ),
             const SizedBox(height: 14),
             for (int i = 0; i < rows.length; i++) ...[
@@ -520,8 +596,10 @@ class _CategoryHorizontalBarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color fill = Categories.pillStyleForKey(row.key, brightness).foreground;
-    final double t = maxAmountMinor > 0 ? row.amountMinor / maxAmountMinor : 0.0;
+    final Color fill =
+        Categories.pillStyleForKey(row.key, brightness).foreground;
+    final double t =
+        maxAmountMinor > 0 ? row.amountMinor / maxAmountMinor : 0.0;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -532,7 +610,10 @@ class _CategoryHorizontalBarRow extends StatelessWidget {
             row.label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: palette.textPrimary),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: palette.textPrimary),
           ),
         ),
         Expanded(
@@ -615,13 +696,15 @@ class _WeeklyCashPanel extends StatelessWidget {
                 toY: w.incomeMinor.toDouble(),
                 color: p.mint,
                 width: barW,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(3)),
               ),
               BarChartRodData(
                 toY: w.expenseMinor.toDouble(),
                 color: p.coral,
                 width: barW,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(3)),
               ),
             ],
           );
@@ -634,12 +717,18 @@ class _WeeklyCashPanel extends StatelessWidget {
           children: [
             Text(
               'Income vs expenses by week',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium!
+                  .copyWith(color: p.textPrimary),
             ),
             const SizedBox(height: 4),
             Text(
               'Weeks start on Monday · bars side-by-side per week',
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: p.textSecondary),
             ),
             const SizedBox(height: 10),
             Row(
@@ -661,8 +750,10 @@ class _WeeklyCashPanel extends StatelessWidget {
                     enabled: true,
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipColor: (_) => p.surfaceElevated,
-                      getTooltipItem: (BarChartGroupData group, int groupIndex, BarChartRodData rod, int rodIndex) {
-                        final String kind = rodIndex == 0 ? 'Income' : 'Expenses';
+                      getTooltipItem: (BarChartGroupData group, int groupIndex,
+                          BarChartRodData rod, int rodIndex) {
+                        final String kind =
+                            rodIndex == 0 ? 'Income' : 'Expenses';
                         return BarTooltipItem(
                           '$kind\n${formatAmount(rod.toY.round())}',
                           Theme.of(context).textTheme.labelSmall!.copyWith(
@@ -675,8 +766,10 @@ class _WeeklyCashPanel extends StatelessWidget {
                   ),
                   titlesData: FlTitlesData(
                     show: true,
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -692,7 +785,10 @@ class _WeeklyCashPanel extends StatelessWidget {
                             space: 4,
                             child: Text(
                               DateFormat.Md().format(start),
-                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
                                     color: p.textSecondary,
                                     fontSize: 10,
                                   ),
@@ -705,11 +801,16 @@ class _WeeklyCashPanel extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 48,
-                        interval: maxY > 0 ? (maxY / 4).clamp(1, double.infinity) : null,
+                        interval: maxY > 0
+                            ? (maxY / 4).clamp(1, double.infinity)
+                            : null,
                         getTitlesWidget: (double value, TitleMeta meta) {
                           return Text(
                             formatAmount(value.round()),
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
                                   color: p.textSecondary,
                                   fontSize: 9,
                                 ),
@@ -762,7 +863,10 @@ class _WeeklyLegendDot extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
+          style: Theme.of(context)
+              .textTheme
+              .labelSmall!
+              .copyWith(color: p.textSecondary),
         ),
       ],
     );
@@ -799,7 +903,10 @@ class _LegendRow extends StatelessWidget {
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textPrimary),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: p.textPrimary),
           ),
         ),
         Text(
@@ -827,7 +934,10 @@ class _NetTrendCard extends StatelessWidget {
       return _GlassPanel(
         child: Text(
           'No daily activity in this range.',
-          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary),
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium!
+              .copyWith(color: p.textSecondary),
         ),
       );
     }
@@ -849,7 +959,8 @@ class _NetTrendCard extends StatelessWidget {
     }
 
     final List<FlSpot> spots = [
-      for (int i = 0; i < points.length; i++) FlSpot(i.toDouble(), points[i].netMinor.toDouble()),
+      for (int i = 0; i < points.length; i++)
+        FlSpot(i.toDouble(), points[i].netMinor.toDouble()),
     ];
 
     return _GlassPanel(
@@ -858,12 +969,18 @@ class _NetTrendCard extends StatelessWidget {
         children: [
           Text(
             'Net per day',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: p.textPrimary),
           ),
           const SizedBox(height: 4),
           Text(
             'Income minus expenses, by calendar day',
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: p.textSecondary),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -886,17 +1003,24 @@ class _NetTrendCard extends StatelessWidget {
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 28,
-                      interval: points.length > 8 ? (points.length / 4).ceilToDouble() : 1,
+                      interval: points.length > 8
+                          ? (points.length / 4).ceilToDouble()
+                          : 1,
                       getTitlesWidget: (double value, TitleMeta meta) {
                         final int i = value.round();
-                        if (i < 0 || i >= points.length) return const SizedBox.shrink();
-                        if (points.length > 12 && i % ((points.length / 6).ceil()) != 0 && i != points.length - 1) {
+                        if (i < 0 || i >= points.length)
+                          return const SizedBox.shrink();
+                        if (points.length > 12 &&
+                            i % ((points.length / 6).ceil()) != 0 &&
+                            i != points.length - 1) {
                           return const SizedBox.shrink();
                         }
                         final DateTime d = points[i].day;
@@ -904,7 +1028,10 @@ class _NetTrendCard extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             DateFormat.Md().format(d),
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
                                   color: p.textSecondary,
                                   fontSize: 10,
                                 ),
@@ -920,10 +1047,11 @@ class _NetTrendCard extends StatelessWidget {
                       getTitlesWidget: (double value, TitleMeta meta) {
                         return Text(
                           formatAmount(value.round()),
-                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: p.textSecondary,
-                                fontSize: 9,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: p.textSecondary,
+                                    fontSize: 9,
+                                  ),
                         );
                       },
                     ),
@@ -940,7 +1068,10 @@ class _NetTrendCard extends StatelessWidget {
                         }
                         return LineTooltipItem(
                           '${DateFormat.yMMMd().format(points[i].day)}\n${formatSignedNet(points[i].netMinor)}',
-                          Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textPrimary),
+                          Theme.of(context)
+                              .textTheme
+                              .labelSmall!
+                              .copyWith(color: p.textPrimary),
                         );
                       }).toList();
                     },
@@ -989,7 +1120,10 @@ class _InsightsList extends StatelessWidget {
       return _GlassPanel(
         child: Text(
           'Add a few more transactions to see takeaways.',
-          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary),
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium!
+              .copyWith(color: p.textSecondary),
         ),
       );
     }
@@ -1000,7 +1134,10 @@ class _InsightsList extends StatelessWidget {
         children: [
           Text(
             'Takeaways',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: p.textPrimary),
           ),
           const SizedBox(height: 12),
           for (int i = 0; i < lines.length; i++) ...[
@@ -1008,7 +1145,8 @@ class _InsightsList extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.auto_awesome_rounded, size: 18, color: p.mint.withValues(alpha: 0.85)),
+                Icon(Icons.auto_awesome_rounded,
+                    size: 18, color: p.mint.withValues(alpha: 0.85)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
