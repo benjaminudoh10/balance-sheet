@@ -60,16 +60,17 @@ Widget _homeHeroForContentWidth({
   // Fixed column widths from [heroLayoutWidth] (already excludes horizontal sliver padding).
   const double gap = 14.0;
   final double inner = (heroLayoutWidth - gap).clamp(0.0, double.infinity);
+  final double cardWidth = inner / 2;
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
       SizedBox(
-        width: inner * 11 / 20,
+        width: cardWidth,
         child: balanceCard,
       ),
       SizedBox(width: gap),
       SizedBox(
-        width: inner * 9 / 20,
+        width: cardWidth,
         child: netWorthStrip,
       ),
     ],
@@ -160,6 +161,9 @@ class MainView extends StatelessWidget {
                       final int stocksMinor = inv.stocksTotalMinor.value;
                       final int otherInvestMinor =
                           inv.otherInvestmentsTotalMinor.value;
+                      final bool isLandscape =
+                          MediaQuery.orientationOf(context) ==
+                              Orientation.landscape;
                       final Widget balanceCard = _GlassBalanceCard(
                         total: _transactionController.total.value,
                         todayIncome: _transactionController.todaysIncome.value,
@@ -187,7 +191,8 @@ class MainView extends StatelessWidget {
                                     balanceCard: balanceCard,
                                     netWorthStrip: netWorthStrip,
                                   ),
-                                  const SizedBox(height: 18),
+                                  if (isLandscape)
+                                    const SizedBox(height: 18),
                                   _IncomeExpenseRow(),
                                   if (list.isNotEmpty) ...<Widget>[
                                     const SizedBox(height: 28),
@@ -213,8 +218,10 @@ class MainView extends StatelessWidget {
                             SliverFillRemaining(
                               hasScrollBody: false,
                               child: Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: kPlanHubFabTrailingClearance),
+                                padding: EdgeInsets.only(
+                                  top: isLandscape ? 16 : 0,
+                                  bottom: kPlanHubFabTrailingClearance,
+                                ),
                                 child: EmptyState(
                                   icon: Icon(
                                     Icons.receipt_long_outlined,
@@ -372,11 +379,8 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
     await GetStorage().write(AppConstants.HOME_BALANCE_PAGER_COACH_DONE, true);
   }
 
-  static const Duration _kPagerTapDuration = Duration(milliseconds: 280);
-
   @override
   Widget build(BuildContext context) {
-    final AppPalette p = widget.palette;
     _scheduleMeasureBalanceHeight();
     _maybeScheduleCoach();
     return LayoutBuilder(
@@ -394,10 +398,6 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
           );
         }
 
-        final TextTheme textTheme = Theme.of(context).textTheme;
-        final bool emphasizeNext = _index == 0;
-        final bool emphasizePrev = _index == 1;
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -407,7 +407,7 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
                 controller: _pageController,
                 onPageChanged: (int i) {
                   if (i != _index) AppHaptics.selection();
-                  setState(() => _index = i);
+                  _index = i;
                 },
                 physics: const BouncingScrollPhysics(),
                 children: <Widget>[
@@ -419,147 +419,15 @@ class _BalanceNetWorthPagerState extends State<_BalanceNetWorthPager> {
                     alignment: Alignment.topCenter,
                     child: SizedBox(
                       width: w,
-                      height: _pageHeight,
                       child: widget.netWorthStrip,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _PagerChevron(
-                  icon: Icons.chevron_left_rounded,
-                  palette: p,
-                  emphasized: emphasizePrev,
-                  onPressed: _index == 1
-                      ? () {
-                          AppHaptics.selection();
-                          _pageController.previousPage(
-                            duration: _kPagerTapDuration,
-                            curve: Curves.easeOutCubic,
-                          );
-                        }
-                      : null,
-                ),
-                const SizedBox(width: 2),
-                _HomeCardPagerDot(active: _index == 0, palette: p),
-                const SizedBox(width: 6),
-                _HomeCardPagerDot(active: _index == 1, palette: p),
-                const SizedBox(width: 2),
-                _PagerChevron(
-                  icon: Icons.chevron_right_rounded,
-                  palette: p,
-                  emphasized: emphasizeNext,
-                  onPressed: _index == 0
-                      ? () {
-                          AppHaptics.selection();
-                          _pageController.nextPage(
-                            duration: _kPagerTapDuration,
-                            curve: Curves.easeOutCubic,
-                          );
-                        }
-                      : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'Balance',
-                  style: textTheme.labelMedium!.copyWith(
-                    letterSpacing: 0.2,
-                    color: _index == 0
-                        ? p.mint
-                        : p.textSecondary.withValues(alpha: 0.75),
-                    fontWeight: _index == 0 ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    '·',
-                    style: textTheme.labelMedium!.copyWith(
-                      color: p.textSecondary.withValues(alpha: 0.45),
-                    ),
-                  ),
-                ),
-                Text(
-                  'Net worth',
-                  style: textTheme.labelMedium!.copyWith(
-                    letterSpacing: 0.2,
-                    color: _index == 1
-                        ? p.mint
-                        : p.textSecondary.withValues(alpha: 0.75),
-                    fontWeight: _index == 1 ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
           ],
         );
       },
-    );
-  }
-}
-
-class _PagerChevron extends StatelessWidget {
-  const _PagerChevron({
-    required this.icon,
-    required this.palette,
-    required this.emphasized,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final AppPalette palette;
-  final bool emphasized;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppPalette p = palette;
-    final double a = emphasized ? 0.95 : 0.32;
-    return IconButton(
-      onPressed: onPressed,
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-      icon: Icon(
-        icon,
-        size: 26,
-        color: onPressed != null
-            ? p.mint.withValues(alpha: a)
-            : p.textSecondary.withValues(alpha: 0.28),
-      ),
-    );
-  }
-}
-
-class _HomeCardPagerDot extends StatelessWidget {
-  const _HomeCardPagerDot({required this.active, required this.palette});
-
-  final bool active;
-  final AppPalette palette;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppPalette p = palette;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
-      width: active ? 18 : 7,
-      height: 7,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
-        color: active
-            ? p.mint.withValues(alpha: 0.95)
-            : p.border.withValues(alpha: 0.9),
-      ),
     );
   }
 }
@@ -640,75 +508,60 @@ class _NetWorthStrip extends StatelessWidget {
           border: Border.all(
               color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
         ),
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            // [Spacer] requires a finite max height. In the home pager we match balance height
-            // (bounded); in scroll / wide layouts max height is unbounded — use fixed gap instead.
-            final bool canFillMiddle = c.maxHeight.isFinite;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: canFillMiddle ? MainAxisSize.max : MainAxisSize.min,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Icon(Icons.pie_chart_outline_rounded,
-                        size: 18,
-                        color:
-                            _kNetWorthInvestAccent.withValues(alpha: 0.95)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Net worth',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge!
-                            .copyWith(
-                              color: p.textSecondary,
-                              letterSpacing: 0.2,
-                            ),
-                      ),
-                    ),
-                    _CompactAmountVisibilityToggle(
-                      amountsVisible: showAmt,
-                      iconColor: p.textSecondary.withValues(alpha: 0.88),
-                      onPressed: () {
-                        AppHaptics.light();
-                        priv.toggleHomeSummaryAmounts();
-                      },
-                    ),
-                  ],
+                Icon(Icons.pie_chart_outline_rounded,
+                    size: 18,
+                    color: _kNetWorthInvestAccent.withValues(alpha: 0.95)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Net worth',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          color: p.textSecondary,
+                          letterSpacing: 0.2,
+                        ),
+                  ),
                 ),
-                const SizedBox(height: 6),
-                DualCurrencyTotal(
-                  lcyMinor: total,
-                  textAlign: TextAlign.start,
-                  compactSecondary: true,
-                  primaryStyle: totalPrimary,
-                  secondaryStyle: totalSecondary,
-                  obscureAmount: !showAmt,
+                _CompactAmountVisibilityToggle(
+                  amountsVisible: showAmt,
+                  iconColor: p.textSecondary.withValues(alpha: 0.88),
+                  onPressed: () {
+                    AppHaptics.light();
+                    priv.toggleHomeSummaryAmounts();
+                  },
                 ),
-                if (canFillMiddle)
-                  const Spacer()
-                else
-                  const SizedBox(height: 12),
-                _NetWorthRow(
-                    label: 'Ledger balance',
-                    minor: ledgerMinor,
-                    palette: p,
-                    obscureAmount: !showAmt),
-                _NetWorthRow(
-                    label: 'Investments',
-                    minor: stocksMinor,
-                    palette: p,
-                    obscureAmount: !showAmt),
-                _NetWorthRow(
-                    label: 'Other investments',
-                    minor: otherInvestmentsMinor,
-                    palette: p,
-                    obscureAmount: !showAmt),
               ],
-            );
-          },
+            ),
+            const SizedBox(height: 6),
+            DualCurrencyTotal(
+              lcyMinor: total,
+              textAlign: TextAlign.start,
+              compactSecondary: true,
+              primaryStyle: totalPrimary,
+              secondaryStyle: totalSecondary,
+              obscureAmount: !showAmt,
+            ),
+            _NetWorthRow(
+                label: 'Ledger balance',
+                minor: ledgerMinor,
+                palette: p,
+                obscureAmount: !showAmt),
+            _NetWorthRow(
+                label: 'Investments',
+                minor: stocksMinor,
+                palette: p,
+                obscureAmount: !showAmt),
+            _NetWorthRow(
+                label: 'Other investments',
+                minor: otherInvestmentsMinor,
+                palette: p,
+                obscureAmount: !showAmt),
+          ],
         ),
       );
     });
