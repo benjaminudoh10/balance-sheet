@@ -12,37 +12,12 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
-import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 const double _horizontalPad = 20.0;
-
-/// Readable "%" labels on category-colored pie slices (avoids light-on-light clashes).
-TextStyle _pieSlicePercentStyle(BuildContext context, Color sliceFill) {
-  final double lum = sliceFill.computeLuminance();
-  final bool useDarkGlyph = lum > 0.42;
-  final Color fg =
-      useDarkGlyph ? const Color(0xFF0D1117) : const Color(0xFFF6F8FA);
-  return Theme.of(context).textTheme.labelSmall!.copyWith(
-    color: fg,
-    fontWeight: FontWeight.w700,
-    fontSize: 10,
-    height: 1,
-    letterSpacing: 0.15,
-    shadows: [
-      Shadow(
-        offset: const Offset(0, 0.35),
-        blurRadius: useDarkGlyph ? 3 : 2,
-        color: useDarkGlyph
-            ? Colors.white.withValues(alpha: 0.9)
-            : Colors.black.withValues(alpha: 0.78),
-      ),
-    ],
-  );
-}
 
 class InsightsView extends StatefulWidget {
   const InsightsView({super.key});
@@ -213,8 +188,6 @@ class _InsightsViewState extends State<InsightsView> {
                             children: [
                               _ExpenseHeroCard(controller: _controller),
                               const SizedBox(height: 18),
-                              _CategorySection(controller: _controller),
-                              const SizedBox(height: 18),
                               _CategoryBarsPanel(controller: _controller),
                               const SizedBox(height: 18),
                               _WeeklyCashPanel(controller: _controller),
@@ -374,154 +347,6 @@ class _ExpenseHeroCard extends StatelessWidget {
         ),
       );
     });
-  }
-}
-
-class _CategorySection extends StatelessWidget {
-  const _CategorySection({required this.controller});
-
-  final InsightsController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppPalette p = AppPalette.of(context);
-    final Brightness b = Theme.of(context).brightness;
-    final Map<String, int> raw =
-        Map<String, int>.from(controller.categoryExpenses);
-    if (raw.isEmpty) {
-      return _GlassPanel(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Spending by category',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .copyWith(color: p.textPrimary),
-            ),
-            const SizedBox(height: 16),
-            EmptyState(
-              icon: Icon(Icons.pie_chart_outline_rounded,
-                  size: 40, color: p.mint.withValues(alpha: 0.6)),
-              primaryText: Text(
-                'No expenses this period',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(color: p.textPrimary),
-              ),
-              secondaryText: Text(
-                'Category breakdown appears when you log spending.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(color: p.textSecondary),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final List<MapEntry<String, int>> sorted = raw.entries.toList()
-      ..sort((a, c) => c.value.compareTo(a.value));
-    final int total = sorted.fold<int>(0, (s, e) => s + e.value);
-
-    const int maxSlices = 6;
-    final List<MapEntry<String, int>> top = sorted.take(maxSlices).toList();
-    int otherSum = 0;
-    if (sorted.length > maxSlices) {
-      for (int i = maxSlices; i < sorted.length; i++) {
-        otherSum += sorted[i].value;
-      }
-    }
-
-    final List<PieChartSectionData> sections = [];
-    void addSlice(int amount, Color color) {
-      final double pct = total > 0 ? amount / total * 100 : 0;
-      final bool showPct = pct >= 8;
-      sections.add(
-        PieChartSectionData(
-          value: amount.toDouble(),
-          title: showPct ? '${pct.round()}%' : '',
-          showTitle: showPct,
-          color: color,
-          radius: 52,
-          titleStyle: _pieSlicePercentStyle(context, color),
-          titlePositionPercentageOffset: 0.58,
-        ),
-      );
-    }
-
-    for (final MapEntry<String, int> e in top) {
-      final Color c = Categories.pillStyleForKey(e.key, b).foreground;
-      addSlice(e.value, c);
-    }
-    if (otherSum > 0) {
-      addSlice(otherSum, p.textSecondary);
-    }
-
-    return _GlassPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Spending by category',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium!
-                .copyWith(color: p.textPrimary),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 36,
-                    sections: sections,
-                    pieTouchData: PieTouchData(enabled: false),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final MapEntry<String, int> e in top) ...[
-                      _LegendRow(
-                        color: Categories.pillStyleForKey(e.key, b).foreground,
-                        label: _labelForKey(e.key),
-                        value: formatAmount(e.value),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    if (otherSum > 0)
-                      _LegendRow(
-                        color: p.textSecondary,
-                        label: 'Other',
-                        value: formatAmount(otherSum),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _labelForKey(String key) {
-    final matches =
-        Categories.CATEGORIES.where((c) => c['key'] == key).toList();
-    return matches.isNotEmpty ? matches[0]['label'] as String : key;
   }
 }
 
@@ -867,54 +692,6 @@ class _WeeklyLegendDot extends StatelessWidget {
               .textTheme
               .labelSmall!
               .copyWith(color: p.textSecondary),
-        ),
-      ],
-    );
-  }
-}
-
-class _LegendRow extends StatelessWidget {
-  const _LegendRow({
-    required this.color,
-    required this.label,
-    required this.value,
-  });
-
-  final Color color;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppPalette p = AppPalette.of(context);
-    return Row(
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: p.textPrimary),
-          ),
-        ),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: p.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
         ),
       ],
     );
