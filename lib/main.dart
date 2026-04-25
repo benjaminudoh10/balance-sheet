@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:balance_sheet/controllers/appController.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/budgetController.dart';
@@ -42,6 +44,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  static const MethodChannel _privacyChannel = MethodChannel('balanced/privacy');
+
   bool _privacyOverlayVisible = false;
 
   @override
@@ -103,11 +107,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
+        _showPrivacyOverlay();
+        break;
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
         _onLeavingForeground();
         break;
       case AppLifecycleState.resumed:
+        unawaited(_setNativeAppSwitcherPrivacy(false));
         if (mounted) {
           setState(() => _privacyOverlayVisible = false);
         }
@@ -117,14 +124,36 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  void _onLeavingForeground() {
+  Future<void> _setNativeAppSwitcherPrivacy(bool enabled) async {
+    try {
+      await _privacyChannel.invokeMethod<void>(
+        'setAppSwitcherPrivacy',
+        enabled,
+      );
+    } on MissingPluginException {
+      // Android handles Recents snapshots natively; other platforms keep using the Flutter overlay.
+    } on PlatformException {
+      // Privacy overlay remains as a fallback if the native flag cannot be changed.
+    }
+  }
+
+  bool _showPrivacyOverlay() {
     final SecurityController security = Get.find<SecurityController>();
-    if (!security.pinIsSet.value) return;
+    if (!security.pinIsSet.value) return false;
+
+    unawaited(_setNativeAppSwitcherPrivacy(true));
 
     if (mounted) {
       setState(() => _privacyOverlayVisible = true);
     }
 
+    return true;
+  }
+
+  void _onLeavingForeground() {
+    if (!_showPrivacyOverlay()) return;
+
+    final SecurityController security = Get.find<SecurityController>();
     if (!security.sessionUnlocked.value) return;
 
     security.onRequireScreenLock();
