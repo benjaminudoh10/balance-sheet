@@ -90,8 +90,6 @@ flutter_native_splash:
     image_dark: "lib/assets/splash/splash_android12_dark.png"
     icon_background_color: "#EDE9F4"
     icon_background_color_dark: "#21262D"
-    branding: "lib/assets/splash/splash_branding_light.png"
-    branding_dark: "lib/assets/splash/splash_branding_dark.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -41,7 +41,6 @@ PALETTE = {
 }
 
 _CODEPOINT_BOOK = 0xF8B4
-_TITLE = "Balanced"
 _TAGLINE = "...know where your money goes"
 
 
@@ -89,13 +88,13 @@ def render_android12(path: str, *, light: bool, material: str, w: int, h: int) -
 
 
 def render_full(path: str, *, light: bool, material: str, roboto_med: str, roboto_reg: str) -> None:
-    """Wide banner: icon + title row, tagline below — matches in-app horizontal lockup; iOS / legacy Android."""
+    """Centered icon with tagline below (matches app splash hierarchy)."""
     c = PALETTE["light" if light else "dark"]
     canvas_w, canvas_h = 1600, 480
     img = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    icon_target_h = 200
+    icon_target_h = 184
     fs_icon = icon_target_h
     font_icon = ImageFont.truetype(material, fs_icon)
     ch = chr(_CODEPOINT_BOOK)
@@ -107,64 +106,20 @@ def render_full(path: str, *, light: bool, material: str, roboto_med: str, robot
         font_icon = ImageFont.truetype(material, fs_icon)
     tw, th = _text_size(draw, ch, font_icon)
 
-    title_size = 52
-    sub_size = 24
-    font_title = ImageFont.truetype(roboto_med, title_size)
-    font_sub = ImageFont.truetype(roboto_reg, sub_size)
-
-    title_w, title_h = _text_size(draw, _TITLE, font_title)
+    sub_size = 34
+    font_sub = ImageFont.truetype(roboto_med, sub_size)
     sub_w, sub_h = _text_size(draw, _TAGLINE, font_sub)
-    text_gap = 12
-    text_block_h = title_h + text_gap + sub_h
+    gap = 24
+    block_h = th + gap + sub_h
+    block_top = (canvas_h - block_h) // 2
 
-    icon_x = 220
-    # Vertically center icon with the stacked title + tagline
-    block_top = (canvas_h - max(th, text_block_h)) // 2
-    icon_y = block_top + (max(th, text_block_h) - th) // 2
+    icon_x = (canvas_w - tw) // 2
+    icon_y = block_top
     draw.text((icon_x, icon_y), ch, font=font_icon, fill=c["mint"])
 
-    text_left = icon_x + tw + 40
-    title_y = block_top + (max(th, text_block_h) - text_block_h) // 2
-    draw.text((text_left, title_y), _TITLE, font=font_title, fill=c["text_primary"])
-    draw.text((text_left, title_y + title_h + text_gap), _TAGLINE, font=font_sub, fill=c["text_secondary"])
-
-    img.save(path)
-
-
-def render_branding(path: str, *, light: bool, material: str, roboto_med: str, roboto_reg: str) -> None:
-    """Bottom branding strip: icon + title on one line, tagline below (Android 12 footer)."""
-    c = PALETTE["light" if light else "dark"]
-    w, h = 800, 320
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    icon_pt = 52
-    title_pt = 40
-    sub_pt = 20
-    font_icon = ImageFont.truetype(material, icon_pt)
-    font_title = ImageFont.truetype(roboto_med, title_pt)
-    font_sub = ImageFont.truetype(roboto_reg, sub_pt)
-
-    ch = chr(_CODEPOINT_BOOK)
-    iw, ih = _text_size(draw, ch, font_icon)
-    gap = 15
-    tw, th = _text_size(draw, _TITLE, font_title)
-    sw, sh = _text_size(draw, _TAGLINE, font_sub)
-
-    row_w = iw + gap + tw
-    block_h = max(ih, th) + 12 + sh
-    row_y = (h - block_h) // 2
-    # Center the lockup; if tagline is wider than the title row, center using max width
-    lockup_w = max(row_w, sw)
-    start_x = (w - lockup_w) // 2
-
-    draw.text((start_x, row_y), ch, font=font_icon, fill=c["mint"])
-    title_x = start_x + iw + gap
-    title_y = row_y + (ih - th) // 2
-    draw.text((title_x, title_y), _TITLE, font=font_title, fill=c["text_primary"])
-    sub_y = row_y + max(ih, th) + 12
-    sub_x = title_x
-    draw.text((sub_x, sub_y), _TAGLINE, font=font_sub, fill=c["text_secondary"])
+    sub_x = (canvas_w - sub_w) // 2
+    sub_y = icon_y + th + gap
+    draw.text((sub_x, sub_y), _TAGLINE, font=font_sub, fill=c["text_primary"])
 
     img.save(path)
 
@@ -198,13 +153,6 @@ def main() -> None:
         suffix = "light" if light else "dark"
         render_full(
             os.path.join(out, f"splash_full_{suffix}.png"),
-            light=light,
-            material=material,
-            roboto_med=roboto_med,
-            roboto_reg=roboto_reg,
-        )
-        render_branding(
-            os.path.join(out, f"splash_branding_{suffix}.png"),
             light=light,
             material=material,
             roboto_med=roboto_med,
