@@ -546,12 +546,14 @@ class _WeeklyCashPanel extends StatelessWidget {
         },
       );
 
+      final bool monthly = controller.useMonthlyBuckets;
+
       return _GlassPanel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Income vs expenses by week',
+              controller.cashflowSeriesTitle,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium!
@@ -559,7 +561,7 @@ class _WeeklyCashPanel extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Weeks start on Monday · bars side-by-side per week',
+              controller.cashflowSeriesSubtitle,
               style: Theme.of(context)
                   .textTheme
                   .bodySmall!
@@ -614,12 +616,15 @@ class _WeeklyCashPanel extends StatelessWidget {
                           if (i < 0 || i >= rows.length) {
                             return const SizedBox.shrink();
                           }
-                          final DateTime start = rows[i].weekStartMonday;
+                          final DateTime start = rows[i].bucketStart;
+                          final String label = monthly
+                              ? DateFormat.MMM().format(start)
+                              : DateFormat.Md().format(start);
                           return SideTitleWidget(
                             meta: meta,
                             space: 4,
                             child: Text(
-                              DateFormat.Md().format(start),
+                              label,
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall!
@@ -716,11 +721,14 @@ class _NetTrendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
+    final bool monthly = controller.useMonthlyBuckets;
     final List<DailyNetPoint> points = controller.dailyNet.toList();
     if (points.isEmpty) {
       return _GlassPanel(
         child: Text(
-          'No daily activity in this range.',
+          monthly
+              ? 'No monthly activity in this range.'
+              : 'No daily activity in this range.',
           style: Theme.of(context)
               .textTheme
               .bodyMedium!
@@ -755,7 +763,7 @@ class _NetTrendCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Net per day',
+            controller.netTrendSeriesTitle,
             style: Theme.of(context)
                 .textTheme
                 .titleMedium!
@@ -763,7 +771,7 @@ class _NetTrendCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Income minus expenses, by calendar day',
+            controller.netTrendSeriesSubtitle,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
@@ -798,23 +806,29 @@ class _NetTrendCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 28,
-                      interval: points.length > 8
-                          ? (points.length / 4).ceilToDouble()
-                          : 1,
+                      interval: monthly
+                          ? 1
+                          : (points.length > 8
+                              ? (points.length / 4).ceilToDouble()
+                              : 1),
                       getTitlesWidget: (double value, TitleMeta meta) {
                         final int i = value.round();
                         if (i < 0 || i >= points.length)
                           return const SizedBox.shrink();
-                        if (points.length > 12 &&
+                        if (!monthly &&
+                            points.length > 12 &&
                             i % ((points.length / 6).ceil()) != 0 &&
                             i != points.length - 1) {
                           return const SizedBox.shrink();
                         }
-                        final DateTime d = points[i].day;
+                        final DateTime d = points[i].bucketStart;
+                        final String label = monthly
+                            ? DateFormat.MMM().format(d)
+                            : DateFormat.Md().format(d);
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                            DateFormat.Md().format(d),
+                            label,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall!
@@ -853,8 +867,12 @@ class _NetTrendCard extends StatelessWidget {
                         if (i < 0 || i >= points.length) {
                           return null;
                         }
+                        final DateTime d = points[i].bucketStart;
+                        final String dateLabel = monthly
+                            ? DateFormat.yMMM().format(d)
+                            : DateFormat.yMMMd().format(d);
                         return LineTooltipItem(
-                          '${DateFormat.yMMMd().format(points[i].day)}\n${formatSignedNet(points[i].netMinor)}',
+                          '$dateLabel\n${formatSignedNet(points[i].netMinor)}',
                           Theme.of(context)
                               .textTheme
                               .labelSmall!

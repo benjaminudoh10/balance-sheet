@@ -131,29 +131,42 @@ class PdfExportService {
               .toList(),
           emptyText: 'No category expenses in this snapshot.',
         ),
-        _sectionTitle('Income vs expenses by week'),
+        _sectionTitle(controller.cashflowPdfSectionTitle),
         _table(
-          headers: <String>['Week starting', 'Income', 'Expenses', 'Net'],
+          headers: <String>[
+            controller.cashflowBucketHeader,
+            'Income',
+            'Expenses',
+            'Net',
+          ],
           rows: controller.weeklyCashRows.map((WeeklyCashRow r) {
             return <String>[
-              DateFormat.yMMMd().format(r.weekStartMonday),
+              controller.useMonthlyBuckets
+                  ? DateFormat.yMMM().format(r.bucketStart)
+                  : DateFormat.yMMMd().format(r.bucketStart),
               _formatPdfAmount(r.incomeMinor),
               _formatPdfAmount(r.expenseMinor),
               _formatPdfSignedNet(r.incomeMinor - r.expenseMinor),
             ];
           }).toList(),
-          emptyText: 'No weekly activity in this snapshot.',
+          emptyText: controller.useMonthlyBuckets
+              ? 'No monthly activity in this snapshot.'
+              : 'No weekly activity in this snapshot.',
         ),
-        _sectionTitle('Daily net'),
+        _sectionTitle(controller.netTrendPdfSectionTitle),
         _table(
-          headers: <String>['Date', 'Net'],
+          headers: <String>[controller.netTrendBucketHeader, 'Net'],
           rows: controller.dailyNet
               .map((DailyNetPoint p) => <String>[
-                    DateFormat.yMMMd().format(p.day),
+                    controller.useMonthlyBuckets
+                        ? DateFormat.yMMM().format(p.bucketStart)
+                        : DateFormat.yMMMd().format(p.bucketStart),
                     _formatPdfSignedNet(p.netMinor),
                   ])
               .toList(),
-          emptyText: 'No daily activity in this snapshot.',
+          emptyText: controller.useMonthlyBuckets
+              ? 'No monthly activity in this snapshot.'
+              : 'No daily activity in this snapshot.',
         ),
         _sectionTitle('Top expenses'),
         _table(

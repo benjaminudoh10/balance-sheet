@@ -15,11 +15,13 @@ enum InsightsPeriod {
   lastYear,
 }
 
-/// One calendar day in the insights range with net cashflow (income − expense), minor units.
+/// One bucket in the insights range with net cashflow (income − expense), minor units.
+/// [bucketStart] is the first calendar day of the bucket (a day for daily granularity,
+/// or the first of the month for monthly granularity).
 class DailyNetPoint {
-  const DailyNetPoint(this.day, this.netMinor);
+  const DailyNetPoint(this.bucketStart, this.netMinor);
 
-  final DateTime day;
+  final DateTime bucketStart;
   final int netMinor;
 }
 
@@ -36,20 +38,22 @@ class CategoryBarRow {
   final int amountMinor;
 }
 
-/// Monday-start week within the insights range: income vs expense totals (minor units).
+/// One bucket within the insights range: income vs expense totals (minor units).
+/// [bucketStart] is the first calendar day of the bucket — Monday for weekly granularity,
+/// the first of the month for monthly granularity.
 class WeeklyCashRow {
   const WeeklyCashRow({
-    required this.weekStartMonday,
+    required this.bucketStart,
     required this.incomeMinor,
     required this.expenseMinor,
   });
 
-  final DateTime weekStartMonday;
+  final DateTime bucketStart;
   final int incomeMinor;
   final int expenseMinor;
 }
 
-class _WeekIncomeExpense {
+class _IncomeExpense {
   int income = 0;
   int expense = 0;
 }
@@ -127,6 +131,50 @@ class InsightsController extends GetxController {
         return 'No expenses in the comparison window yet.';
     }
   }
+
+  /// True when the current period is large enough that per-day / per-week buckets
+  /// would be too dense; charts and tables should aggregate by calendar month instead.
+  bool get useMonthlyBuckets {
+    switch (period.value) {
+      case InsightsPeriod.thisYear:
+      case InsightsPeriod.lastYear:
+        return true;
+      case InsightsPeriod.today:
+      case InsightsPeriod.thisWeek:
+      case InsightsPeriod.thisMonth:
+      case InsightsPeriod.lastMonth:
+        return false;
+    }
+  }
+
+  String get cashflowSeriesTitle => useMonthlyBuckets
+      ? 'Income vs expenses by month'
+      : 'Income vs expenses by week';
+
+  String get cashflowSeriesSubtitle => useMonthlyBuckets
+      ? 'Aggregated by calendar month · bars side-by-side per month'
+      : 'Weeks start on Monday · bars side-by-side per week';
+
+  /// Header used for the leading column of the cashflow table in PDF exports.
+  String get cashflowBucketHeader =>
+      useMonthlyBuckets ? 'Month' : 'Week starting';
+
+  /// PDF section title for the cashflow table.
+  String get cashflowPdfSectionTitle => cashflowSeriesTitle;
+
+  String get netTrendSeriesTitle =>
+      useMonthlyBuckets ? 'Net per month' : 'Net per day';
+
+  String get netTrendSeriesSubtitle => useMonthlyBuckets
+      ? 'Income minus expenses, by calendar month'
+      : 'Income minus expenses, by calendar day';
+
+  /// Header used for the leading column of the net-trend table in PDF exports.
+  String get netTrendBucketHeader => useMonthlyBuckets ? 'Month' : 'Date';
+
+  /// PDF section title for the net-trend table.
+  String get netTrendPdfSectionTitle =>
+      useMonthlyBuckets ? 'Monthly net' : 'Daily net';
 
   /// Current selection’s [start, end] in ms, then the comparison range immediately before it.
   /// [InsightsPeriod.thisWeek] matches [ReportController.getTimeFrame] for [ReportType.thisWeek].
@@ -274,6 +322,10 @@ class InsightsController extends GetxController {
     return day.subtract(Duration(days: day.weekday - 1));
   }
 
+  static DateTime _startOfMonth(DateTime d) => DateTime(d.year, d.month, 1);
+
+  static DateTime _nextMonth(DateTime d) => DateTime(d.year, d.month + 1, 1);
+
   void _rebuildCategoryBarRows() {
     if (categoryExpenses.isEmpty) {
       categoryBarRows.clear();
@@ -295,13 +347,19 @@ class InsightsController extends GetxController {
   void _rebuildWeeklyCashRows(List<Transaction> txns, int startMs, int endMs) {
     final DateTime rangeStart = DateTime.fromMillisecondsSinceEpoch(startMs);
     final DateTime rangeEnd = DateTime.fromMillisecondsSinceEpoch(endMs);
+
+    if (useMonthlyBuckets) {
+      weeklyCashRows.value = _aggregateMonthlyCashRows(txns, rangeStart, rangeEnd);
+      return;
+    }
+
     final DateTime firstMonday = _startOfWeekMonday(rangeStart);
     final DateTime lastMonday = _startOfWeekMonday(rangeEnd);
 
-    final Map<DateTime, _WeekIncomeExpense> agg = {};
+    final Map<DateTime, _IncomeExpense> agg = {};
     for (final Transaction t in txns) {
       final DateTime ws = _startOfWeekMonday(t.date);
-      final _WeekIncomeExpense w = agg.putIfAbsent(ws, _WeekIncomeExpense.new);
+      final _IncomeExpense w = agg.putIfAbsent(ws, _IncomeExpense.new);
       if (t.type == TransactionType.income) {
         w.income += t.amount;
       } else {
@@ -311,10 +369,10 @@ class InsightsController extends GetxController {
 
     final List<WeeklyCashRow> rows = [];
     for (DateTime w = firstMonday; !w.isAfter(lastMonday); w = w.add(const Duration(days: 7))) {
-      final _WeekIncomeExpense? v = agg[w];
+      final _IncomeExpense? v = agg[w];
       rows.add(
         WeeklyCashRow(
-          weekStartMonday: w,
+          bucketStart: w,
           incomeMinor: v?.income ?? 0,
           expenseMinor: v?.expense ?? 0,
         ),
@@ -323,9 +381,46 @@ class InsightsController extends GetxController {
     weeklyCashRows.value = rows;
   }
 
+  List<WeeklyCashRow> _aggregateMonthlyCashRows(
+      List<Transaction> txns, DateTime rangeStart, DateTime rangeEnd) {
+    final Map<DateTime, _IncomeExpense> agg = {};
+    for (final Transaction t in txns) {
+      final DateTime ms = _startOfMonth(t.date);
+      final _IncomeExpense m = agg.putIfAbsent(ms, _IncomeExpense.new);
+      if (t.type == TransactionType.income) {
+        m.income += t.amount;
+      } else {
+        m.expense += t.amount;
+      }
+    }
+
+    final DateTime firstMonth = _startOfMonth(rangeStart);
+    final DateTime lastMonth = _startOfMonth(rangeEnd);
+
+    final List<WeeklyCashRow> rows = [];
+    for (DateTime m = firstMonth;
+        !m.isAfter(lastMonth);
+        m = _nextMonth(m)) {
+      final _IncomeExpense? v = agg[m];
+      rows.add(
+        WeeklyCashRow(
+          bucketStart: m,
+          incomeMinor: v?.income ?? 0,
+          expenseMinor: v?.expense ?? 0,
+        ),
+      );
+    }
+    return rows;
+  }
+
   List<DailyNetPoint> _buildDailyNetSeries(List<Transaction> txns, int startMs, int endMs) {
     final DateTime start = DateTime.fromMillisecondsSinceEpoch(startMs);
     final DateTime end = DateTime.fromMillisecondsSinceEpoch(endMs);
+
+    if (useMonthlyBuckets) {
+      return _buildMonthlyNetSeries(txns, start, end);
+    }
+
     final DateTime startDay = DateTime(start.year, start.month, start.day);
     final DateTime endDay = DateTime(end.year, end.month, end.day);
 
@@ -339,6 +434,25 @@ class InsightsController extends GetxController {
     final List<DailyNetPoint> out = [];
     for (DateTime d = startDay; !d.isAfter(endDay); d = d.add(const Duration(days: 1))) {
       out.add(DailyNetPoint(d, byDay[d] ?? 0));
+    }
+    return out;
+  }
+
+  List<DailyNetPoint> _buildMonthlyNetSeries(
+      List<Transaction> txns, DateTime rangeStart, DateTime rangeEnd) {
+    final Map<DateTime, int> byMonth = {};
+    for (final Transaction t in txns) {
+      final DateTime m = _startOfMonth(t.date);
+      final int delta = t.type == TransactionType.income ? t.amount : -t.amount;
+      byMonth[m] = (byMonth[m] ?? 0) + delta;
+    }
+
+    final DateTime firstMonth = _startOfMonth(rangeStart);
+    final DateTime lastMonth = _startOfMonth(rangeEnd);
+
+    final List<DailyNetPoint> out = [];
+    for (DateTime m = firstMonth; !m.isAfter(lastMonth); m = _nextMonth(m)) {
+      out.add(DailyNetPoint(m, byMonth[m] ?? 0));
     }
     return out;
   }
