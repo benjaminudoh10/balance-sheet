@@ -1,9 +1,13 @@
+import 'dart:async' show unawaited;
+
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AppController extends GetxController {
   RxInt index = 0.obs;
@@ -13,6 +17,15 @@ class AppController extends GetxController {
 
   /// User preference: light, dark, or follow OS.
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+
+  /// Populated asynchronously in [onInit] from [PackageInfo.fromPlatform];
+  /// reads `version` from `pubspec.yaml` at build time so UI never drifts
+  /// from the shipped APK / IPA. Empty until the platform call resolves.
+  final RxString appVersion = ''.obs;
+
+  /// Populated alongside [appVersion]; on Android this is `versionCode`,
+  /// on iOS `CFBundleVersion`. Empty until resolved.
+  final RxString appBuildNumber = ''.obs;
 
   @override
   void onInit() {
@@ -24,6 +37,17 @@ class AppController extends GetxController {
     }
     final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
     themeMode.value = _themeModeFromStorage(modeRaw);
+    unawaited(_loadAppVersion());
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final PackageInfo info = await PackageInfo.fromPlatform();
+      appVersion.value = info.version;
+      appBuildNumber.value = info.buildNumber;
+    } catch (e, st) {
+      debugPrint('AppController: PackageInfo.fromPlatform failed: $e\n$st');
+    }
   }
 
   void setAppFont(String id) {

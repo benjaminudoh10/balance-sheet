@@ -26,9 +26,6 @@ import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-/// Matches [pubspec.yaml] version (update when bumping release).
-const String _kAppVersion = '1.3.0';
-
 /// Settings tab — identity-style header plus security controls (replaces flat settings list).
 class SettingsView extends StatelessWidget {
   final SecurityController _securityController = Get.find();
@@ -125,13 +122,19 @@ class SettingsView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Balanced $_kAppVersion',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodySmall!.copyWith(
-                          color: p.textSecondary.withValues(alpha: 0.75),
-                        ),
-                      ),
+                      Obx(() {
+                        // Drop trailing space while [PackageInfo] is still
+                        // resolving so the footer reads "Balanced" instead of
+                        // "Balanced ".
+                        final String v = _appController.appVersion.value;
+                        return Text(
+                          v.isEmpty ? 'Balanced' : 'Balanced $v',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall!.copyWith(
+                            color: p.textSecondary.withValues(alpha: 0.75),
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 6),
                       Text(
                         'Data stays on this device',

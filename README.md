@@ -191,8 +191,11 @@ flutter test
 
 ### Version and branding assets
 
-- App version: **`pubspec.yaml`** → `version:` (e.g. `1.3.0+1`).
-- [`SettingsView`](lib/screens/settings_screen.dart) shows a `_kAppVersion` constant — **keep it in sync** with `pubspec.yaml` when releasing.
+- App version: **`pubspec.yaml`** → `version:` (e.g. `1.0.0+1`). The
+  Settings screen reads this at runtime via [`package_info_plus`]
+  (https://pub.dev/packages/package_info_plus) into
+  [`AppController.appVersion`](lib/controllers/appController.dart) — no
+  hand-maintained constant to keep in sync.
 - Regenerate launcher icon / splash after asset changes:
 
 ```bash

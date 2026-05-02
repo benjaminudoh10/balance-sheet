@@ -93,32 +93,44 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
-### v1.0.0
-- Completed basic functionality of the app
-- Add transactions
-- Attach contact to transactions
-- Tag transactions to category
+### v1.0.0 — first public release
 
-### v1.1.0
-- Fixed data deletion issue when app is updated
+Core ledger
+- Add income and expense transactions, attach an optional contact, tag
+  to a category. Recent activity, today's net and total balance on the
+  home screen.
+- All transactions report with period, category and contact filters.
 
-### v1.1.1
-- Add settings section
-- Option to add a PIN to secure the app when the app is opened
+Insights
+- Period summaries (today / week / month / last month) with category
+  donut, weekly income vs expense bars and a daily net line chart.
 
-### v1.1.2
-- Fixed critical issue with PIN functionality. Ensured only numbers can be entered
+Budgets
+- Per-category monthly budgets with progress and a local notification
+  when a budget is hit by an entry.
 
-### v1.2.0
-- Option to change PIN
-- Option to disable PIN
-- Option to allow fingerprint for locking app
+Investments
+- Track stock holdings and other assets alongside the ledger; net-worth
+  card on home aggregates ledger + investments.
 
-### v1.3.0
-- Insights tab with category, weekly and daily breakdowns
-- Saved views and PDF export for transactions, insights and budgets
-- Budget completion notifications
-- Backup and restore via JSON
-- Theme, font and dark-mode customisation
-- Debug and release builds isolated (separate `applicationId`) so
-  development never touches live data
+Saved views and PDF export
+- Persist named filter presets for transactions, insights and budgets.
+- Export the current (or saved-view) snapshot to PDF.
+
+Security
+- 4-digit PIN with salt + SHA-256 hash; optional fingerprint / Face ID
+  unlock; in-app privacy overlay when backgrounded.
+
+Backup
+- Export and import full state (transactions, contacts, budgets,
+  investments, plus selected preferences) as JSON via the system file
+  picker.
+
+Customisation
+- Light / dark / system theme, multiple font choices, configurable
+  local + foreign currency with manual exchange rate.
+
+Build hygiene
+- Debug and release builds use different `applicationId`s so
+  development installs never touch live data; release APK signed with a
+  proper upload keystore.
