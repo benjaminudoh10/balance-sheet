@@ -342,7 +342,7 @@ List<Widget> _buildGroupedTransactionSlivers(
 
     final DateTime date = DateTime.fromMillisecondsSinceEpoch(dayStart);
     final String headerLine =
-        DateFormat('EEEE, MMM d').format(date).toUpperCase();
+        DateFormat('EEEE, MMM d, yyyy').format(date).toUpperCase();
 
     out.add(_DaySectionHeader(
       title: headerLine,
