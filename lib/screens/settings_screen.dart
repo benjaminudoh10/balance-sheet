@@ -404,114 +404,125 @@ class SettingsView extends StatelessWidget {
   }
 
   Future<void> _exportBackup(BuildContext context) async {
-    try {
-      final String? path = await BackupService.exportBackup();
-      if (!context.mounted) return;
-      if (path == null) return;
-      Get.snackbar(
-        'Backup saved',
-        p.basename(path),
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.GREEN,
-        colorText: Colors.white,
-      );
-    } catch (e, st) {
-      debugPrint('$e\n$st');
-      if (!context.mounted) return;
-      Get.snackbar(
-        'Backup',
-        'Could not export: $e',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.SNACKBAR_RED,
-        colorText: Colors.white,
-      );
-    }
+    // Hold the auto-lock open while the system save dialog is in front: on Android the dialog
+    // pauses the Flutter activity, which would otherwise route the user to the lock screen and
+    // unmount this widget before the file write completes.
+    await _securityController.runWithSubFlow(() async {
+      try {
+        final String? path = await BackupService.exportBackup();
+        if (!context.mounted) return;
+        if (path == null) return;
+        Get.snackbar(
+          'Backup saved',
+          p.basename(path),
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.GREEN,
+          colorText: Colors.white,
+        );
+      } catch (e, st) {
+        debugPrint('$e\n$st');
+        if (!context.mounted) return;
+        Get.snackbar(
+          'Backup',
+          'Could not export: $e',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
+        );
+      }
+    });
   }
 
   Future<void> _importBackup(BuildContext context) async {
-    final FilePickerResult? result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: <String>['json'],
-    );
-    if (result == null || result.files.isEmpty) return;
-    final String? path = result.files.single.path;
-    if (path == null) {
-      Get.snackbar(
-        'Import',
-        'Could not read the selected file.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.SNACKBAR_RED,
-        colorText: Colors.white,
+    // Same subflow guard as export: the Android file picker pauses the Flutter activity, and
+    // without this the lifecycle handler would relock the app behind the picker and silently
+    // abort the rest of this method (no snackbar, no DB writes).
+    await _securityController.runWithSubFlow(() async {
+      final FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: <String>['json'],
       );
-      return;
-    }
-
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) {
-        final AppPalette p = AppPalette.of(ctx);
-        final TextTheme tt = Theme.of(ctx).textTheme;
-        return AlertDialog(
-          backgroundColor: p.surface,
-          title: Text(
-            'Replace all data?',
-            style: tt.titleLarge?.copyWith(color: p.textPrimary),
-          ),
-          content: Text(
-            'Importing overwrites transactions, contacts, theme, and lock settings on this device. This cannot be undone.',
-            style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                AppHaptics.light();
-                Navigator.of(ctx).pop(false);
-              },
-              child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
-            ),
-            TextButton(
-              onPressed: () {
-                AppHaptics.medium();
-                Navigator.of(ctx).pop(true);
-              },
-              child: Text('Import', style: TextStyle(color: p.mint)),
-            ),
-          ],
+      if (result == null || result.files.isEmpty) return;
+      final String? path = result.files.single.path;
+      if (path == null) {
+        Get.snackbar(
+          'Import',
+          'Could not read the selected file.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
         );
-      },
-    );
+        return;
+      }
 
-    if (confirmed != true || !context.mounted) return;
-
-    try {
-      final String raw = await File(path).readAsString();
-      await BackupService.importFromJsonString(raw);
-      await BackupService.refreshControllersAfterImport(invalidateSecuritySession: true);
       if (!context.mounted) return;
-      Get.snackbar(
-        'Restored',
-        'Backup imported successfully.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.GREEN,
-        colorText: Colors.white,
+
+      final bool? confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext ctx) {
+          final AppPalette p = AppPalette.of(ctx);
+          final TextTheme tt = Theme.of(ctx).textTheme;
+          return AlertDialog(
+            backgroundColor: p.surface,
+            title: Text(
+              'Replace all data?',
+              style: tt.titleLarge?.copyWith(color: p.textPrimary),
+            ),
+            content: Text(
+              'Importing overwrites transactions, contacts, theme, and lock settings on this device. This cannot be undone.',
+              style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  AppHaptics.light();
+                  Navigator.of(ctx).pop(false);
+                },
+                child: Text('Cancel', style: TextStyle(color: p.textSecondary)),
+              ),
+              TextButton(
+                onPressed: () {
+                  AppHaptics.medium();
+                  Navigator.of(ctx).pop(true);
+                },
+                child: Text('Import', style: TextStyle(color: p.mint)),
+              ),
+            ],
+          );
+        },
       );
-    } on BackupException catch (e) {
-      Get.snackbar(
-        'Import failed',
-        e.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.SNACKBAR_RED,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Import failed',
-        '$e',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.SNACKBAR_RED,
-        colorText: Colors.white,
-      );
-    }
+
+      if (confirmed != true) return;
+
+      try {
+        final String raw = await File(path).readAsString();
+        await BackupService.importFromJsonString(raw);
+        await BackupService.refreshControllersAfterImport(invalidateSecuritySession: true);
+        Get.snackbar(
+          'Restored',
+          'Backup imported successfully.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.GREEN,
+          colorText: Colors.white,
+        );
+      } on BackupException catch (e) {
+        Get.snackbar(
+          'Import failed',
+          e.message,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Import failed',
+          '$e',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
+        );
+      }
+    });
   }
 
   Future<void> _resetFirstRunUiHints(BuildContext context) async {

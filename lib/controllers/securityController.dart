@@ -25,6 +25,32 @@ class SecurityController extends GetxController {
   /// [onRequireScreenLock] or app backgrounding.
   final RxBool sessionUnlocked = false.obs;
 
+  /// Counts in-flight sub-flows (system file pickers, biometric prompts, etc.) that briefly
+  /// background the Flutter activity but should NOT trigger auto-lock.
+  ///
+  /// Without this, opening a system picker on Android pauses the Flutter activity, which would
+  /// otherwise navigate the user to [LockScreen] behind the picker. When the picker returns, the
+  /// originating widget is unmounted and any downstream flow (e.g. import, export) silently aborts.
+  int _subFlowDepth = 0;
+
+  /// True while a sub-flow is in progress; auto-lock should be suppressed.
+  bool get isSubFlowActive => _subFlowDepth > 0;
+
+  /// Wraps a sub-flow that opens a system UI (file picker, document save, biometrics) so the
+  /// app does NOT relock when the host activity briefly backgrounds.
+  ///
+  /// Always pairs push/pop, even if [body] throws.
+  Future<T> runWithSubFlow<T>(Future<T> Function() body) async {
+    _subFlowDepth++;
+    try {
+      return await body();
+    } finally {
+      if (_subFlowDepth > 0) {
+        _subFlowDepth--;
+      }
+    }
+  }
+
   @override
   void onReady() {
     super.onReady();

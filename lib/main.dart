@@ -155,6 +155,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     final SecurityController security = Get.find<SecurityController>();
     if (!security.sessionUnlocked.value) return;
+    // Backup import/export (and other system pickers) briefly background the Flutter activity.
+    // Locking here would unmount the originating widget and silently abort the in-flight flow.
+    if (security.isSubFlowActive) return;
 
     security.onRequireScreenLock();
     WidgetsBinding.instance.addPostFrameCallback((_) {
