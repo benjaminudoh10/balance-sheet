@@ -11,6 +11,8 @@ enum InsightsPeriod {
   thisWeek,
   thisMonth,
   lastMonth,
+  thisYear,
+  lastYear,
 }
 
 /// One calendar day in the insights range with net cashflow (income − expense), minor units.
@@ -91,6 +93,10 @@ class InsightsController extends GetxController {
         return 'This month';
       case InsightsPeriod.lastMonth:
         return 'Last month';
+      case InsightsPeriod.thisYear:
+        return 'This year';
+      case InsightsPeriod.lastYear:
+        return 'Last year';
     }
   }
 
@@ -102,6 +108,8 @@ class InsightsController extends GetxController {
       case InsightsPeriod.thisWeek:
       case InsightsPeriod.thisMonth:
       case InsightsPeriod.lastMonth:
+      case InsightsPeriod.thisYear:
+      case InsightsPeriod.lastYear:
         return 'the prior period';
     }
   }
@@ -114,6 +122,8 @@ class InsightsController extends GetxController {
       case InsightsPeriod.thisWeek:
       case InsightsPeriod.thisMonth:
       case InsightsPeriod.lastMonth:
+      case InsightsPeriod.thisYear:
+      case InsightsPeriod.lastYear:
         return 'No expenses in the comparison window yet.';
     }
   }
@@ -162,6 +172,28 @@ class InsightsController extends GetxController {
         final DateTime last = DateTime(now.year, now.month, 0, 23, 59, 59, 999);
         final DateTime prevFirst = DateTime(now.year, now.month - 2, 1);
         final DateTime prevLast = DateTime(now.year, now.month - 1, 0, 23, 59, 59, 999);
+        return (
+          first.millisecondsSinceEpoch,
+          last.millisecondsSinceEpoch,
+          prevFirst.millisecondsSinceEpoch,
+          prevLast.millisecondsSinceEpoch,
+        );
+      case InsightsPeriod.thisYear:
+        final DateTime first = DateTime(now.year, 1, 1);
+        final DateTime last = DateTime(now.year, 12, 31, 23, 59, 59, 999);
+        final DateTime prevFirst = DateTime(now.year - 1, 1, 1);
+        final DateTime prevLast = DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
+        return (
+          first.millisecondsSinceEpoch,
+          last.millisecondsSinceEpoch,
+          prevFirst.millisecondsSinceEpoch,
+          prevLast.millisecondsSinceEpoch,
+        );
+      case InsightsPeriod.lastYear:
+        final DateTime first = DateTime(now.year - 1, 1, 1);
+        final DateTime last = DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
+        final DateTime prevFirst = DateTime(now.year - 2, 1, 1);
+        final DateTime prevLast = DateTime(now.year - 2, 12, 31, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,

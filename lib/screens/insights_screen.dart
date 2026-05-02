@@ -136,6 +136,16 @@ class _InsightsViewState extends State<InsightsView> {
                               child: Text(InsightsController.periodLabel(
                                   InsightsPeriod.lastMonth)),
                             ),
+                            PopupMenuItem(
+                              value: InsightsPeriod.thisYear,
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.thisYear)),
+                            ),
+                            PopupMenuItem(
+                              value: InsightsPeriod.lastYear,
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.lastYear)),
+                            ),
                           ],
                         );
                       }),
