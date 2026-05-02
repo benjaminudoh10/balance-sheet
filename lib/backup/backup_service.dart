@@ -18,10 +18,8 @@ import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart' as txn_model;
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
-import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -55,12 +53,12 @@ class BackupService {
     final List<Map<String, Object?>> investmentOtherAssetRows = await inv_db.queryAllOtherInvestmentRows();
 
     final GetStorage box = GetStorage();
+    // Security state (PIN hash/salt, biometric flag, legacy PIN key) is intentionally excluded:
+    // PIN and fingerprint are device-local and can only be configured through the app's
+    // Settings flow. Backups carry data + display preferences, never auth material.
     final Map<String, dynamic> preferences = <String, dynamic>{
       AppConstants.APP_FONT_KEY: box.read(AppConstants.APP_FONT_KEY),
       AppConstants.APP_THEME_MODE_KEY: box.read(AppConstants.APP_THEME_MODE_KEY),
-      AppConstants.USE_FINGERPRINT: box.read(AppConstants.USE_FINGERPRINT) ?? false,
-      AppConstants.USER_PIN_HASH_KEY: box.read(AppConstants.USER_PIN_HASH_KEY),
-      AppConstants.USER_PIN_SALT_KEY: box.read(AppConstants.USER_PIN_SALT_KEY),
       AppConstants.CURRENCY_LCY_KEY: box.read(AppConstants.CURRENCY_LCY_KEY),
       AppConstants.CURRENCY_FCY_KEY: box.read(AppConstants.CURRENCY_FCY_KEY),
       AppConstants.CURRENCY_RATE_KEY: box.read(AppConstants.CURRENCY_RATE_KEY),
@@ -104,7 +102,8 @@ class BackupService {
   }
 
   /// Replaces all local transactions, contacts, and known preferences.
-  /// Call [refreshControllersAfterImport] with `invalidateSecuritySession: true` afterward.
+  /// Security state (PIN hash/salt, biometric flag) is intentionally NOT touched.
+  /// Call [refreshControllersAfterImport] afterward to refresh in-memory controllers.
   static Future<void> importFromJsonString(String raw) async {
     final Object? decoded = jsonDecode(raw);
     if (decoded is! Map) {
@@ -418,36 +417,26 @@ class BackupService {
     final Object? prefsRaw = map['preferences'];
     if (prefsRaw is Map) {
       final Map<String, dynamic> prefs = Map<String, dynamic>.from(prefsRaw);
-      Future<void> writeKey(String key, Object? value) async {
-        if (value == null) {
-          await box.remove(key);
-        } else {
-          box.write(key, value);
-        }
+
+      // Only overwrite a stored preference when the backup carries a non-null value for it.
+      // A missing or null entry leaves the local setting untouched — a partial / empty
+      // preferences block must not wipe an active theme, font, or currency choice.
+      //
+      // Security keys (PIN hash, PIN salt, legacy PIN, biometric flag) are deliberately NOT
+      // restored from backups. PIN and fingerprint are device-local and can only be set or
+      // changed through the app's Settings flow; importing a backup never alters them.
+      void writeIfPresent(String key) {
+        if (!prefs.containsKey(key)) return;
+        final Object? value = prefs[key];
+        if (value == null) return;
+        box.write(key, value);
       }
 
-      await writeKey(AppConstants.APP_FONT_KEY, prefs[AppConstants.APP_FONT_KEY]);
-      await writeKey(AppConstants.APP_THEME_MODE_KEY, prefs[AppConstants.APP_THEME_MODE_KEY]);
-      await writeKey(AppConstants.USE_FINGERPRINT, prefs[AppConstants.USE_FINGERPRINT] ?? false);
-      await writeKey(AppConstants.CURRENCY_LCY_KEY, prefs[AppConstants.CURRENCY_LCY_KEY]);
-      await writeKey(AppConstants.CURRENCY_FCY_KEY, prefs[AppConstants.CURRENCY_FCY_KEY]);
-      await writeKey(AppConstants.CURRENCY_RATE_KEY, prefs[AppConstants.CURRENCY_RATE_KEY]);
-
-      final Object? hash = prefs[AppConstants.USER_PIN_HASH_KEY];
-      final Object? salt = prefs[AppConstants.USER_PIN_SALT_KEY];
-      final bool hasPinMaterial = hash is String &&
-          salt is String &&
-          hash.isNotEmpty &&
-          salt.isNotEmpty;
-      if (!hasPinMaterial) {
-        await box.remove(AppConstants.USER_PIN_HASH_KEY);
-        await box.remove(AppConstants.USER_PIN_SALT_KEY);
-        await box.remove(AppConstants.USER_PIN_KEY);
-      } else {
-        box.write(AppConstants.USER_PIN_HASH_KEY, hash);
-        box.write(AppConstants.USER_PIN_SALT_KEY, salt);
-        await box.remove(AppConstants.USER_PIN_KEY);
-      }
+      writeIfPresent(AppConstants.APP_FONT_KEY);
+      writeIfPresent(AppConstants.APP_THEME_MODE_KEY);
+      writeIfPresent(AppConstants.CURRENCY_LCY_KEY);
+      writeIfPresent(AppConstants.CURRENCY_FCY_KEY);
+      writeIfPresent(AppConstants.CURRENCY_RATE_KEY);
     }
 
     final Object? savedViewsRaw = map['savedViews'];
@@ -463,12 +452,12 @@ class BackupService {
     }
   }
 
-  /// Refreshes in-memory state from SQLite + [GetStorage].
+  /// Refreshes in-memory state from SQLite + [GetStorage] after a backup import or debug clear.
   ///
-  /// When [invalidateSecuritySession] is true (backup import), a configured PIN invalidates the
-  /// unlock session and sends the user to [LockScreen] so the restored secrets match a fresh unlock.
-  /// Debug-only data clears pass false so autolock keeps working for the unchanged PIN session.
-  static Future<void> refreshControllersAfterImport({bool invalidateSecuritySession = false}) async {
+  /// Imports never change security state (PIN hash/salt + biometric flag stay device-local and
+  /// are only mutated through the app's Settings flow), so this method does not relock the
+  /// session — the existing unlock remains valid for the freshly restored data.
+  static Future<void> refreshControllersAfterImport() async {
     // Avoid mass GetX / DB-driven rebuilds during an in-flight frame (e.g. debug clear spinner),
     // which can trigger framework assertions around the element tree.
     await SchedulerBinding.instance.endOfFrame;
@@ -482,14 +471,6 @@ class BackupService {
 
     final SecurityController security = Get.find<SecurityController>();
     security.reloadFromStorage();
-    if (invalidateSecuritySession && security.pinIsSet.value) {
-      security.onRequireScreenLock();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!Get.isRegistered<SecurityController>()) return;
-        if (Get.key.currentContext == null) return;
-        Get.offAll(LockScreen(), transition: Transition.noTransition);
-      });
-    }
 
     final TransactionController tx = Get.find<TransactionController>();
     await tx.loadHomeScreenData();

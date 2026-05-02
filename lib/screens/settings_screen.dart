@@ -469,7 +469,7 @@ class SettingsView extends StatelessWidget {
               style: tt.titleLarge?.copyWith(color: p.textPrimary),
             ),
             content: Text(
-              'Importing overwrites transactions, contacts, theme, and lock settings on this device. This cannot be undone.',
+              'This replaces your transactions, contacts, budgets, and investments on this device. Your PIN and fingerprint settings are kept. This cannot be undone.',
               style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
             ),
             actions: <Widget>[
@@ -497,7 +497,7 @@ class SettingsView extends StatelessWidget {
       try {
         final String raw = await File(path).readAsString();
         await BackupService.importFromJsonString(raw);
-        await BackupService.refreshControllersAfterImport(invalidateSecuritySession: true);
+        await BackupService.refreshControllersAfterImport();
         Get.snackbar(
           'Restored',
           'Backup imported successfully.',

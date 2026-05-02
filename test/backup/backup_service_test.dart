@@ -1,4 +1,5 @@
 import 'package:balance_sheet/backup/backup_service.dart';
+import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
 import 'package:balance_sheet/constants/db.dart';
 import 'package:balance_sheet/database/investment_operations.dart' as inv_ops;
@@ -120,6 +121,116 @@ void main() {
       expect(txns.length, 1);
       expect(txns.first.amount, 5000);
     });
+
+    test('empty preferences block leaves theme, font, and currency untouched',
+        () async {
+      final GetStorage box = GetStorage();
+      box.write(AppConstants.APP_THEME_MODE_KEY, 'dark');
+      box.write(AppConstants.APP_FONT_KEY, 'inter');
+      box.write(AppConstants.CURRENCY_LCY_KEY, 'NGN');
+      box.write(AppConstants.CURRENCY_FCY_KEY, 'USD');
+      box.write(AppConstants.CURRENCY_RATE_KEY, 1500);
+
+      await BackupService.importFromJsonString(validBackupPayload());
+
+      expect(box.read(AppConstants.APP_THEME_MODE_KEY), 'dark');
+      expect(box.read(AppConstants.APP_FONT_KEY), 'inter');
+      expect(box.read(AppConstants.CURRENCY_LCY_KEY), 'NGN');
+      expect(box.read(AppConstants.CURRENCY_FCY_KEY), 'USD');
+      expect(box.read(AppConstants.CURRENCY_RATE_KEY), 1500);
+    });
+
+    test('null preferences entries do not erase existing values', () async {
+      final GetStorage box = GetStorage();
+      box.write(AppConstants.APP_THEME_MODE_KEY, 'light');
+      box.write(AppConstants.CURRENCY_LCY_KEY, 'NGN');
+
+      final String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "preferences": {
+    "${AppConstants.APP_THEME_MODE_KEY}": null,
+    "${AppConstants.CURRENCY_LCY_KEY}": null
+  }
+}
+''';
+      await BackupService.importFromJsonString(raw);
+
+      expect(box.read(AppConstants.APP_THEME_MODE_KEY), 'light');
+      expect(box.read(AppConstants.CURRENCY_LCY_KEY), 'NGN');
+    });
+
+    test('PIN material in backup is ignored — local PIN is never overwritten', () async {
+      final GetStorage box = GetStorage();
+      box.write(AppConstants.USER_PIN_HASH_KEY, 'local-hash');
+      box.write(AppConstants.USER_PIN_SALT_KEY, 'local-salt');
+
+      final String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "preferences": {
+    "${AppConstants.USER_PIN_HASH_KEY}": "from-backup",
+    "${AppConstants.USER_PIN_SALT_KEY}": "from-backup-salt"
+  }
+}
+''';
+      await BackupService.importFromJsonString(raw);
+
+      expect(box.read(AppConstants.USER_PIN_HASH_KEY), 'local-hash');
+      expect(box.read(AppConstants.USER_PIN_SALT_KEY), 'local-salt');
+    });
+
+    test('PIN material in backup does not create a PIN when none is set locally', () async {
+      final GetStorage box = GetStorage();
+      expect(box.read(AppConstants.USER_PIN_HASH_KEY), isNull);
+
+      final String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "preferences": {
+    "${AppConstants.USER_PIN_HASH_KEY}": "from-backup",
+    "${AppConstants.USER_PIN_SALT_KEY}": "from-backup-salt"
+  }
+}
+''';
+      await BackupService.importFromJsonString(raw);
+
+      expect(box.read(AppConstants.USER_PIN_HASH_KEY), isNull);
+      expect(box.read(AppConstants.USER_PIN_SALT_KEY), isNull);
+    });
+
+    test('USE_FINGERPRINT in backup is ignored — local biometric flag is preserved', () async {
+      final GetStorage box = GetStorage();
+      box.write(AppConstants.USE_FINGERPRINT, true);
+
+      final String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "preferences": {
+    "${AppConstants.USE_FINGERPRINT}": false
+  }
+}
+''';
+      await BackupService.importFromJsonString(raw);
+
+      expect(box.read(AppConstants.USE_FINGERPRINT), true);
+    });
   });
 
   group('BackupService.exportJsonString', () {
@@ -134,6 +245,23 @@ void main() {
       expect(json, contains('"investmentHoldings"'));
       expect(json, contains('"investmentOtherAssets"'));
       expect(json, contains('"savedViews"'));
+    });
+
+    test('omits security keys (PIN hash/salt, biometric flag, legacy PIN) from preferences',
+        () async {
+      final GetStorage box = GetStorage();
+      box.write(AppConstants.USER_PIN_HASH_KEY, 'should-not-leak');
+      box.write(AppConstants.USER_PIN_SALT_KEY, 'should-not-leak');
+      box.write(AppConstants.USER_PIN_KEY, 'legacy-should-not-leak');
+      box.write(AppConstants.USE_FINGERPRINT, true);
+
+      final String json = await BackupService.exportJsonString();
+
+      expect(json, isNot(contains(AppConstants.USER_PIN_HASH_KEY)));
+      expect(json, isNot(contains(AppConstants.USER_PIN_SALT_KEY)));
+      expect(json, isNot(contains(AppConstants.USER_PIN_KEY)));
+      expect(json, isNot(contains(AppConstants.USE_FINGERPRINT)));
+      expect(json, isNot(contains('should-not-leak')));
     });
 
     test('includes saved view presets when present', () async {
