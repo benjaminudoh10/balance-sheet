@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
@@ -19,6 +18,7 @@ import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart' as txn_model;
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -32,6 +32,30 @@ class BackupException implements Exception {
   @override
   String toString() => message;
 }
+
+/// Progress event emitted during backup import.
+///
+/// [message] is a short human-readable label for the current phase (e.g.
+/// "Restoring transactions"). [value] is determinate progress in `[0, 1]`
+/// when known and `null` for indeterminate work (parsing, refreshing
+/// controllers, etc.).
+@immutable
+class BackupImportProgress {
+  const BackupImportProgress({required this.message, this.value});
+
+  final String message;
+  final double? value;
+
+  @override
+  String toString() => 'BackupImportProgress(message: $message, value: $value)';
+}
+
+typedef BackupImportProgressCallback = void Function(BackupImportProgress progress);
+
+/// Emit progress every N row inserts during the DB transaction. Picked to keep
+/// the dialog updating smoothly without paying excessive yield overhead on
+/// large backups (tens of thousands of rows).
+const int _kImportProgressChunk = 50;
 
 /// JSON export/import for SQLite + [GetStorage] (option A backup).
 class BackupService {
@@ -104,7 +128,22 @@ class BackupService {
   /// Replaces all local transactions, contacts, and known preferences.
   /// Security state (PIN hash/salt, biometric flag) is intentionally NOT touched.
   /// Call [refreshControllersAfterImport] afterward to refresh in-memory controllers.
-  static Future<void> importFromJsonString(String raw) async {
+  ///
+  /// When [onProgress] is supplied the service emits a sequence of
+  /// [BackupImportProgress] events: an indeterminate "validating" tick, a
+  /// stream of determinate "restoring …" ticks while rows are inserted in the
+  /// SQLite transaction, and a closing "preferences" tick. Long-running
+  /// imports yield to the event loop between chunks so the UI can repaint.
+  static Future<void> importFromJsonString(
+    String raw, {
+    BackupImportProgressCallback? onProgress,
+  }) async {
+    void emit(String message, {double? value}) {
+      onProgress?.call(BackupImportProgress(message: message, value: value));
+    }
+
+    emit('Validating backup…');
+
     final Object? decoded = jsonDecode(raw);
     if (decoded is! Map) {
       throw BackupException('This file is not a valid JSON backup.');
@@ -262,6 +301,31 @@ class BackupService {
       }
     }
 
+    final int totalRows = contacts.length +
+        transactions.length +
+        budgetMonths.length +
+        budgetLines.length +
+        investmentOtherAssets.length +
+        investmentHoldings.length +
+        investmentLots.length +
+        investmentPrices.length;
+    int inserted = 0;
+
+    // Snapshots progress against the global insert total so the dialog's
+    // single progress bar advances monotonically across every section.
+    Future<void> tickProgress(String message, {bool force = false}) async {
+      if (onProgress == null) return;
+      if (!force && inserted % _kImportProgressChunk != 0) return;
+      final double v = totalRows == 0 ? 1.0 : inserted / totalRows;
+      onProgress(BackupImportProgress(message: message, value: v));
+      // Yield so the engine has a chance to repaint between chunks. The
+      // sqflite transaction lock is not released by yielding to the event
+      // loop, so consistency is unaffected.
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    emit('Restoring data…', value: totalRows == 0 ? 1.0 : 0.0);
+
     final Database dbClient = await AppDb().db;
     await dbClient.transaction((Transaction sqlTxn) async {
       await sqlTxn.delete(DBConstants.INVESTMENT_LOT);
@@ -278,7 +342,11 @@ class BackupService {
           DBConstants.CONTACT,
           <String, Object?>{'id': c.id, 'name': c.name},
         );
+        inserted++;
+        await tickProgress('Restoring contacts');
       }
+      if (contacts.isNotEmpty) await tickProgress('Restoring contacts', force: true);
+
       for (final txn_model.Transaction t in transactions) {
         final Map<String, dynamic> row = t.toJson();
         await sqlTxn.insert(DBConstants.TRANSACTION, <String, Object?>{
@@ -292,13 +360,19 @@ class BackupService {
           'entryCurrency': row['entryCurrency'] ?? 'lcy',
           'entryAmount': row['entryAmount'] ?? row['amount'],
         });
+        inserted++;
+        await tickProgress('Restoring transactions');
       }
+      if (transactions.isNotEmpty) await tickProgress('Restoring transactions', force: true);
+
       for (final BudgetMonth b in budgetMonths) {
         await sqlTxn.insert(DBConstants.BUDGET_MONTH, <String, Object?>{
           'id': b.id,
           'year': b.year,
           'month': b.month,
         });
+        inserted++;
+        await tickProgress('Restoring budgets');
       }
       for (final BudgetLine bl in budgetLines) {
         await sqlTxn.insert(DBConstants.BUDGET_LINE, <String, Object?>{
@@ -312,6 +386,11 @@ class BackupService {
           'entryCurrency': bl.planEntryIsFcy ? 'fcy' : 'lcy',
           'entryAmount': bl.planEntryAmountMinor > 0 ? bl.planEntryAmountMinor : bl.plannedAmount,
         });
+        inserted++;
+        await tickProgress('Restoring budgets');
+      }
+      if (budgetMonths.isNotEmpty || budgetLines.isNotEmpty) {
+        await tickProgress('Restoring budgets', force: true);
       }
 
       for (final Map<String, dynamic> r in investmentOtherAssets) {
@@ -344,6 +423,8 @@ class BackupService {
           }
         }
         await sqlTxn.insert(DBConstants.INVESTMENT_OTHER_ASSET, row);
+        inserted++;
+        await tickProgress('Restoring investments');
       }
 
       for (final Map<String, dynamic> r in investmentHoldings) {
@@ -354,6 +435,8 @@ class BackupService {
           'sort_order': r['sort_order'] ?? 0,
           'created_at_ms': r['created_at_ms'],
         });
+        inserted++;
+        await tickProgress('Restoring investments');
       }
       for (final Map<String, dynamic> r in investmentLots) {
         final int lcyPs = r['purchase_price_minor_per_share'] is int
@@ -375,6 +458,8 @@ class BackupService {
           'purchase_price_entry_minor': entryPs,
           'note': r['note'] ?? '',
         });
+        inserted++;
+        await tickProgress('Restoring investments');
       }
       for (final Map<String, dynamic> r in investmentPrices) {
         final Object? rawDay = r['as_of_day'];
@@ -409,8 +494,18 @@ class BackupService {
           'entry_currency': pEc == 'fcy' ? 'fcy' : 'lcy',
           'price_entry_minor': entryPrice,
         });
+        inserted++;
+        await tickProgress('Restoring investments');
+      }
+      if (investmentOtherAssets.isNotEmpty ||
+          investmentHoldings.isNotEmpty ||
+          investmentLots.isNotEmpty ||
+          investmentPrices.isNotEmpty) {
+        await tickProgress('Restoring investments', force: true);
       }
     });
+
+    emit('Restoring preferences…');
 
     final GetStorage box = GetStorage();
 
@@ -457,11 +552,23 @@ class BackupService {
   /// Imports never change security state (PIN hash/salt + biometric flag stay device-local and
   /// are only mutated through the app's Settings flow), so this method does not relock the
   /// session — the existing unlock remains valid for the freshly restored data.
-  static Future<void> refreshControllersAfterImport() async {
+  ///
+  /// When [onProgress] is supplied the service emits an indeterminate
+  /// [BackupImportProgress] event before each controller refresh so the UI
+  /// can keep the spinner alive between import-completed and screens being
+  /// fully repopulated.
+  static Future<void> refreshControllersAfterImport({
+    BackupImportProgressCallback? onProgress,
+  }) async {
+    void emit(String message) {
+      onProgress?.call(BackupImportProgress(message: message));
+    }
+
     // Avoid mass GetX / DB-driven rebuilds during an in-flight frame (e.g. debug clear spinner),
     // which can trigger framework assertions around the element tree.
     await SchedulerBinding.instance.endOfFrame;
 
+    emit('Refreshing app data…');
     final AppController app = Get.find<AppController>();
     app.syncFromStorage();
 
@@ -472,21 +579,25 @@ class BackupService {
     final SecurityController security = Get.find<SecurityController>();
     security.reloadFromStorage();
 
+    emit('Refreshing transactions…');
     final TransactionController tx = Get.find<TransactionController>();
     await tx.loadHomeScreenData();
     tx.resetFieldValues();
 
+    emit('Refreshing contacts…');
     final ContactController contacts = Get.find<ContactController>();
     await contacts.getContacts();
     contacts.resetNewContactDraft();
 
     if (Get.isRegistered<ReportController>()) {
+      emit('Refreshing reports…');
       final ReportController report = Get.find<ReportController>();
       await report.getTransactions();
       await report.getTransactionTotal();
     }
 
     if (Get.isRegistered<InvestmentController>()) {
+      emit('Refreshing investments…');
       final InvestmentController investments = Get.find<InvestmentController>();
       await investments.reload();
     }

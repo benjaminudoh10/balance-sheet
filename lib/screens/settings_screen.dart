@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show ImageFilter;
 
@@ -14,6 +15,7 @@ import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
+import 'package:balance_sheet/widgets/backup_import_progress_dialog.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
@@ -493,11 +495,52 @@ class SettingsView extends StatelessWidget {
       );
 
       if (confirmed != true) return;
+      if (!context.mounted) return;
+
+      // Show a non-dismissible modal so the user has feedback during a large
+      // import (file read + JSON decode + thousands of SQLite inserts +
+      // controller refresh can take many seconds). The notifier owns the
+      // current progress; the dialog rebuilds via [ValueListenableBuilder].
+      final ValueNotifier<BackupImportProgress> progressNotifier =
+          ValueNotifier<BackupImportProgress>(
+        const BackupImportProgress(message: 'Reading backup file…'),
+      );
+      bool dialogOpen = true;
+      final NavigatorState rootNavigator =
+          Navigator.of(context, rootNavigator: true);
+
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          useRootNavigator: true,
+          builder: (BuildContext ctx) =>
+              BackupImportProgressDialog(progress: progressNotifier),
+        ).whenComplete(() {
+          dialogOpen = false;
+          progressNotifier.dispose();
+        }),
+      );
+
+      void closeDialog() {
+        if (!dialogOpen) return;
+        rootNavigator.pop();
+        dialogOpen = false;
+      }
 
       try {
+        // Yield once so the dialog has a chance to mount and paint before the
+        // synchronous JSON decode (a multi-MB backup blocks the main isolate).
+        await Future<void>.delayed(Duration.zero);
         final String raw = await File(path).readAsString();
-        await BackupService.importFromJsonString(raw);
-        await BackupService.refreshControllersAfterImport();
+        await BackupService.importFromJsonString(
+          raw,
+          onProgress: (BackupImportProgress p) => progressNotifier.value = p,
+        );
+        await BackupService.refreshControllersAfterImport(
+          onProgress: (BackupImportProgress p) => progressNotifier.value = p,
+        );
+        closeDialog();
         Get.snackbar(
           'Restored',
           'Backup imported successfully.',
@@ -506,6 +549,7 @@ class SettingsView extends StatelessWidget {
           colorText: Colors.white,
         );
       } on BackupException catch (e) {
+        closeDialog();
         Get.snackbar(
           'Import failed',
           e.message,
@@ -514,6 +558,7 @@ class SettingsView extends StatelessWidget {
           colorText: Colors.white,
         );
       } catch (e) {
+        closeDialog();
         Get.snackbar(
           'Import failed',
           '$e',

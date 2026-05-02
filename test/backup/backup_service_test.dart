@@ -233,6 +233,110 @@ void main() {
     });
   });
 
+  group('BackupService.importFromJsonString progress callback', () {
+    test('emits validating, restoring data, and preferences events', () async {
+      final List<BackupImportProgress> events = <BackupImportProgress>[];
+      await BackupService.importFromJsonString(
+        validBackupPayload(),
+        onProgress: events.add,
+      );
+
+      expect(events, isNotEmpty);
+      // First event is the indeterminate "validating" tick before parsing.
+      expect(events.first.value, isNull);
+      expect(events.first.message.toLowerCase(), contains('valid'));
+      // Some event in the middle reports restoring data.
+      expect(
+        events.any((BackupImportProgress e) =>
+            e.message.toLowerCase().contains('restor') && e.value != null),
+        isTrue,
+      );
+      // Last event covers the preferences phase (indeterminate).
+      expect(events.last.message.toLowerCase(), contains('preference'));
+    });
+
+    test('determinate progress values are within [0, 1] and end at 1.0', () async {
+      // Build a payload with several contacts + transactions so we get multiple
+      // restoring ticks back from the chunked emitter.
+      final StringBuffer contactsBuf = StringBuffer();
+      final StringBuffer txnBuf = StringBuffer();
+      const int n = 5;
+      for (int i = 1; i <= n; i++) {
+        if (i > 1) contactsBuf.write(',');
+        contactsBuf.write('{"id": $i, "name": "Person $i"}');
+        if (i > 1) txnBuf.write(',');
+        txnBuf.write(
+          '{"id": ${100 + i}, "description": "x$i", "type": "income", '
+          '"amount": ${10 * i}, "date": 1700000000000, "category": "salary", '
+          '"contactId": $i}',
+        );
+      }
+      final String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [${contactsBuf.toString()}],
+  "transactions": [${txnBuf.toString()}],
+  "preferences": {}
+}
+''';
+
+      final List<BackupImportProgress> events = <BackupImportProgress>[];
+      await BackupService.importFromJsonString(raw, onProgress: events.add);
+
+      final List<double> determinate = events
+          .where((BackupImportProgress e) => e.value != null)
+          .map((BackupImportProgress e) => e.value!)
+          .toList();
+      expect(determinate, isNotEmpty);
+      for (final double v in determinate) {
+        expect(v, inInclusiveRange(0.0, 1.0));
+      }
+      // Determinate values must be non-decreasing — the dialog's progress bar
+      // would jitter backwards otherwise.
+      for (int i = 1; i < determinate.length; i++) {
+        expect(determinate[i], greaterThanOrEqualTo(determinate[i - 1]));
+      }
+      // Last determinate emit reports the work is complete.
+      expect(determinate.last, closeTo(1.0, 1e-9));
+    });
+
+    test('empty backup still reports validating and preferences progress',
+        () async {
+      const String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "preferences": {}
+}
+''';
+
+      final List<BackupImportProgress> events = <BackupImportProgress>[];
+      await BackupService.importFromJsonString(raw, onProgress: events.add);
+
+      expect(events.length, greaterThanOrEqualTo(2));
+      expect(events.first.message.toLowerCase(), contains('valid'));
+      expect(
+        events.any((BackupImportProgress e) =>
+            e.message.toLowerCase().contains('preference')),
+        isTrue,
+      );
+    });
+
+    test('callback is optional — omitting onProgress still completes import',
+        () async {
+      // Regression guard for the public surface: the existing single-arg call
+      // signature must keep working unchanged.
+      await BackupService.importFromJsonString(validBackupPayload());
+      final List contacts = await db_ops.getContacts();
+      expect(contacts.length, 1);
+    });
+  });
+
   group('BackupService.exportJsonString', () {
     test('includes format metadata and rows', () async {
       await db_ops.addContact(Contact(name: 'Bob'));
