@@ -1,0 +1,94 @@
+name: Assets drift
+
+# Regenerates every committed launcher icon and splash asset from its
+# source script and fails if the result differs from what is on disk.
+# Catches the easy-to-miss case where someone tweaks a colour in
+# AppPalette or a render script without re-running the regeneration
+# pipeline documented in pubspec.yaml / RELEASE.md / README.md.
+#
+# Triggers only on changes to inputs (the scripts, palette, pubspec
+# launcher/splash blocks, or the committed outputs themselves) so we
+# do not pay the cost on unrelated PRs.
+
+on:
+  pull_request:
+    paths:
+      - "tool/render_launcher_icon.py"
+      - "tool/render_native_splash.py"
+      - "tool/render_debug_launcher_icon.py"
+      - "lib/theme/app_palette.dart"
+      - "lib/assets/**"
+      - "android/app/src/debug/res/**"
+      - "android/app/src/main/res/mipmap-**/**"
+      - "android/app/src/main/res/drawable-**/**"
+      - "android/app/src/main/res/values/colors.xml"
+      - "ios/Runner/Assets.xcassets/AppIcon.appiconset/**"
+      - "ios/Runner/Assets.xcassets/LaunchImage.imageset/**"
+      - "pubspec.yaml"
+      - ".github/workflows/assets-drift.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    name: Regenerate icons and splash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .flutter-version
+          channel: stable
+          cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow
+        run: pip install --quiet Pillow
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Render launcher icon source PNGs
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+        run: python3 tool/render_launcher_icon.py
+
+      - name: Render native splash source PNGs
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+        run: python3 tool/render_native_splash.py
+
+      - name: Render debug launcher icon overlays
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+        run: python3 tool/render_debug_launcher_icon.py
+
+      - name: Generate launcher icons
+        run: dart run flutter_launcher_icons
+
+      - name: Generate native splash
+        run: dart run flutter_native_splash:create
+
+      - name: Fail on drift
+        run: |
+          set -euo pipefail
+          if ! git diff --exit-code; then
+            echo ""
+            echo "::error::Generated assets are out of date with their sources."
+            echo "::error::Run the asset regeneration pipeline locally and commit the result:"
+            echo "::error::  pip3 install pillow"
+            echo "::error::  python3 tool/render_launcher_icon.py"
+            echo "::error::  python3 tool/render_native_splash.py"
+            echo "::error::  python3 tool/render_debug_launcher_icon.py"
+            echo "::error::  dart run flutter_launcher_icons"
+            echo "::error::  dart run flutter_native_splash:create"
+            exit 1
+          fi
