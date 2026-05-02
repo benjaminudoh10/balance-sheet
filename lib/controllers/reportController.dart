@@ -303,7 +303,7 @@ class ReportController extends GetxController {
     return showDatePicker(
       context: Get.context!,
       initialDate: singleDate,
-      firstDate: DateTime(2021, 6),
+      firstDate: DateTime(2021),
       lastDate: DateTime.now(),
       selectableDayPredicate: (day) => day.isBefore(DateTime.now())
     );
@@ -313,7 +313,7 @@ class ReportController extends GetxController {
     return showDateRangePicker(
       context: Get.context!,
       initialDateRange: dateTimeRange,
-      firstDate: DateTime(2021, 6),
+      firstDate: DateTime(2021),
       lastDate: DateTime.now(),
     );
   }
