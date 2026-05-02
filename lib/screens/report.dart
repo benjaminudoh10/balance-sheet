@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/app.dart';
@@ -5,6 +6,7 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/reportController.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/services/pdf_export_service.dart';
+import 'package:balance_sheet/widgets/pdf_export_progress_dialog.dart';
 import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
@@ -94,12 +96,48 @@ class _ReportViewState extends State<ReportView> {
 
   Future<void> _exportPdf() async {
     AppHaptics.light();
+    // Progress text pushed by [PdfExportService.shareReport] as it moves
+    // through collect -> format -> render -> share. The dialog keeps animating
+    // while the heavy work runs in a background isolate.
+    final ValueNotifier<String> stage =
+        ValueNotifier<String>('Collecting transactions...');
+    bool dialogOpen = true;
+    final NavigatorState rootNavigator =
+        Navigator.of(context, rootNavigator: true);
+
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        useRootNavigator: true,
+        builder: (BuildContext ctx) =>
+            PdfExportProgressDialog(stage: stage),
+      ).whenComplete(() {
+        dialogOpen = false;
+        stage.dispose();
+      }),
+    );
+
+    void closeDialog() {
+      if (!dialogOpen) return;
+      rootNavigator.pop();
+      dialogOpen = false;
+    }
+
     try {
-      await PdfExportService.shareReport(_reportController);
-    } catch (_) {
+      await PdfExportService.shareReport(
+        _reportController,
+        onStage: (String s) => stage.value = s,
+      );
+      closeDialog();
+    } catch (error, stackTrace) {
+      debugPrint('PDF export failed: $error\n$stackTrace');
+      closeDialog();
       if (!mounted) return;
-      Get.snackbar('PDF export failed',
-          'Could not export the current transactions snapshot.');
+      Get.snackbar(
+        'PDF export failed',
+        'Could not export the current transactions snapshot.',
+      );
     }
   }
 

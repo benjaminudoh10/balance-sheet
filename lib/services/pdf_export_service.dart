@@ -10,6 +10,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -26,67 +27,152 @@ class PdfExportService {
   static const PdfColor _mint = PdfColor.fromInt(0xFF0F766E);
   static const PdfColor _coral = PdfColor.fromInt(0xFFC2410C);
 
-  static Future<void> shareReport(ReportController controller) async {
+  /// Rows per Table chunk in the transactions PDF.
+  ///
+  /// The pdf package's `TableHelper.fromTextArray` computes column widths over
+  /// every row at layout time; beyond roughly a thousand rows that grows
+  /// pathological. Emitting a sequence of smaller Tables keeps each layout
+  /// bounded while `MultiPage` still flows them across pages seamlessly.
+  static const int _reportRowsPerChunk = 250;
+
+  /// Optional callback that receives human-readable stage updates (e.g.
+  /// "Collecting transactions…", "Rendering PDF…") so UI callers can drive a
+  /// progress dialog without the service owning the dialog itself.
+  static Future<void> shareReport(
+    ReportController controller, {
+    void Function(String stage)? onStage,
+  }) async {
+    onStage?.call('Collecting transactions...');
     final Map<int, String> contacts = await _contactNamesById();
-    final DateTime generatedAt = DateTime.now();
-    final String subtitle =
-        '${controller.label.value} - ${_rangeLabel(controller.timeFrames[0], controller.timeFrames[1])}';
     // All transactions view paginates on screen; the PDF must cover the whole
     // range regardless of how far the user scrolled.
     final List<Transaction> allRows =
         await controller.fetchAllTransactionsForCurrentRange();
 
-    await _share(
+    onStage?.call('Formatting ${allRows.length} rows...');
+    final DateTime generatedAt = DateTime.now();
+    final _ReportPdfPayload payload = _ReportPdfPayload(
       filename: _filename('all-transactions', generatedAt),
       title: 'All transactions',
-      subtitle: subtitle,
-      metrics: <_Metric>[
-        _Metric('Income', _formatPdfAmount(controller.income.value), _mint),
-        _Metric('Expenses', _formatPdfAmount(controller.expense.value), _coral),
-        _Metric(
+      subtitle:
+          '${controller.label.value} - ${_rangeLabel(controller.timeFrames[0], controller.timeFrames[1])}',
+      generatedAt: generatedAt,
+      metrics: <_SerialisableMetric>[
+        _SerialisableMetric(
+            'Income', _formatPdfAmount(controller.income.value), _mint.toInt()),
+        _SerialisableMetric('Expenses',
+            _formatPdfAmount(controller.expense.value), _coral.toInt()),
+        _SerialisableMetric(
             'Net',
             _formatPdfSignedNet(
                 controller.income.value - controller.expense.value),
-            _ink),
-        _Metric('Transactions', '${allRows.length}', _ink),
+            _ink.toInt()),
+        _SerialisableMetric('Transactions', '${allRows.length}', _ink.toInt()),
       ],
-      sections: <pw.Widget>[
-        _detailsList(
-          <String, String>{
-            'Period': controller.label.value,
-            'Category': controller.category.value == 'Category'
-                ? 'All categories'
-                : controller.categoryLabel.value,
-            'Contact': controller.contact.value.id > 0
-                ? controller.contact.value.name
-                : 'All contacts',
-          },
-        ),
-        _sectionTitle('Transactions'),
-        _table(
-          headers: <String>[
-            'Date',
-            'Type',
-            'Description',
-            'Category',
-            'Contact',
-            'Amount'
-          ],
-          rows: allRows.map((Transaction t) {
-            return <String>[
-              DateFormat.yMMMd().format(t.date),
-              t.type == TransactionType.income ? 'Income' : 'Expense',
-              _clip(t.description.isEmpty ? 'Untitled' : t.description, 42),
-              _categoryLabel(t.category),
-              contacts[t.contactId] ??
-                  (t.contactId > 0 ? 'Contact #${t.contactId}' : '-'),
-              _formatPdfTransactionAmount(t),
-            ];
-          }).toList(),
-          emptyText: 'No transactions in this snapshot.',
-        ),
+      details: <String, String>{
+        'Period': controller.label.value,
+        'Category': controller.category.value == 'Category'
+            ? 'All categories'
+            : controller.categoryLabel.value,
+        'Contact': controller.contact.value.id > 0
+            ? controller.contact.value.name
+            : 'All contacts',
+      },
+      tableHeaders: const <String>[
+        'Date',
+        'Type',
+        'Description',
+        'Category',
+        'Contact',
+        'Amount',
       ],
+      tableRows: allRows.map((Transaction t) {
+        return <String>[
+          DateFormat.yMMMd().format(t.date),
+          t.type == TransactionType.income ? 'Income' : 'Expense',
+          _clip(t.description.isEmpty ? 'Untitled' : t.description, 42),
+          _categoryLabel(t.category),
+          contacts[t.contactId] ??
+              (t.contactId > 0 ? 'Contact #${t.contactId}' : '-'),
+          _formatPdfTransactionAmount(t),
+        ];
+      }).toList(),
     );
+
+    onStage?.call('Rendering PDF...');
+    // Run the expensive doc build on a background isolate so the UI stays
+    // responsive (and the progress dialog keeps animating). For very small
+    // exports the isolate spawn dominates, so we inline the build instead.
+    final Uint8List bytes = allRows.length >= _reportRowsPerChunk
+        ? await compute(buildReportPdfBytes, payload)
+        : await buildReportPdfBytes(payload);
+
+    onStage?.call('Opening share sheet...');
+    await Printing.sharePdf(bytes: bytes, filename: payload.filename);
+  }
+
+  /// Builds the transactions PDF from [payload] and returns its serialised
+  /// bytes. Exposed as a top-level static because `compute` requires a
+  /// callable that can be resolved in the target isolate.
+  static Future<Uint8List> buildReportPdfBytes(
+      _ReportPdfPayload payload) async {
+    final pw.Document doc = pw.Document();
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.fromLTRB(32, 36, 32, 36),
+        footer: (pw.Context context) => pw.Align(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: const pw.TextStyle(color: _muted, fontSize: 8),
+          ),
+        ),
+        build: (pw.Context context) => <pw.Widget>[
+          _header(payload.title, payload.subtitle, payload.generatedAt),
+          if (payload.metrics.isNotEmpty)
+            _metricsGrid(payload.metrics
+                .map((_SerialisableMetric m) =>
+                    _Metric(m.label, m.value, PdfColor.fromInt(m.colorInt)))
+                .toList()),
+          _detailsList(payload.details),
+          _sectionTitle('Transactions'),
+          ..._chunkedTables(
+            headers: payload.tableHeaders,
+            rows: payload.tableRows,
+            chunkSize: _reportRowsPerChunk,
+            emptyText: 'No transactions in this snapshot.',
+          ),
+        ],
+      ),
+    );
+    return doc.save();
+  }
+
+  /// Splits [rows] into fixed-size chunks and emits a [_table] per chunk.
+  /// A single giant `TableHelper.fromTextArray` runs into super-linear layout
+  /// costs in the pdf package once rows number in the low thousands; chunking
+  /// keeps each layout bounded while `MultiPage` handles cross-chunk paging.
+  static List<pw.Widget> _chunkedTables({
+    required List<String> headers,
+    required List<List<String>> rows,
+    required int chunkSize,
+    required String emptyText,
+  }) {
+    if (rows.isEmpty) {
+      return <pw.Widget>[_emptyText(emptyText)];
+    }
+    final List<pw.Widget> out = <pw.Widget>[];
+    for (int i = 0; i < rows.length; i += chunkSize) {
+      final int end = (i + chunkSize < rows.length) ? i + chunkSize : rows.length;
+      if (i != 0) out.add(pw.SizedBox(height: 6));
+      out.add(_table(
+        headers: headers,
+        rows: rows.sublist(i, end),
+        emptyText: emptyText,
+      ));
+    }
+    return out;
   }
 
   static Future<void> shareInsights(InsightsController controller) async {
@@ -555,4 +641,39 @@ class _Metric {
   final String label;
   final String value;
   final PdfColor color;
+}
+
+/// Metric tile data flattened to sendable types so the whole report payload
+/// can cross an isolate boundary via `compute`.
+class _SerialisableMetric {
+  const _SerialisableMetric(this.label, this.value, this.colorInt);
+
+  final String label;
+  final String value;
+  final int colorInt;
+}
+
+/// Self-contained payload for the transactions PDF. Holds only primitives,
+/// String/int/DateTime/List/Map so Flutter's `compute` can deep-copy it into
+/// the worker isolate.
+class _ReportPdfPayload {
+  const _ReportPdfPayload({
+    required this.filename,
+    required this.title,
+    required this.subtitle,
+    required this.generatedAt,
+    required this.metrics,
+    required this.details,
+    required this.tableHeaders,
+    required this.tableRows,
+  });
+
+  final String filename;
+  final String title;
+  final String subtitle;
+  final DateTime generatedAt;
+  final List<_SerialisableMetric> metrics;
+  final Map<String, String> details;
+  final List<String> tableHeaders;
+  final List<List<String>> tableRows;
 }
