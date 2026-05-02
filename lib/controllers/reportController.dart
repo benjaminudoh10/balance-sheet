@@ -3,6 +3,7 @@ import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
+import 'package:balance_sheet/widgets/date_range_picker_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -388,11 +389,15 @@ class ReportController extends GetxController {
   }
 
   Future<DateTimeRange?> selectDateRange() async {
-    return showDateRangePicker(
-      context: Get.context!,
-      initialDateRange: dateTimeRange,
+    return showAppDateRangePicker(
+      Get.context!,
       firstDate: DateTime(2021),
       lastDate: DateTime.now(),
+      // Only seed the picker when the user already has a real range picked;
+      // for the default today/today seed we'd rather open with nothing
+      // selected so the first tap starts a fresh range.
+      initialRange:
+          type.value == ReportType.dateRange ? dateTimeRange : null,
     );
   }
 }
