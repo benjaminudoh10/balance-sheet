@@ -204,7 +204,15 @@ python3 tool/render_launcher_icon.py
 python3 tool/render_native_splash.py
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
+
+python3 tool/render_debug_launcher_icon.py
 ```
+
+The debug icon renderer writes a blue-tinted variant of the launcher
+icon directly under `android/app/src/debug/res/...` — Android's
+build-type resource overlay swaps it in for `flutter run` / debug
+installs while release builds keep the mint icon. See
+[`RELEASE.md`](RELEASE.md) for details.
 
 ---
 
