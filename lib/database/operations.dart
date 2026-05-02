@@ -37,7 +37,18 @@ Future<int> updateTransaction(Transaction transaction) async {
   return res;
 }
 
-Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String? category, int? contactId}) async {
+/// Fetches transactions in [startTime]..[endTime] ordered newest-first.
+///
+/// Pass [limit] and [offset] to page through large ranges. A secondary sort
+/// on `id DESC` keeps pagination stable when multiple rows share a date.
+Future<List<Transaction>> getAllTransactions(
+  int startTime,
+  int endTime, {
+  String? category,
+  int? contactId,
+  int? limit,
+  int? offset,
+}) async {
   var dbClient = await AppDb().db;
   String query = "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime ";
   if (category != null && category != "Category") {
@@ -47,7 +58,13 @@ Future<List<Transaction>> getAllTransactions(int startTime, int endTime, {String
     query = "$query AND contactId = $contactId ";
   }
 
-  query = "$query ORDER BY date DESC ";
+  query = "$query ORDER BY date DESC, id DESC ";
+  if (limit != null && limit > 0) {
+    query = "$query LIMIT $limit ";
+    if (offset != null && offset > 0) {
+      query = "$query OFFSET $offset ";
+    }
+  }
   final transactions = await dbClient.rawQuery(query.trim());
 
   return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();

@@ -115,6 +115,58 @@ void main() {
       expect(food.first.category, 'food');
     });
 
+    test('getAllTransactions paginates via limit and offset', () async {
+      // Insert 5 rows on distinct days so the ORDER BY date DESC, id DESC
+      // produces a deterministic newest-first ordering.
+      final List<int> ids = <int>[];
+      for (int i = 0; i < 5; i++) {
+        final int id = await db_ops.addTransaction(Transaction(
+          description: 'row $i',
+          type: TransactionType.expenditure,
+          amount: 100 + i,
+          date: DateTime(2025, 6, 1 + i),
+          category: 'misc',
+          contactId: 0,
+        ));
+        ids.add(id);
+      }
+      final int start = DateTime(2025, 6, 1).millisecondsSinceEpoch;
+      final int end = DateTime(2025, 6, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
+
+      final List<Transaction> page1 =
+          await db_ops.getAllTransactions(start, end, limit: 2, offset: 0);
+      final List<Transaction> page2 =
+          await db_ops.getAllTransactions(start, end, limit: 2, offset: 2);
+      final List<Transaction> page3 =
+          await db_ops.getAllTransactions(start, end, limit: 2, offset: 4);
+
+      expect(page1.length, 2);
+      expect(page2.length, 2);
+      expect(page3.length, 1);
+      // Newest first: June 5 row id is last inserted.
+      expect(page1.first.id, ids.last);
+      expect(page1.last.id, ids[3]);
+      expect(page2.first.id, ids[2]);
+      expect(page2.last.id, ids[1]);
+      expect(page3.first.id, ids.first);
+    });
+
+    test('getAllTransactions without limit still returns every row', () async {
+      for (int i = 0; i < 4; i++) {
+        await db_ops.addTransaction(Transaction(
+          description: 'row $i',
+          type: TransactionType.income,
+          amount: 1,
+          date: DateTime(2025, 5, 1 + i),
+          category: 'salary',
+          contactId: 0,
+        ));
+      }
+      final int start = DateTime(2025, 5, 1).millisecondsSinceEpoch;
+      final int end = DateTime(2025, 5, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
+      expect((await db_ops.getAllTransactions(start, end)).length, 4);
+    });
+
     test('getAllTransactions filters by contactId when positive', () async {
       final int cid = await db_ops.addContact(Contact(name: 'Vendor'));
       final DateTime ts = DateTime(2025, 8, 1);

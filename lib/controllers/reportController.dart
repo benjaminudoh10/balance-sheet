@@ -8,6 +8,12 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class ReportController extends GetxController {
+  /// Rows fetched per scroll-to-load-more page.
+  ///
+  /// Wide ranges (e.g. 2021-2026) used to inflate thousands of widgets in one
+  /// frame and freeze the UI; paging keeps that work bounded per fetch.
+  static const int pageSize = 100;
+
   Rx<ReportType> type = ReportType.today.obs;
   RxString label = "Today".obs;
 
@@ -16,6 +22,15 @@ class ReportController extends GetxController {
 
   RxList<Transaction> transactions = <Transaction>[].obs;
   RxMap<int, List<Transaction>> splitTransactions = <int, List<Transaction>>{}.obs;
+
+  /// True while the first page for the current filter set is being fetched.
+  RxBool isLoadingInitial = false.obs;
+
+  /// True while a subsequent page is being appended.
+  RxBool isLoadingMore = false.obs;
+
+  /// False once the last page has been appended for the current filter set.
+  RxBool hasMore = true.obs;
 
   DateTime singleDate = DateTime.now();
   DateTimeRange dateTimeRange = DateTimeRange(
@@ -32,6 +47,10 @@ class ReportController extends GetxController {
   /// Avoids duplicate DB work when [applySavedViewState] sets category/contact together.
   bool _suppressFilterReload = false;
 
+  /// Monotonic token so paginated fetches that started before a filter change
+  /// don't leak stale rows into the list after a reset.
+  int _loadGeneration = 0;
+
   @override
   void onReady() {
     super.onReady();
@@ -41,7 +60,10 @@ class ReportController extends GetxController {
     getTransactions();
     getTransactionTotal();
 
-    transactions.listen((txns) {
+    // TransactionController mutates `transactions` directly on
+    // delete/update; this listener keeps the grouped-by-day map in sync
+    // without every call site having to rebuild it.
+    transactions.listen((List<Transaction> txns) {
       splitTransactions.value = splitTransactionsIntoDays(txns);
     });
 
@@ -261,30 +283,86 @@ class ReportController extends GetxController {
     return [0, 0];
   }
 
-  getTransactions() async {
-    transactions.value = await db.getAllTransactions(
+  /// Loads the first page for the current filter set. Subsequent pages come
+  /// from [loadNextPage] as the user scrolls.
+  Future<void> getTransactions() async {
+    final int gen = ++_loadGeneration;
+    isLoadingInitial.value = true;
+    isLoadingMore.value = false;
+    hasMore.value = true;
+
+    final List<Transaction> page = await db.getAllTransactions(
+      timeFrames[0],
+      timeFrames[1],
+      category: category.value,
+      contactId: contact.value.id,
+      limit: pageSize,
+      offset: 0,
+    );
+
+    if (gen != _loadGeneration) {
+      return;
+    }
+
+    transactions.assignAll(page);
+    splitTransactions.value = splitTransactionsIntoDays(transactions);
+    hasMore.value = page.length == pageSize;
+    isLoadingInitial.value = false;
+  }
+
+  /// Appends the next page of transactions to [transactions]. Safe to call
+  /// repeatedly: re-entrancy is guarded by [isLoadingMore] and [hasMore], and
+  /// stale responses from a prior filter set are dropped via [_loadGeneration].
+  Future<void> loadNextPage() async {
+    if (!hasMore.value) return;
+    if (isLoadingInitial.value || isLoadingMore.value) return;
+
+    final int gen = _loadGeneration;
+    isLoadingMore.value = true;
+
+    final List<Transaction> page = await db.getAllTransactions(
+      timeFrames[0],
+      timeFrames[1],
+      category: category.value,
+      contactId: contact.value.id,
+      limit: pageSize,
+      offset: transactions.length,
+    );
+
+    if (gen != _loadGeneration) {
+      return;
+    }
+
+    if (page.isNotEmpty) {
+      transactions.addAll(page);
+      splitTransactions.value = splitTransactionsIntoDays(transactions);
+    }
+    hasMore.value = page.length == pageSize;
+    isLoadingMore.value = false;
+  }
+
+  /// Full unpaginated snapshot for the current filter set — used by consumers
+  /// (e.g. PDF export) that need every row regardless of scroll position.
+  Future<List<Transaction>> fetchAllTransactionsForCurrentRange() async {
+    return db.getAllTransactions(
       timeFrames[0],
       timeFrames[1],
       category: category.value,
       contactId: contact.value.id,
     );
-    splitTransactions.value = splitTransactionsIntoDays(transactions);
   }
 
+  /// Groups [transactions] by local calendar day (ms-since-epoch of midnight).
+  ///
+  /// O(n) over the input list — the previous implementation walked every day
+  /// in the time frame, which for multi-year ranges dominated the render cost.
   Map<int, List<Transaction>> splitTransactionsIntoDays(List<Transaction> transactions) {
-    int startTime = timeFrames[0];
-    int oneDay = 86400000;
-    Map<int, List<Transaction>> splitData = {};
-    while (startTime < timeFrames[1]) {
-      splitData[startTime] = transactions.where(
-        (transaction) {
-          return transaction.date.millisecondsSinceEpoch >= startTime
-            && transaction.date.millisecondsSinceEpoch < startTime + oneDay;
-        }
-      ).toList();
-      startTime += oneDay;
+    final Map<int, List<Transaction>> splitData = <int, List<Transaction>>{};
+    for (final Transaction t in transactions) {
+      final DateTime d = t.date;
+      final int dayKey = DateTime(d.year, d.month, d.day).millisecondsSinceEpoch;
+      (splitData[dayKey] ??= <Transaction>[]).add(t);
     }
-
     return splitData;
   }
 

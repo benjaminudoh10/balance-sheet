@@ -58,19 +58,38 @@ class ReportView extends StatefulWidget {
 
 class _ReportViewState extends State<ReportView> {
   late final ReportController _reportController;
+  final ScrollController _scrollController = ScrollController();
+
+  /// Distance from the bottom (in pixels) at which we start fetching the next
+  /// page. Large enough that users rarely hit an empty tail while scrolling.
+  static const double _loadMoreThreshold = 480;
 
   @override
   void initState() {
     super.initState();
     _reportController = Get.put(ReportController());
+    _scrollController.addListener(_maybeLoadMore);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_maybeLoadMore);
+    _scrollController.dispose();
     if (Get.isRegistered<ReportController>()) {
       Get.delete<ReportController>();
     }
     super.dispose();
+  }
+
+  void _maybeLoadMore() {
+    if (!_scrollController.hasClients) return;
+    if (!_reportController.hasMore.value) return;
+    if (_reportController.isLoadingMore.value) return;
+    if (_reportController.isLoadingInitial.value) return;
+    final ScrollPosition pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - _loadMoreThreshold) {
+      _reportController.loadNextPage();
+    }
   }
 
   Future<void> _exportPdf() async {
@@ -147,75 +166,111 @@ class _ReportViewState extends State<ReportView> {
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final double contentWidth = constraints.maxWidth;
-                return Obx(() => CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
+                return Obx(() {
+                  final bool isLoadingInitial =
+                      _reportController.isLoadingInitial.value;
+                  final bool isLoadingMore =
+                      _reportController.isLoadingMore.value;
+                  final bool hasMore = _reportController.hasMore.value;
+                  final bool isEmpty =
+                      _reportController.transactions.isEmpty;
+                  final List<Widget> rows = isEmpty
+                      ? const <Widget>[]
+                      : _buildGroupedTransactionSlivers(
+                          context,
+                          _reportController,
+                          contentWidth,
+                        );
+                  return CustomScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(
+                            _horizontalPad, 8, _horizontalPad, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _ReportPeriodSummaryCard(
+                                  controller: _reportController),
+                              const SizedBox(height: 14),
+                              _ReportFiltersSection(
+                                  controller: _reportController),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (isEmpty && isLoadingInitial)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _InitialLoadingState(palette: p),
+                        )
+                      else if (isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: EmptyState(
+                            icon: Icon(
+                              Icons.receipt_long_outlined,
+                              size: 48,
+                              color: p.mint.withValues(alpha: 0.7),
+                            ),
+                            primaryText: Text(
+                              'No transactions in this period',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium!
+                                  .copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: p.textPrimary,
+                                  ),
+                            ),
+                            secondaryText: Text(
+                              _hasActiveFilters(_reportController)
+                                  ? 'Try clearing filters or choosing another date range'
+                                  : 'Change the period above or add entries from Home',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .copyWith(
+                                    color: p.textSecondary,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      else ...<Widget>[
                         SliverPadding(
                           padding: const EdgeInsets.fromLTRB(
-                              _horizontalPad, 8, _horizontalPad, 0),
-                          sliver: SliverToBoxAdapter(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _ReportPeriodSummaryCard(
-                                    controller: _reportController),
-                                const SizedBox(height: 14),
-                                _ReportFiltersSection(
-                                    controller: _reportController),
-                                const SizedBox(height: 16),
-                              ],
+                              _horizontalPad, 0, _horizontalPad, 0),
+                          // Builder delegate virtualises the element tree so
+                          // multi-page scrolls don't inflate thousands of
+                          // slidable rows up front.
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (BuildContext _, int i) => rows[i],
+                              childCount: rows.length,
                             ),
                           ),
                         ),
-                        if (_reportController.transactions.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: EmptyState(
-                              icon: Icon(
-                                Icons.receipt_long_outlined,
-                                size: 48,
-                                color: p.mint.withValues(alpha: 0.7),
-                              ),
-                              primaryText: Text(
-                                'No transactions in this period',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium!
-                                    .copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: p.textPrimary,
-                                    ),
-                              ),
-                              secondaryText: Text(
-                                _hasActiveFilters(_reportController)
-                                    ? 'Try clearing filters or choosing another date range'
-                                    : 'Change the period above or add entries from Home',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(
-                                      color: p.textSecondary,
-                                    ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          )
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(
-                                _horizontalPad, 0, _horizontalPad, 28),
-                            sliver: SliverList(
-                              delegate: SliverChildListDelegate(
-                                _buildGroupedTransactionSlivers(
-                                  context,
-                                  _reportController,
-                                  contentWidth,
-                                ),
-                              ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(
+                              _horizontalPad, 4, _horizontalPad, 28),
+                          sliver: SliverToBoxAdapter(
+                            child: _PaginationFooter(
+                              palette: p,
+                              isLoadingMore: isLoadingMore,
+                              hasMore: hasMore,
+                              totalLoaded:
+                                  _reportController.transactions.length,
                             ),
                           ),
+                        ),
                       ],
-                    ));
+                    ],
+                  );
+                });
               },
             ),
           ),
@@ -723,5 +778,107 @@ class _DaySectionHeader extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+/// Centered spinner shown in place of the empty state while the first page is
+/// still being fetched for a wide date range.
+class _InitialLoadingState extends StatelessWidget {
+  const _InitialLoadingState({required this.palette});
+
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              valueColor: AlwaysStoppedAnimation<Color>(palette.mint),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Loading transactions...',
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: palette.textSecondary,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Footer row under the transaction list: a spinner while the next page is
+/// being fetched, or a quiet "you're all caught up" once the range is
+/// exhausted. Hidden entirely when the list just has a single page with more
+/// available so we don't crowd the UI before the user starts scrolling.
+class _PaginationFooter extends StatelessWidget {
+  const _PaginationFooter({
+    required this.palette,
+    required this.isLoadingMore,
+    required this.hasMore,
+    required this.totalLoaded,
+  });
+
+  final AppPalette palette;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final int totalLoaded;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoadingMore) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(palette.mint),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Loading more...',
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: palette.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!hasMore && totalLoaded > ReportController.pageSize) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Center(
+          child: Text(
+            "You're all caught up",
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: palette.textSecondary.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }

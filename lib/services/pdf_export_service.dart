@@ -31,6 +31,10 @@ class PdfExportService {
     final DateTime generatedAt = DateTime.now();
     final String subtitle =
         '${controller.label.value} - ${_rangeLabel(controller.timeFrames[0], controller.timeFrames[1])}';
+    // All transactions view paginates on screen; the PDF must cover the whole
+    // range regardless of how far the user scrolled.
+    final List<Transaction> allRows =
+        await controller.fetchAllTransactionsForCurrentRange();
 
     await _share(
       filename: _filename('all-transactions', generatedAt),
@@ -44,7 +48,7 @@ class PdfExportService {
             _formatPdfSignedNet(
                 controller.income.value - controller.expense.value),
             _ink),
-        _Metric('Transactions', '${controller.transactions.length}', _ink),
+        _Metric('Transactions', '${allRows.length}', _ink),
       ],
       sections: <pw.Widget>[
         _detailsList(
@@ -68,7 +72,7 @@ class PdfExportService {
             'Contact',
             'Amount'
           ],
-          rows: controller.transactions.map((Transaction t) {
+          rows: allRows.map((Transaction t) {
             return <String>[
               DateFormat.yMMMd().format(t.date),
               t.type == TransactionType.income ? 'Income' : 'Expense',
