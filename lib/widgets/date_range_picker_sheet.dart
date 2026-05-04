@@ -1,6 +1,7 @@
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 /// Modern bottom-sheet replacement for [showDateRangePicker].
@@ -27,6 +28,8 @@ Future<DateTimeRange?> showAppDateRangePicker(
   return showModalBottomSheet<DateTimeRange>(
     context: context,
     isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: true,
     backgroundColor: Colors.transparent,
     barrierColor: p.overlay,
     useSafeArea: true,
@@ -139,6 +142,24 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   late PageController _pageController;
   _PresetKey? _activePreset;
 
+  /// Toggles between the calendar grid and a Material-style "type the dates"
+  /// view, so users can jump to a date in the distant past without paging
+  /// through every month.
+  bool _isInputMode = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  /// Bumped on Reset so the input fields rebuild from their (now empty)
+  /// initial values — the typed-date field owns its `TextEditingController`
+  /// so a value-key change is the cleanest way to clear it.
+  int _formGeneration = 0;
+
+  /// Held by the typed-date fields so we can move focus programmatically:
+  /// auto-open the keyboard on the start field when input mode opens, and
+  /// jump to the end field once the user finishes typing the start date
+  /// (works on iOS, whose number pad has no on-keyboard Next button).
+  final FocusNode _startFocus = FocusNode(debugLabel: 'rangePickerStart');
+  final FocusNode _endFocus = FocusNode(debugLabel: 'rangePickerEnd');
+
   @override
   void initState() {
     super.initState();
@@ -162,6 +183,8 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   @override
   void dispose() {
     _pageController.dispose();
+    _startFocus.dispose();
+    _endFocus.dispose();
     super.dispose();
   }
 
@@ -217,18 +240,83 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
       _start = null;
       _end = null;
       _activePreset = null;
+      // Force the input fields to rebuild with empty initial values when the
+      // user is in type-mode.
+      _formGeneration++;
     });
   }
 
   void _apply() {
     AppHaptics.light();
+    // If the user typed dates without submitting the keyboard, save the form
+    // so [onDateSaved] runs and `_start` / `_end` reflect what's on screen.
+    if (_isInputMode) {
+      final FormState? form = _formKey.currentState;
+      if (form != null) {
+        if (!form.validate()) return;
+        form.save();
+      }
+    }
     if (_start == null) {
       Navigator.of(context).pop();
       return;
     }
-    final DateTime s = _start!;
-    final DateTime e = _end ?? _start!;
+    DateTime s = _start!;
+    DateTime e = _end ?? _start!;
+    // If the user typed an end date that's earlier than the start, swap them
+    // so we always return a forward range to the controller.
+    if (e.isBefore(s)) {
+      final DateTime tmp = s;
+      s = e;
+      e = tmp;
+    }
     Navigator.of(context).pop(DateTimeRange(start: s, end: e));
+  }
+
+  void _toggleInputMode() {
+    AppHaptics.light();
+    if (_isInputMode) {
+      // Commit whatever's already in the fields so partial entries aren't
+      // lost when backing into the calendar. The typed-date field's
+      // `onSaved` only commits cleanly parseable, in-range dates so
+      // invalid/empty fields are harmless here.
+      _formKey.currentState?.save();
+      _startFocus.unfocus();
+      _endFocus.unfocus();
+    }
+    setState(() {
+      _isInputMode = !_isInputMode;
+    });
+    if (_isInputMode) {
+      // Wait for the input view to be in the tree, then bring up the
+      // keyboard automatically focused on the start field.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        FocusScope.of(context).requestFocus(_startFocus);
+      });
+      return;
+    }
+    // After returning to the calendar, scroll to the start month so the
+    // user lands where they expect.
+    if (_start != null && _pageController.hasClients) {
+      final int idx = _monthsBetween(
+        DateTime(widget.firstDate.year, widget.firstDate.month, 1),
+        DateTime(_start!.year, _start!.month, 1),
+      ).clamp(0, _totalMonths - 1);
+      if (idx != _currentMonthIdx) {
+        _pageController.animateToPage(
+          idx,
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
+  DateTime _clampDate(DateTime d) {
+    if (d.isBefore(widget.firstDate)) return widget.firstDate;
+    if (d.isAfter(widget.lastDate)) return widget.lastDate;
+    return d;
   }
 
   void _stepMonth(int delta) {
@@ -253,12 +341,18 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
     final bool isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final bool useTwoPane = isLandscape && size.height < 600;
-    final double maxH = size.height * (useTwoPane ? 0.96 : 0.92);
+    final double desiredMaxH = size.height * (useTwoPane ? 0.96 : 0.92);
+    final double availableAboveKeyboard =
+        (size.height - insetBottom - 12).clamp(96.0, size.height);
+    final double maxH = desiredMaxH < availableAboveKeyboard
+        ? desiredMaxH
+        : availableAboveKeyboard;
 
     return Padding(
       padding: EdgeInsets.only(bottom: insetBottom),
       child: Align(
         alignment: Alignment.bottomCenter,
+        heightFactor: 1,
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           constraints: BoxConstraints(maxHeight: maxH),
@@ -269,7 +363,9 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
-            child: useTwoPane ? _buildTwoPane(p) : _buildSinglePane(p),
+            child: _isInputMode
+                ? _buildInputView(p)
+                : (useTwoPane ? _buildTwoPane(p) : _buildSinglePane(p)),
           ),
         ),
       ),
@@ -290,6 +386,93 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
         _buildFooter(p),
       ],
     );
+  }
+
+  /// Type-the-dates view (parity with the platform date range picker's edit
+  /// mode). Two text fields, locale-aware parsing/validation, and the same
+  /// summary + footer as the calendar view so users can type a date in the
+  /// distant past in seconds.
+  Widget _buildInputView(AppPalette p) {
+    final DateTime initialStart = _clampDate(_start ?? widget.lastDate);
+    final DateTime initialEnd =
+        _clampDate(_end ?? _start ?? widget.lastDate);
+
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _buildHandle(p),
+          _buildHeader(p),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Theme(
+                data: _appInputTheme(context, p),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    _TypedDateField(
+                      // Bump key on Reset so the controller text clears.
+                      key: ValueKey<String>('start_$_formGeneration'),
+                      label: 'Start date',
+                      initialDate: _start == null ? null : initialStart,
+                      firstDate: widget.firstDate,
+                      lastDate: widget.lastDate,
+                      focusNode: _startFocus,
+                      textInputAction: TextInputAction.next,
+                      onCommit: (DateTime d) =>
+                          _commitTypedDate(start: true, value: d),
+                      onAdvance: () =>
+                          FocusScope.of(context).requestFocus(_endFocus),
+                    ),
+                    const SizedBox(height: 12),
+                    _TypedDateField(
+                      key: ValueKey<String>('end_$_formGeneration'),
+                      label: 'End date',
+                      initialDate: _end == null && _start == null
+                          ? null
+                          : initialEnd,
+                      firstDate: widget.firstDate,
+                      lastDate: widget.lastDate,
+                      focusNode: _endFocus,
+                      textInputAction: TextInputAction.done,
+                      onCommit: (DateTime d) =>
+                          _commitTypedDate(start: false, value: d),
+                      onAdvance: () => _endFocus.unfocus(),
+                    ),
+                    if (_start != null && _end != null) ...<Widget>[
+                      const SizedBox(height: 14),
+                      _TypedRangeBadge(
+                        start: _start!,
+                        end: _end!,
+                        palette: p,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          _buildFooter(p),
+        ],
+      ),
+    );
+  }
+
+  void _commitTypedDate({required bool start, required DateTime value}) {
+    setState(() {
+      if (start) {
+        _start = value;
+      } else {
+        _end = value;
+      }
+      _activePreset = null;
+    });
   }
 
   /// Compact landscape layout: header/presets/summary on the left, the actual
@@ -354,8 +537,19 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   }
 
   Widget _buildHeader(AppPalette p) {
+    final String subtitle;
+    if (_isInputMode) {
+      subtitle = 'Type the start and end dates';
+    } else if (_start == null) {
+      subtitle = 'Tap a day to start';
+    } else if (_end == null) {
+      subtitle = 'Pick the end day';
+    } else {
+      subtitle = 'Tap any day to start over';
+    }
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 8, 8),
+      padding: const EdgeInsets.fromLTRB(20, 6, 4, 8),
       child: Row(
         children: <Widget>[
           Expanded(
@@ -371,17 +565,23 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _start == null
-                      ? 'Tap a day to start'
-                      : (_end == null
-                          ? 'Pick the end day'
-                          : 'Tap any day to start over'),
+                  subtitle,
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: p.textSecondary,
                       ),
                 ),
               ],
             ),
+          ),
+          IconButton(
+            tooltip: _isInputMode ? 'Switch to calendar' : 'Type dates',
+            icon: Icon(
+              _isInputMode
+                  ? Icons.calendar_month_outlined
+                  : Icons.edit_calendar_outlined,
+              color: p.textSecondary,
+            ),
+            onPressed: _toggleInputMode,
           ),
           IconButton(
             icon: Icon(Icons.close_rounded, color: p.textSecondary),
@@ -728,6 +928,265 @@ class _PresetChip extends StatelessWidget {
                   ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// App-themed `InputDecorationTheme` so `InputDatePickerFormField` (which
+/// pulls its decoration from the ambient theme) matches the rest of the
+/// sheet — surface fill, mint focus accent, coral error border.
+ThemeData _appInputTheme(BuildContext context, AppPalette p) {
+  final ThemeData base = Theme.of(context);
+  OutlineInputBorder border(Color c, {double width = 1.0}) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: c, width: width),
+      );
+  return base.copyWith(
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: p.surface,
+      isDense: false,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: border(p.border),
+      enabledBorder: border(p.border),
+      focusedBorder: border(p.mint, width: 1.5),
+      errorBorder: border(p.coral),
+      focusedErrorBorder: border(p.coral, width: 1.5),
+      labelStyle: TextStyle(color: p.textSecondary),
+      floatingLabelStyle:
+          TextStyle(color: p.mint, fontWeight: FontWeight.w600),
+      hintStyle: TextStyle(color: p.textSecondary.withValues(alpha: 0.7)),
+      helperStyle: TextStyle(color: p.textSecondary),
+      errorStyle: TextStyle(color: p.coral),
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: p.mint,
+      selectionColor: p.mint.withValues(alpha: 0.3),
+      selectionHandleColor: p.mint,
+    ),
+  );
+}
+
+/// Numeric date input with auto-formatting (`mm/dd/yyyy`), validation
+/// against [firstDate]/[lastDate], focus management, and live commits to
+/// the parent state.
+///
+/// Uses [TextInputType.number] so the OS shows a digit-only keypad — the
+/// `/` separators are inserted by [_DateTextFormatter] as the user types,
+/// so no `/` key is needed on the soft keyboard.
+class _TypedDateField extends StatefulWidget {
+  const _TypedDateField({
+    super.key,
+    required this.label,
+    required this.firstDate,
+    required this.lastDate,
+    required this.initialDate,
+    required this.focusNode,
+    required this.textInputAction,
+    required this.onCommit,
+    required this.onAdvance,
+  });
+
+  final String label;
+  final DateTime firstDate;
+  final DateTime lastDate;
+  final DateTime? initialDate;
+  final FocusNode focusNode;
+  final TextInputAction textInputAction;
+
+  /// Fired whenever the field contains a valid in-range date — used both for
+  /// live updates (e.g. the day-count badge) and for the Form's `save()`
+  /// pass on Apply.
+  final ValueChanged<DateTime> onCommit;
+
+  /// Fired once when the user finishes typing the date (8 digits) or hits
+  /// the keyboard's submit action; the parent uses this to advance focus
+  /// to the next field or dismiss the keyboard.
+  final VoidCallback onAdvance;
+
+  @override
+  State<_TypedDateField> createState() => _TypedDateFieldState();
+}
+
+class _TypedDateFieldState extends State<_TypedDateField> {
+  late final TextEditingController _controller;
+  late int _lastDigitCount;
+
+  static const String _hintText = 'mm/dd/yyyy';
+
+  @override
+  void initState() {
+    super.initState();
+    final DateTime? init = widget.initialDate;
+    final String text = init != null ? _formatDate(init) : '';
+    _controller = TextEditingController(text: text);
+    _lastDigitCount = _digitsOnly(text).length;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  static String _formatDate(DateTime d) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(d.month)}/${two(d.day)}/${d.year}';
+  }
+
+  static String _digitsOnly(String s) => s.replaceAll(RegExp(r'\D'), '');
+
+  /// Strict parse: empty / partial entries return null so we never commit a
+  /// half-typed date by accident.
+  DateTime? _parse(String? text) {
+    if (text == null) return null;
+    final RegExpMatch? m =
+        RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(text.trim());
+    if (m == null) return null;
+    final int mm = int.parse(m.group(1)!);
+    final int dd = int.parse(m.group(2)!);
+    final int yyyy = int.parse(m.group(3)!);
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+    final DateTime d = DateTime(yyyy, mm, dd);
+    // Reject overflows like Feb 30 → Mar 2.
+    if (d.month != mm || d.day != dd) return null;
+    return d;
+  }
+
+  String? _validate(String? text) {
+    if (text == null || text.isEmpty) return 'Enter a date';
+    final DateTime? d = _parse(text);
+    if (d == null) return 'Use $_hintText';
+    if (d.isBefore(widget.firstDate) || d.isAfter(widget.lastDate)) {
+      return 'Outside allowed range';
+    }
+    return null;
+  }
+
+  void _commitIfValid(String? text) {
+    final DateTime? d = _parse(text ?? '');
+    if (d == null) return;
+    if (d.isBefore(widget.firstDate) || d.isAfter(widget.lastDate)) return;
+    widget.onCommit(d);
+  }
+
+  void _onChanged(String text) {
+    _commitIfValid(text);
+    final int digitCount = _digitsOnly(text).length;
+    final bool justCompleted = digitCount == 8 && _lastDigitCount < 8;
+    _lastDigitCount = digitCount;
+    if (!justCompleted) return;
+    // Only auto-advance when the completed entry is actually a valid,
+    // in-range date — otherwise we'd shove the user off a field that
+    // still has a "Use mm/dd/yyyy" / "Outside allowed range" error.
+    final DateTime? parsed = _parse(text);
+    if (parsed == null) return;
+    if (parsed.isBefore(widget.firstDate) ||
+        parsed.isAfter(widget.lastDate)) {
+      return;
+    }
+    widget.onAdvance();
+  }
+
+  void _onFieldSubmitted(String text) {
+    _commitIfValid(text);
+    widget.onAdvance();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: _controller,
+      focusNode: widget.focusNode,
+      keyboardType: const TextInputType.numberWithOptions(
+        signed: false,
+        decimal: false,
+      ),
+      textInputAction: widget.textInputAction,
+      inputFormatters: <TextInputFormatter>[_DateTextFormatter()],
+      validator: _validate,
+      onChanged: _onChanged,
+      onFieldSubmitted: _onFieldSubmitted,
+      onSaved: _commitIfValid,
+      decoration: const InputDecoration(
+        labelText: '',
+        hintText: _hintText,
+      ).copyWith(
+        labelText: widget.label,
+      ),
+    );
+  }
+}
+
+/// Strips everything but digits, caps at 8, then re-inserts `/` after the
+/// month and the day so the visible text is always `mm`, `mm/dd`, or
+/// `mm/dd/yyyy` while the user types.
+class _DateTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final String clamped =
+        digits.length > 8 ? digits.substring(0, 8) : digits;
+
+    final StringBuffer buf = StringBuffer();
+    for (int i = 0; i < clamped.length; i++) {
+      if (i == 2 || i == 4) buf.write('/');
+      buf.write(clamped[i]);
+    }
+    final String formatted = buf.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class _TypedRangeBadge extends StatelessWidget {
+  const _TypedRangeBadge({
+    required this.start,
+    required this.end,
+    required this.palette,
+  });
+
+  final DateTime start;
+  final DateTime end;
+  final AppPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final DateTime ordered = end.isBefore(start) ? start : end;
+    final DateTime orderedStart = end.isBefore(start) ? end : start;
+    final int days = ordered.difference(orderedStart).inDays + 1;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: palette.mint.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: palette.mint.withValues(alpha: 0.45)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(Icons.event_available_rounded,
+                size: 16, color: palette.mint),
+            const SizedBox(width: 6),
+            Text(
+              days == 1 ? '1 day selected' : '$days days selected',
+              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                    color: palette.mint,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+            ),
+          ],
         ),
       ),
     );
