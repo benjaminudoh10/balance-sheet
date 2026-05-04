@@ -118,7 +118,6 @@ class TransactionController extends GetxController {
     await loadHomeScreenData();
     updateControllerDataAfterUpdate(update, previousTransaction);
     Get.back();
-    Get.back();
     Get.snackbar(
       "Successful",
       "Transaction updated successfully",
@@ -132,8 +131,6 @@ class TransactionController extends GetxController {
     var res = await db.deleteTransaction(transaction);
     Get.back();
     if (res == 1) {
-      Get.back();
-
       // remove txn from UI
       transactions.value = transactions.where((txn) => transaction.id != txn.id).toList();
       updateControllerDataAfterDeletion(transaction);
