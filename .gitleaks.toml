@@ -1,0 +1,25 @@
+# gitleaks configuration — extends the upstream default ruleset and adds
+# project-specific allowlists for known false positives.
+#
+# Run locally with the same scope as the PR job in
+# .github/workflows/secret-scan.yml:
+#
+#   gitleaks detect --redact --no-banner --verbose \
+#     --log-opts="origin/<base>..HEAD"
+
+[extend]
+useDefault = true
+
+# CocoaPods writes a `SPEC CHECKSUMS:` block at the bottom of every
+# Podfile.lock listing the SHA-1 of each resolved pod's podspec. They are
+# public, deterministic content hashes (verifiable against the CocoaPods
+# Specs repo) but their 40-hex-char shape and high entropy trip the
+# generic-api-key rule — historically on `local_auth` in this repo.
+#
+# Allowlist the exact line shape rather than the whole file so a stray
+# real secret pasted into Podfile.lock would still be caught.
+[allowlist]
+description = "CocoaPods Podfile.lock spec checksums"
+paths = ['''(^|/)Podfile\.lock$''']
+regexes = ['''^\s{2}[A-Za-z0-9_+\-/.]+:\s+[a-f0-9]{40}$''']
+regexTarget = "line"
