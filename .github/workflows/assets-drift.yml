@@ -80,7 +80,12 @@ jobs:
       - name: Fail on drift
         run: |
           set -euo pipefail
-          if ! git diff --exit-code; then
+          # Stage everything (including new files) so `git diff --exit-code`
+          # surfaces both modifications and untracked outputs — the launcher
+          # icon tool in particular can start emitting new legacy sizes after
+          # a version bump and those would otherwise slip past the check.
+          git add -A
+          if ! git diff --cached --exit-code; then
             echo ""
             echo "::error::Generated assets are out of date with their sources."
             echo "::error::Run the asset regeneration pipeline locally and commit the result:"
