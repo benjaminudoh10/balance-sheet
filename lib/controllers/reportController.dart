@@ -379,12 +379,11 @@ class ReportController extends GetxController {
   }
 
   Future<DateTime?> selectDate() async {
-    return showDatePicker(
-      context: Get.context!,
+    return showAppDatePicker(
+      Get.context!,
       initialDate: singleDate,
       firstDate: DateTime(2021),
       lastDate: DateTime.now(),
-      selectableDayPredicate: (day) => day.isBefore(DateTime.now())
     );
   }
 

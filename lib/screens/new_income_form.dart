@@ -5,6 +5,7 @@ import 'package:balance_sheet/controllers/transactionController.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/widgets/date_range_picker_sheet.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -25,8 +26,8 @@ Future<void> _pickEntryDateTime(
   final DateTime initial = controller.entryDateTime.value;
   final DateTime now = DateTime.now();
   final DateTime today = DateTime(now.year, now.month, now.day);
-  final DateTime? date = await showDatePicker(
-    context: context,
+  final DateTime? date = await showAppDatePicker(
+    context,
     initialDate: initial.isAfter(today) ? today : initial,
     firstDate: DateTime(2000),
     lastDate: today,

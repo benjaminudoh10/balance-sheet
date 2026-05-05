@@ -36,6 +36,7 @@ Future<DateTimeRange?> showAppDateRangePicker(
     builder: (BuildContext ctx) => _AppDateRangePickerSheet(
       firstDate: first,
       lastDate: last,
+      selectionMode: _DatePickerSelectionMode.range,
       initialRange: initialRange == null
           ? null
           : DateTimeRange(
@@ -46,7 +47,46 @@ Future<DateTimeRange?> showAppDateRangePicker(
   );
 }
 
+/// Single-day variant of [showAppDateRangePicker].
+///
+/// Uses the same app-themed calendar/input bottom sheet, but returns one
+/// calendar day instead of a range.
+Future<DateTime?> showAppDatePicker(
+  BuildContext context, {
+  required DateTime firstDate,
+  required DateTime lastDate,
+  DateTime? initialDate,
+}) {
+  final AppPalette p = AppPalette.of(context);
+  final DateTime first = _dayOnly(firstDate);
+  final DateTime last = _dayOnly(lastDate);
+  final DateTime? initial = initialDate == null
+      ? null
+      : _clampDay(_dayOnly(initialDate), first, last);
+  return showModalBottomSheet<DateTime>(
+    context: context,
+    isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: p.overlay,
+    useSafeArea: true,
+    builder: (BuildContext ctx) => _AppDateRangePickerSheet(
+      firstDate: first,
+      lastDate: last,
+      selectionMode: _DatePickerSelectionMode.single,
+      initialDate: initial,
+    ),
+  );
+}
+
 DateTime _dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+DateTime _clampDay(DateTime d, DateTime first, DateTime last) {
+  if (d.isBefore(first)) return first;
+  if (d.isAfter(last)) return last;
+  return d;
+}
 
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
@@ -57,8 +97,7 @@ int _monthsBetween(DateTime a, DateTime b) =>
 DateTime _addMonths(DateTime base, int months) =>
     DateTime(base.year, base.month + months, 1);
 
-int _daysInMonth(int year, int month) =>
-    DateTime(year, month + 1, 0).day;
+int _daysInMonth(int year, int month) => DateTime(year, month + 1, 0).day;
 
 enum _PresetKey { last7, last30, last90, ytd, lastYear }
 
@@ -113,16 +152,22 @@ DateTimeRange _rangeFromPreset(
   return DateTimeRange(start: start, end: end);
 }
 
+enum _DatePickerSelectionMode { single, range }
+
 class _AppDateRangePickerSheet extends StatefulWidget {
   const _AppDateRangePickerSheet({
     required this.firstDate,
     required this.lastDate,
+    required this.selectionMode,
     this.initialRange,
+    this.initialDate,
   });
 
   final DateTime firstDate;
   final DateTime lastDate;
+  final _DatePickerSelectionMode selectionMode;
   final DateTimeRange? initialRange;
+  final DateTime? initialDate;
 
   @override
   State<_AppDateRangePickerSheet> createState() =>
@@ -160,19 +205,30 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   final FocusNode _startFocus = FocusNode(debugLabel: 'rangePickerStart');
   final FocusNode _endFocus = FocusNode(debugLabel: 'rangePickerEnd');
 
+  bool get _isSingleDate =>
+      widget.selectionMode == _DatePickerSelectionMode.single;
+
   @override
   void initState() {
     super.initState();
 
-    final DateTime firstMonth = DateTime(widget.firstDate.year, widget.firstDate.month, 1);
-    final DateTime lastMonth = DateTime(widget.lastDate.year, widget.lastDate.month, 1);
+    final DateTime firstMonth =
+        DateTime(widget.firstDate.year, widget.firstDate.month, 1);
+    final DateTime lastMonth =
+        DateTime(widget.lastDate.year, widget.lastDate.month, 1);
     _totalMonths = _monthsBetween(firstMonth, lastMonth) + 1;
 
+    final DateTime? initDate = widget.initialDate;
     final DateTimeRange? init = widget.initialRange;
-    if (init != null) {
+    if (_isSingleDate && initDate != null) {
+      _start = initDate;
+      _currentMonthIdx = _monthsBetween(
+          firstMonth, DateTime(initDate.year, initDate.month, 1));
+    } else if (init != null) {
       _start = init.start;
       _end = init.end;
-      _currentMonthIdx = _monthsBetween(firstMonth, DateTime(init.start.year, init.start.month, 1));
+      _currentMonthIdx = _monthsBetween(
+          firstMonth, DateTime(init.start.year, init.start.month, 1));
     } else {
       _currentMonthIdx = _totalMonths - 1;
     }
@@ -188,14 +244,19 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
     super.dispose();
   }
 
-  DateTime _monthAt(int idx) =>
-      _addMonths(DateTime(widget.firstDate.year, widget.firstDate.month, 1), idx);
+  DateTime _monthAt(int idx) => _addMonths(
+      DateTime(widget.firstDate.year, widget.firstDate.month, 1), idx);
 
   void _onDayTap(DateTime day) {
     if (day.isBefore(widget.firstDate) || day.isAfter(widget.lastDate)) return;
     AppHaptics.selection();
     setState(() {
       _activePreset = null;
+      if (_isSingleDate) {
+        _start = day;
+        _end = null;
+        return;
+      }
       // Tapping after a complete range clears it and starts a new selection.
       if (_start == null || (_start != null && _end != null)) {
         _start = day;
@@ -261,6 +322,10 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
       Navigator.of(context).pop();
       return;
     }
+    if (_isSingleDate) {
+      Navigator.of(context).pop(_start);
+      return;
+    }
     DateTime s = _start!;
     DateTime e = _end ?? _start!;
     // If the user typed an end date that's earlier than the start, swap them
@@ -296,12 +361,13 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
       });
       return;
     }
-    // After returning to the calendar, scroll to the start month so the
-    // user lands where they expect.
-    if (_start != null && _pageController.hasClients) {
+    // After returning to the calendar, scroll to the most recently chosen
+    // endpoint so the user lands where they expect.
+    final DateTime? targetDate = _end ?? _start;
+    if (targetDate != null && _pageController.hasClients) {
       final int idx = _monthsBetween(
         DateTime(widget.firstDate.year, widget.firstDate.month, 1),
-        DateTime(_start!.year, _start!.month, 1),
+        DateTime(targetDate.year, targetDate.month, 1),
       ).clamp(0, _totalMonths - 1);
       if (idx != _currentMonthIdx) {
         _pageController.animateToPage(
@@ -378,7 +444,7 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
       children: <Widget>[
         _buildHandle(p),
         _buildHeader(p),
-        _buildPresets(p),
+        if (!_isSingleDate) _buildPresets(p),
         _buildSummary(p),
         _buildMonthNav(p),
         _buildWeekdayHeader(p),
@@ -389,13 +455,13 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   }
 
   /// Type-the-dates view (parity with the platform date range picker's edit
-  /// mode). Two text fields, locale-aware parsing/validation, and the same
+  /// mode). One or two text fields, locale-aware parsing/validation, and the
+  /// same
   /// summary + footer as the calendar view so users can type a date in the
   /// distant past in seconds.
   Widget _buildInputView(AppPalette p) {
     final DateTime initialStart = _clampDate(_start ?? widget.lastDate);
-    final DateTime initialEnd =
-        _clampDate(_end ?? _start ?? widget.lastDate);
+    final DateTime initialEnd = _clampDate(_end ?? _start ?? widget.lastDate);
 
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -419,33 +485,43 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
                     _TypedDateField(
                       // Bump key on Reset so the controller text clears.
                       key: ValueKey<String>('start_$_formGeneration'),
-                      label: 'Start date',
+                      label: _isSingleDate ? 'Date' : 'Start date',
                       initialDate: _start == null ? null : initialStart,
                       firstDate: widget.firstDate,
                       lastDate: widget.lastDate,
                       focusNode: _startFocus,
-                      textInputAction: TextInputAction.next,
+                      textInputAction: _isSingleDate
+                          ? TextInputAction.done
+                          : TextInputAction.next,
                       onCommit: (DateTime d) =>
                           _commitTypedDate(start: true, value: d),
-                      onAdvance: () =>
-                          FocusScope.of(context).requestFocus(_endFocus),
+                      onAdvance: () {
+                        if (_isSingleDate) {
+                          _startFocus.unfocus();
+                        } else {
+                          FocusScope.of(context).requestFocus(_endFocus);
+                        }
+                      },
                     ),
-                    const SizedBox(height: 12),
-                    _TypedDateField(
-                      key: ValueKey<String>('end_$_formGeneration'),
-                      label: 'End date',
-                      initialDate: _end == null && _start == null
-                          ? null
-                          : initialEnd,
-                      firstDate: widget.firstDate,
-                      lastDate: widget.lastDate,
-                      focusNode: _endFocus,
-                      textInputAction: TextInputAction.done,
-                      onCommit: (DateTime d) =>
-                          _commitTypedDate(start: false, value: d),
-                      onAdvance: () => _endFocus.unfocus(),
-                    ),
-                    if (_start != null && _end != null) ...<Widget>[
+                    if (!_isSingleDate) ...<Widget>[
+                      const SizedBox(height: 12),
+                      _TypedDateField(
+                        key: ValueKey<String>('end_$_formGeneration'),
+                        label: 'End date',
+                        initialDate:
+                            _end == null && _start == null ? null : initialEnd,
+                        firstDate: widget.firstDate,
+                        lastDate: widget.lastDate,
+                        focusNode: _endFocus,
+                        textInputAction: TextInputAction.done,
+                        onCommit: (DateTime d) =>
+                            _commitTypedDate(start: false, value: d),
+                        onAdvance: () => _endFocus.unfocus(),
+                      ),
+                    ],
+                    if (!_isSingleDate &&
+                        _start != null &&
+                        _end != null) ...<Widget>[
                       const SizedBox(height: 14),
                       _TypedRangeBadge(
                         start: _start!,
@@ -466,7 +542,10 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
 
   void _commitTypedDate({required bool start, required DateTime value}) {
     setState(() {
-      if (start) {
+      if (_isSingleDate) {
+        _start = value;
+        _end = null;
+      } else if (start) {
         _start = value;
       } else {
         _end = value;
@@ -495,7 +574,7 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       _buildHeader(p),
-                      _buildPresets(p),
+                      if (!_isSingleDate) _buildPresets(p),
                       _buildSummary(p),
                     ],
                   ),
@@ -539,9 +618,12 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
   Widget _buildHeader(AppPalette p) {
     final String subtitle;
     if (_isInputMode) {
-      subtitle = 'Type the start and end dates';
+      subtitle =
+          _isSingleDate ? 'Type the date' : 'Type the start and end dates';
     } else if (_start == null) {
-      subtitle = 'Tap a day to start';
+      subtitle = _isSingleDate ? 'Tap a day to select' : 'Tap a day to start';
+    } else if (_isSingleDate) {
+      subtitle = 'Tap another day to change it';
     } else if (_end == null) {
       subtitle = 'Pick the end day';
     } else {
@@ -557,7 +639,7 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Select date range',
+                  _isSingleDate ? 'Select date' : 'Select date range',
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
                         color: p.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -574,7 +656,9 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
             ),
           ),
           IconButton(
-            tooltip: _isInputMode ? 'Switch to calendar' : 'Type dates',
+            tooltip: _isInputMode
+                ? 'Switch to calendar'
+                : (_isSingleDate ? 'Type date' : 'Type dates'),
             icon: Icon(
               _isInputMode
                   ? Icons.calendar_month_outlined
@@ -619,8 +703,7 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
 
   Widget _buildSummary(AppPalette p) {
     final DateFormat fmt = DateFormat('MMM d, yyyy');
-    final String startText =
-        _start == null ? '—' : fmt.format(_start!);
+    final String startText = _start == null ? '—' : fmt.format(_start!);
     final String endText = _end == null ? '—' : fmt.format(_end!);
     final int? days = (_start != null && _end != null)
         ? _end!.difference(_start!).inDays + 1
@@ -639,48 +722,60 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
           children: <Widget>[
             Expanded(
               child: _SummaryEndpoint(
-                label: 'FROM',
+                label: _isSingleDate ? 'DATE' : 'FROM',
                 value: startText,
                 active: _start != null,
                 palette: p,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Icon(
-                Icons.arrow_forward_rounded,
-                size: 18,
-                color: p.textSecondary.withValues(alpha: 0.8),
-              ),
-            ),
-            Expanded(
-              child: _SummaryEndpoint(
-                label: 'TO',
-                value: endText,
-                active: _end != null,
-                palette: p,
-                alignEnd: true,
-              ),
-            ),
-            if (days != null) ...<Widget>[
+            if (_isSingleDate) ...<Widget>[
               const SizedBox(width: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: p.mint.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: p.mint.withValues(alpha: 0.45)),
-                ),
-                child: Text(
-                  days == 1 ? '1 day' : '$days days',
-                  style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                        color: p.mint,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
+              Icon(
+                Icons.event_available_rounded,
+                size: 20,
+                color: _start != null
+                    ? p.mint
+                    : p.textSecondary.withValues(alpha: 0.8),
+              ),
+            ],
+            if (!_isSingleDate) ...<Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 18,
+                  color: p.textSecondary.withValues(alpha: 0.8),
                 ),
               ),
+              Expanded(
+                child: _SummaryEndpoint(
+                  label: 'TO',
+                  value: endText,
+                  active: _end != null,
+                  palette: p,
+                  alignEnd: true,
+                ),
+              ),
+              if (days != null) ...<Widget>[
+                const SizedBox(width: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: p.mint.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: p.mint.withValues(alpha: 0.45)),
+                  ),
+                  child: Text(
+                    days == 1 ? '1 day' : '$days days',
+                    style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                          color: p.mint,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                  ),
+                ),
+              ],
             ],
           ],
         ),
@@ -901,9 +996,7 @@ class _PresetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: active
-          ? palette.mint.withValues(alpha: 0.16)
-          : palette.surface,
+      color: active ? palette.mint.withValues(alpha: 0.16) : palette.surface,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -939,7 +1032,8 @@ class _PresetChip extends StatelessWidget {
 /// sheet — surface fill, mint focus accent, coral error border.
 ThemeData _appInputTheme(BuildContext context, AppPalette p) {
   final ThemeData base = Theme.of(context);
-  OutlineInputBorder border(Color c, {double width = 1.0}) => OutlineInputBorder(
+  OutlineInputBorder border(Color c, {double width = 1.0}) =>
+      OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: c, width: width),
       );
@@ -948,16 +1042,14 @@ ThemeData _appInputTheme(BuildContext context, AppPalette p) {
       filled: true,
       fillColor: p.surface,
       isDense: false,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: border(p.border),
       enabledBorder: border(p.border),
       focusedBorder: border(p.mint, width: 1.5),
       errorBorder: border(p.coral),
       focusedErrorBorder: border(p.coral, width: 1.5),
       labelStyle: TextStyle(color: p.textSecondary),
-      floatingLabelStyle:
-          TextStyle(color: p.mint, fontWeight: FontWeight.w600),
+      floatingLabelStyle: TextStyle(color: p.mint, fontWeight: FontWeight.w600),
       hintStyle: TextStyle(color: p.textSecondary.withValues(alpha: 0.7)),
       helperStyle: TextStyle(color: p.textSecondary),
       errorStyle: TextStyle(color: p.coral),
@@ -1084,8 +1176,7 @@ class _TypedDateFieldState extends State<_TypedDateField> {
     // still has a "Use mm/dd/yyyy" / "Outside allowed range" error.
     final DateTime? parsed = _parse(text);
     if (parsed == null) return;
-    if (parsed.isBefore(widget.firstDate) ||
-        parsed.isAfter(widget.lastDate)) {
+    if (parsed.isBefore(widget.firstDate) || parsed.isAfter(widget.lastDate)) {
       return;
     }
     widget.onAdvance();
@@ -1131,8 +1222,7 @@ class _DateTextFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final String clamped =
-        digits.length > 8 ? digits.substring(0, 8) : digits;
+    final String clamped = digits.length > 8 ? digits.substring(0, 8) : digits;
 
     final StringBuffer buf = StringBuffer();
     for (int i = 0; i < clamped.length; i++) {
@@ -1175,8 +1265,7 @@ class _TypedRangeBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.event_available_rounded,
-                size: 16, color: palette.mint),
+            Icon(Icons.event_available_rounded, size: 16, color: palette.mint),
             const SizedBox(width: 6),
             Text(
               days == 1 ? '1 day selected' : '$days days selected',
@@ -1371,7 +1460,8 @@ class _DayCell extends StatelessWidget {
         shape: BoxShape.circle,
         color: (isStart || isEnd) ? palette.mint : Colors.transparent,
         border: (now && !isStart && !isEnd && !inRange && !disabled)
-            ? Border.all(color: palette.mint.withValues(alpha: 0.55), width: 1.4)
+            ? Border.all(
+                color: palette.mint.withValues(alpha: 0.55), width: 1.4)
             : null,
       ),
       alignment: Alignment.center,

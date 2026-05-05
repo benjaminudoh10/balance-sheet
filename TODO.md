@@ -9,5 +9,5 @@
 - [ ] Other platforms (web, macos)
 - [x] Security pin or fingerprint
 - [x] Sent a local notification when a budget is completed as a result of a transaction entry
-- [ ] Make the calendar show the view with selected end date when switching from date entry mode to date selection mode.
-- [ ] Use the same widget for the single calendar date selection
+- [x] Make the calendar show the view with selected end date when switching from date entry mode to date selection mode.
+- [x] Use the same widget for the single calendar date selection
