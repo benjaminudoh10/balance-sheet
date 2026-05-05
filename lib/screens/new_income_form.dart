@@ -37,6 +37,9 @@ Future<void> _pickEntryDateTime(
   final TimeOfDay? time = await showTimePicker(
     context: context,
     initialTime: TimeOfDay.fromDateTime(initial),
+    // The stock input-entry mode can assert on compact heights because Flutter
+    // hard-codes a 216px min height even when the route allows less.
+    initialEntryMode: TimePickerEntryMode.dialOnly,
   );
   if (!context.mounted) return;
   final TimeOfDay effective = time ?? TimeOfDay.fromDateTime(initial);

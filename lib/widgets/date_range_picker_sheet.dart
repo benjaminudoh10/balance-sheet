@@ -409,7 +409,7 @@ class _AppDateRangePickerSheetState extends State<_AppDateRangePickerSheet> {
     final bool useTwoPane = isLandscape && size.height < 600;
     final double desiredMaxH = size.height * (useTwoPane ? 0.96 : 0.92);
     final double availableAboveKeyboard =
-        (size.height - insetBottom - 12).clamp(96.0, size.height);
+        (size.height - insetBottom - 12).clamp(0.0, size.height);
     final double maxH = desiredMaxH < availableAboveKeyboard
         ? desiredMaxH
         : availableAboveKeyboard;
