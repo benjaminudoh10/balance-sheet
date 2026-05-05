@@ -1,7 +1,7 @@
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
@@ -13,7 +13,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 /// Field labels in the income/expense sheet — caps, uses theme scale.
-TextStyle _fieldLabelStyle(TextTheme textTheme, AppPalette p) => textTheme.labelMedium!.copyWith(
+TextStyle _fieldLabelStyle(TextTheme textTheme, AppPalette p) =>
+    textTheme.labelMedium!.copyWith(
       letterSpacing: 1.15,
       height: 1.2,
       color: p.textPrimary.withValues(alpha: 0.88),
@@ -106,7 +107,7 @@ class _EntryDateTimeField extends StatelessWidget {
 }
 
 class IncomeForm extends StatelessWidget {
-  IncomeForm({required this.type, this.transaction});
+  IncomeForm({super.key, required this.type, this.transaction});
 
   final TransactionType type;
   final Transaction? transaction;
@@ -138,7 +139,8 @@ class IncomeForm extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
                 child: Column(
@@ -165,7 +167,8 @@ class IncomeForm extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
                             color: accent.withValues(alpha: 0.12),
-                            border: Border.all(color: accent.withValues(alpha: 0.28)),
+                            border: Border.all(
+                                color: accent.withValues(alpha: 0.28)),
                           ),
                           child: Icon(
                             _isIncome
@@ -182,20 +185,27 @@ class IncomeForm extends StatelessWidget {
                             children: [
                               Text(
                                 '$_verb $_typeLabel',
-                                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                                  color: p.textPrimary,
-                                  letterSpacing: -0.4,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall!
+                                    .copyWith(
+                                      color: p.textPrimary,
+                                      letterSpacing: -0.4,
+                                    ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 transaction != null
                                     ? 'Edit the details below.'
                                     : 'Add amount, category, and when it occurred.',
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  height: 1.35,
-                                  color: p.textSecondary.withValues(alpha: 0.9),
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                      height: 1.35,
+                                      color: p.textSecondary
+                                          .withValues(alpha: 0.9),
+                                    ),
                               ),
                             ],
                           ),
@@ -221,14 +231,16 @@ class IncomeForm extends StatelessWidget {
                       child: DescriptionInput(compact: true),
                     ),
                     Obx(() {
-                      final String code = _transactionController.amountEntryIsFcy.value
-                          ? Get.find<CurrencyController>().fcyCode.value
-                          : Get.find<CurrencyController>().lcyCode.value;
+                      final String code =
+                          _transactionController.amountEntryIsFcy.value
+                              ? Get.find<CurrencyController>().fcyCode.value
+                              : Get.find<CurrencyController>().lcyCode.value;
                       return _FormSection(
                         label: 'Amount ($code)',
                         labelTrailing: Padding(
                           padding: const EdgeInsets.only(left: 8),
-                          child: TransactionAmountCurrencySelector(isIncome: _isIncome),
+                          child: TransactionAmountCurrencySelector(
+                              isIncome: _isIncome),
                         ),
                         child: AmountInput(compact: true, isIncome: _isIncome),
                       );
@@ -247,7 +259,8 @@ class IncomeForm extends StatelessWidget {
                     _CategoryAndContactBlock(
                       accent: accent,
                       contactName: _transactionController.contact.value?.name,
-                      onClearContact: () => _transactionController.resetContact(),
+                      onClearContact: () =>
+                          _transactionController.resetContact(),
                       contactTap: () => showContactPickerSheet(
                         context,
                         controller: _transactionController,
@@ -260,9 +273,7 @@ class IncomeForm extends StatelessWidget {
                       width: double.infinity,
                       height: 52,
                       child: Material(
-                        color: validInput()
-                            ? accent
-                            : p.surfaceElevated,
+                        color: validInput() ? accent : p.surfaceElevated,
                         borderRadius: BorderRadius.circular(26),
                         child: InkWell(
                           onTap: () async {
@@ -273,18 +284,19 @@ class IncomeForm extends StatelessWidget {
                                 'All fields are required',
                                 colorText: p.textPrimary,
                                 snackPosition: SnackPosition.TOP,
-                                backgroundColor:
-                                    p.coral.withValues(alpha: 0.9),
+                                backgroundColor: p.coral.withValues(alpha: 0.9),
                               );
                               return;
                             }
 
-                            final bool isFcy = _transactionController.amountEntryIsFcy.value;
+                            final bool isFcy =
+                                _transactionController.amountEntryIsFcy.value;
                             final int entryMinor = isFcy
                                 ? _transactionController.entryAmountMinor.value
                                 : _transactionController.amount.value;
                             final Transaction tx = Transaction(
-                              description: _transactionController.description.value,
+                              description:
+                                  _transactionController.description.value,
                               type: type,
                               amount: _transactionController.amount.value,
                               category: _transactionController.category.value,
@@ -305,26 +317,30 @@ class IncomeForm extends StatelessWidget {
                           },
                           borderRadius: BorderRadius.circular(26),
                           child: Center(
-                            child: _transactionController.addingTransaction.value
-                                ? SpinKitThreeBounce(
-                                    color: validInput()
-                                        ? (_isIncome
-                                            ? Colors.black87
-                                            : Colors.white)
-                                        : p.textSecondary,
-                                    size: 20,
-                                  )
-                                : Text(
-                                    '$_verb $_typeLabel',
-                                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                      color: validInput()
-                                          ? (_isIncome
-                                              ? Colors.black87
-                                              : Colors.white)
-                                          : p.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                            child:
+                                _transactionController.addingTransaction.value
+                                    ? SpinKitThreeBounce(
+                                        color: validInput()
+                                            ? (_isIncome
+                                                ? Colors.black87
+                                                : Colors.white)
+                                            : p.textSecondary,
+                                        size: 20,
+                                      )
+                                    : Text(
+                                        '$_verb $_typeLabel',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge!
+                                            .copyWith(
+                                              color: validInput()
+                                                  ? (_isIncome
+                                                      ? Colors.black87
+                                                      : Colors.white)
+                                                  : p.textSecondary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
                           ),
                         ),
                       ),
@@ -497,9 +513,9 @@ class _ContactChip extends StatelessWidget {
           child: Text(
             name,
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
-              color: p.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: p.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),

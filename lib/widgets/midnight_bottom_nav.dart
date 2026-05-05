@@ -1,4 +1,4 @@
-import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

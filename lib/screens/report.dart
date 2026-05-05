@@ -3,7 +3,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/controllers/report_controller.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/widgets/pdf_export_progress_dialog.dart';

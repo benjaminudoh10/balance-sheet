@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

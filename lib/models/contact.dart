@@ -6,7 +6,7 @@ class Contact {
 
   @override
   String toString() {
-    return "${this.toJson()}";
+    return "${toJson()}";
   }
 
   int id;
@@ -14,8 +14,8 @@ class Contact {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": this.id,
-      "name": this.name,
+      "id": id,
+      "name": name,
     };
   }
 

@@ -15,12 +15,13 @@ class Transaction {
 
   @override
   String toString() {
-    return "${this.toJson()}";
+    return "${toJson()}";
   }
 
   int id;
   final String description;
   final TransactionType type;
+
   /// Canonical value in **LCY minor units** (for sums and balance).
   final int amount;
   final DateTime date;
@@ -35,13 +36,13 @@ class Transaction {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": this.id,
-      "description": this.description,
-      "type": this.type == TransactionType.income ? "income" : "expenditure",
-      "amount": this.amount,
-      "date": this.date.millisecondsSinceEpoch,
-      "category": this.category,
-      "contactId": this.contactId,
+      "id": id,
+      "description": description,
+      "type": type == TransactionType.income ? "income" : "expenditure",
+      "amount": amount,
+      "date": date.millisecondsSinceEpoch,
+      "category": category,
+      "contactId": contactId,
       "entryCurrency": entryIsFcy ? "fcy" : "lcy",
       "entryAmount": entryAmountMinor,
     };
@@ -62,7 +63,9 @@ class Transaction {
       id: data['id'] as int? ?? 0,
       amount: amount,
       description: data['description'] as String? ?? '',
-      type: data['type'] == "income" ? TransactionType.income : TransactionType.expenditure,
+      type: data['type'] == "income"
+          ? TransactionType.income
+          : TransactionType.expenditure,
       date: DateTime.fromMillisecondsSinceEpoch(data['date'] as int? ?? 0),
       category: data['category'] as String? ?? '',
       contactId: contactId,

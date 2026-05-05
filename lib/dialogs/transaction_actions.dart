@@ -1,5 +1,5 @@
-import 'package:balance_sheet/controllers/contactController.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';

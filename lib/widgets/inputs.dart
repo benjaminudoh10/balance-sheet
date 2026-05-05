@@ -3,11 +3,11 @@ import 'dart:math' as math;
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/controllers/report_controller.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
-import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,11 +17,11 @@ import 'package:pinput/pinput.dart';
 class DecimalTextInputFormatter extends TextInputFormatter {
   final int decimalRange;
 
-  DecimalTextInputFormatter({this.decimalRange = 2})
-    : assert(decimalRange > 0);
+  DecimalTextInputFormatter({this.decimalRange = 2}) : assert(decimalRange > 0);
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     final String value = newValue.text;
     String truncated = value;
 
@@ -155,8 +155,9 @@ class TransactionAmountCurrencySelector extends StatelessWidget {
     final TransactionController tx = Get.find<TransactionController>();
     final Color flowAccent =
         isIncome == null ? p.coral : (isIncome! ? p.mint : p.coral);
-    final Color selectedOnAccent =
-        isIncome == null ? Colors.white : (isIncome! ? const Color(0xFF0D1117) : Colors.white);
+    final Color selectedOnAccent = isIncome == null
+        ? Colors.white
+        : (isIncome! ? const Color(0xFF0D1117) : Colors.white);
     return Obx(() {
       final bool fcy = tx.amountEntryIsFcy.value;
       final String lCode = currency.lcyCode.value;
@@ -299,8 +300,8 @@ class CategoryInput extends StatelessWidget {
             itemHeight: null,
             menuMaxHeight: 300,
             style: Theme.of(context).textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
             selectedItemBuilder: (BuildContext context) {
               return list.map((c) {
                 final String k = c['key']! as String;
@@ -336,7 +337,7 @@ class CategoryInput extends StatelessWidget {
 
 /// Category dropdown for **All transactions** — same pill styling as [CategoryInput], bound to [ReportController].
 class ReportCategoryDropdown extends StatelessWidget {
-  ReportCategoryDropdown({super.key, required this.controller});
+  const ReportCategoryDropdown({super.key, required this.controller});
 
   final ReportController controller;
 
@@ -361,9 +362,8 @@ class ReportCategoryDropdown extends StatelessWidget {
           ? null
           : Categories.pillStyleForKey(value!, Theme.of(context).brightness);
 
-      final Color hintAndIconColor = isPlaceholder
-          ? p.textSecondary
-          : pill!.foreground;
+      final Color hintAndIconColor =
+          isPlaceholder ? p.textSecondary : pill!.foreground;
 
       final String displayLabel = isPlaceholder
           ? 'Category'
@@ -398,7 +398,8 @@ class ReportCategoryDropdown extends StatelessWidget {
               final String lbl = c['label']! as String;
               return PopupMenuItem<String>(
                 value: k,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 child: CategoryPillLabel(categoryKey: k, label: lbl),
               );
             }).toList();
@@ -418,9 +419,9 @@ class ReportCategoryDropdown extends StatelessWidget {
                 displayLabel,
                 maxLines: 1,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: hintAndIconColor,
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: hintAndIconColor,
+                    ),
               ),
             ],
           ),
@@ -455,13 +456,13 @@ class DescriptionInput extends StatelessWidget {
           contentPadding: EdgeInsets.all(compact ? 8.0 : 10.0),
           hintText: "e.g. Tomatoes",
           hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: p.textSecondary,
-          ),
+                color: p.textSecondary,
+              ),
           border: InputBorder.none,
         ),
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: p.textPrimary,
-        ),
+              color: p.textPrimary,
+            ),
         cursorColor: p.mint,
         controller: _transactionController.descController.value,
         keyboardType: TextInputType.text,
@@ -505,13 +506,13 @@ class ContactInput extends StatelessWidget {
           isDense: compact,
           hintText: "e.g. Jane Doe",
           hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: p.textSecondary,
-          ),
+                color: p.textSecondary,
+              ),
           border: InputBorder.none,
         ),
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: p.textPrimary,
-        ),
+              color: p.textPrimary,
+            ),
         cursorColor: p.mint,
         controller: _contactController.nameController.value,
         keyboardType: TextInputType.text,
@@ -529,9 +530,11 @@ class PinInput extends StatefulWidget {
   final void Function(String) onChanged;
   final TextEditingController controller;
   final bool autofocus;
+
   /// When true, pin cells expand to fill available width (with gaps between).
   final bool fullWidth;
   final FocusNode? focusNode;
+
   /// When false, focus/keyboard stay active after completion (e.g. to chain to the next field).
   final bool unfocusOnCompleted;
 
@@ -576,7 +579,8 @@ class _PinInputState extends State<PinInput> {
     super.dispose();
   }
 
-  PinTheme _pinTheme(BuildContext context, double size, {required bool focused}) {
+  PinTheme _pinTheme(BuildContext context, double size,
+      {required bool focused}) {
     final AppPalette p = AppPalette.of(context);
     final double radius = (size * 0.18).clamp(8.0, 14.0);
     final TextStyle base = Theme.of(context).textTheme.titleLarge!;

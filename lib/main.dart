@@ -1,14 +1,14 @@
 import 'dart:async' show unawaited;
 
-import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
-import 'package:balance_sheet/controllers/budgetController.dart';
+import 'package:balance_sheet/controllers/budget_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
-import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/splash.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
@@ -35,16 +35,19 @@ void main() async {
     // defaultPopGesture: true,
     defaultTransition: Transition.downToUp,
   );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  static const MethodChannel _privacyChannel = MethodChannel('balanced/privacy');
+  static const MethodChannel _privacyChannel =
+      MethodChannel('balanced/privacy');
 
   bool _privacyOverlayVisible = false;
 

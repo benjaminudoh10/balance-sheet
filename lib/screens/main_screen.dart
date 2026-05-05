@@ -5,7 +5,7 @@ import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/screens/new_income_form.dart';
@@ -107,6 +107,8 @@ Widget _homeTransactionListSliver({
 const double _kHomeBalancePagerHeightSlack = 28.0;
 
 class MainView extends StatelessWidget {
+  MainView({super.key});
+
   final TransactionController _transactionController = Get.find();
 
   @override
@@ -191,8 +193,7 @@ class MainView extends StatelessWidget {
                                     balanceCard: balanceCard,
                                     netWorthStrip: netWorthStrip,
                                   ),
-                                  if (isLandscape)
-                                    const SizedBox(height: 18),
+                                  if (isLandscape) const SizedBox(height: 18),
                                   _IncomeExpenseRow(),
                                   if (list.isNotEmpty) ...<Widget>[
                                     const SizedBox(height: 28),
@@ -505,8 +506,8 @@ class _NetWorthStrip extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: p.surface.withValues(alpha: 0.78),
-          border: Border.all(
-              color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
+          border:
+              Border.all(color: _kNetWorthInvestAccent.withValues(alpha: 0.28)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -705,13 +706,11 @@ class _GlassBalanceCard extends StatelessWidget {
                       lcyMinor: total,
                       textAlign: TextAlign.center,
                       obscureAmount: !showAmt,
-                      primaryStyle: Theme.of(context)
-                          .textTheme
-                          .displaySmall!
-                          .copyWith(
-                            color: p.textPrimary,
-                            letterSpacing: -0.6,
-                          ),
+                      primaryStyle:
+                          Theme.of(context).textTheme.displaySmall!.copyWith(
+                                color: p.textPrimary,
+                                letterSpacing: -0.6,
+                              ),
                     ),
                     const SizedBox(height: 10),
                     Column(
@@ -721,28 +720,24 @@ class _GlassBalanceCard extends StatelessWidget {
                         Text(
                           showAmt ? formatSignedNet(todayNet) : '*****',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge!
-                              .copyWith(
-                                color: netColor,
-                                letterSpacing: showAmt ? -0.2 : 2.5,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: netColor,
+                                    letterSpacing: showAmt ? -0.2 : 2.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Today',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium!
-                              .copyWith(
-                                color: p.textSecondary,
-                                letterSpacing: 0.8,
-                                height: 1.0,
-                                fontWeight: FontWeight.w500,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelMedium!.copyWith(
+                                    color: p.textSecondary,
+                                    letterSpacing: 0.8,
+                                    height: 1.0,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                       ],
                     ),

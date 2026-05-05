@@ -1,5 +1,5 @@
-import 'package:balance_sheet/controllers/appController.dart';
-import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/screens/home.dart';
 import 'package:balance_sheet/theme/app_palette.dart';

@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDb {
-  static final AppDb _instance = new AppDb.internal();
+  static final AppDb _instance = AppDb.internal();
 
   factory AppDb() => _instance;
   static Database? _db;
@@ -46,14 +46,12 @@ class AppDb {
             entryCurrency TEXT NOT NULL DEFAULT 'lcy',
             entryAmount INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
-          )"""
-        );
+          )""");
         await db.execute("""
           CREATE TABLE ${DBConstants.CONTACT}(
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL
-          )"""
-        );
+          )""");
         await db.execute(_sqlCreateBudgetMonths);
         await db.execute(_sqlCreateBudgetLines);
         await db.execute(_sqlCreateInvestmentHoldings);

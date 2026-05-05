@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:balance_sheet/constants/category.dart';
-import 'package:balance_sheet/controllers/budgetController.dart';
+import 'package:balance_sheet/controllers/budget_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
-import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/controllers/report_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/budget_line.dart';
@@ -104,8 +104,8 @@ class PdfExportService {
     // responsive (and the progress dialog keeps animating). For very small
     // exports the isolate spawn dominates, so we inline the build instead.
     final Uint8List bytes = allRows.length >= _reportRowsPerChunk
-        ? await compute(buildReportPdfBytes, payload)
-        : await buildReportPdfBytes(payload);
+        ? await compute(_buildReportPdfBytes, payload)
+        : await _buildReportPdfBytes(payload);
 
     onStage?.call('Opening share sheet...');
     await Printing.sharePdf(bytes: bytes, filename: payload.filename);
@@ -114,7 +114,7 @@ class PdfExportService {
   /// Builds the transactions PDF from [payload] and returns its serialised
   /// bytes. Exposed as a top-level static because `compute` requires a
   /// callable that can be resolved in the target isolate.
-  static Future<Uint8List> buildReportPdfBytes(
+  static Future<Uint8List> _buildReportPdfBytes(
       _ReportPdfPayload payload) async {
     final pw.Document doc = pw.Document();
     doc.addPage(
@@ -164,7 +164,8 @@ class PdfExportService {
     }
     final List<pw.Widget> out = <pw.Widget>[];
     for (int i = 0; i < rows.length; i += chunkSize) {
-      final int end = (i + chunkSize < rows.length) ? i + chunkSize : rows.length;
+      final int end =
+          (i + chunkSize < rows.length) ? i + chunkSize : rows.length;
       if (i != 0) out.add(pw.SizedBox(height: 6));
       out.add(_table(
         headers: headers,

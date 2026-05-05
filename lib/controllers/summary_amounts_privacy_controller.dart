@@ -14,11 +14,13 @@ class SummaryAmountsPrivacyController extends GetxController {
   void onInit() {
     super.onInit();
     final GetStorage box = GetStorage();
-    final bool? home = box.read<bool>(AppConstants.SHOW_HOME_SUMMARY_AMOUNTS_KEY);
+    final bool? home =
+        box.read<bool>(AppConstants.SHOW_HOME_SUMMARY_AMOUNTS_KEY);
     if (home != null) {
       showHomeSummaryAmounts.value = home;
     }
-    final bool? inv = box.read<bool>(AppConstants.SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY);
+    final bool? inv =
+        box.read<bool>(AppConstants.SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY);
     if (inv != null) {
       showInvestmentSummaryAmounts.value = inv;
     }
@@ -26,11 +28,13 @@ class SummaryAmountsPrivacyController extends GetxController {
 
   void toggleHomeSummaryAmounts() {
     showHomeSummaryAmounts.toggle();
-    GetStorage().write(AppConstants.SHOW_HOME_SUMMARY_AMOUNTS_KEY, showHomeSummaryAmounts.value);
+    GetStorage().write(AppConstants.SHOW_HOME_SUMMARY_AMOUNTS_KEY,
+        showHomeSummaryAmounts.value);
   }
 
   void toggleInvestmentSummaryAmounts() {
     showInvestmentSummaryAmounts.toggle();
-    GetStorage().write(AppConstants.SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY, showInvestmentSummaryAmounts.value);
+    GetStorage().write(AppConstants.SHOW_INVESTMENT_SUMMARY_AMOUNTS_KEY,
+        showInvestmentSummaryAmounts.value);
   }
 }

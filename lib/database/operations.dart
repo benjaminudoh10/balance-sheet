@@ -10,14 +10,14 @@ Future<int> addTransaction(Transaction transaction) async {
   data.remove('id');
 
   final dbClient = await AppDb().db;
-  int res = await dbClient.insert("${DBConstants.TRANSACTION}", data);
+  int res = await dbClient.insert(DBConstants.TRANSACTION, data);
   return res;
 }
 
 Future<int> deleteTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.delete(
-    "${DBConstants.TRANSACTION}",
+    DBConstants.TRANSACTION,
     where: "id = ?",
     whereArgs: [transaction.id],
   );
@@ -28,7 +28,7 @@ Future<int> deleteTransaction(Transaction transaction) async {
 Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.update(
-    "${DBConstants.TRANSACTION}",
+    DBConstants.TRANSACTION,
     transaction.toJson(),
     where: "id = ?",
     whereArgs: [transaction.id],
@@ -50,7 +50,8 @@ Future<List<Transaction>> getAllTransactions(
   int? offset,
 }) async {
   var dbClient = await AppDb().db;
-  String query = "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime ";
+  String query =
+      "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime ";
   if (category != null && category != "Category") {
     query = "$query AND category = '$category' ";
   }
@@ -67,13 +68,17 @@ Future<List<Transaction>> getAllTransactions(
   }
   final transactions = await dbClient.rawQuery(query.trim());
 
-  return transactions.map((transaction) => Transaction.fromJson(transaction)).toList();
+  return transactions
+      .map((transaction) => Transaction.fromJson(transaction))
+      .toList();
 }
 
 Future<int> getBalances() async {
   var dbClient = await AppDb().db;
-  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure'");
-  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income'");
+  final totalExpenses = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure'");
+  final totalIncome = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income'");
   int income = (totalIncome[0]['total'] as int?) ?? 0;
   int expenses = (totalExpenses[0]['total'] as int?) ?? 0;
   return income - expenses;
@@ -81,21 +86,28 @@ Future<int> getBalances() async {
 
 Future<Map<String, int>> getTodayBalances() async {
   DateTime today = DateTime.now();
-  int start = DateTime(today.year, today.month, today.day).millisecondsSinceEpoch;
-  int end = DateTime(today.year, today.month, today.day, 23, 59, 59, 999).millisecondsSinceEpoch;
+  int start =
+      DateTime(today.year, today.month, today.day).millisecondsSinceEpoch;
+  int end = DateTime(today.year, today.month, today.day, 23, 59, 59, 999)
+      .millisecondsSinceEpoch;
   var dbClient = await AppDb().db;
-  final totalExpenses = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end");
-  final totalIncome = await dbClient.rawQuery("SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end");
+  final totalExpenses = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end");
+  final totalIncome = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end");
   return {
     'expenses': (totalExpenses[0]['total'] as int?) ?? 0,
     'income': (totalIncome[0]['total'] as int?) ?? 0,
   };
 }
 
-Future<Map<String, int>> getExpenseForTimePeriod(int start, int end, {String? category, int? contactId}) async {
+Future<Map<String, int>> getExpenseForTimePeriod(int start, int end,
+    {String? category, int? contactId}) async {
   var dbClient = await AppDb().db;
-  String expenseQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end ";
-  String incomeQuery = "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end ";
+  String expenseQuery =
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end ";
+  String incomeQuery =
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end ";
   if (category != null && category != "Category") {
     expenseQuery = "$expenseQuery AND category = '$category' ";
     incomeQuery = "$incomeQuery AND category = '$category' ";
@@ -118,23 +130,20 @@ Future<int> addContact(Contact contact) async {
   data.remove('id');
 
   final dbClient = await AppDb().db;
-  int res = await dbClient.insert("${DBConstants.CONTACT}", data);
+  int res = await dbClient.insert(DBConstants.CONTACT, data);
   return res;
 }
 
 Future<List<Map<String, dynamic>>> getContactWithName(String name) async {
   final dbClient = await AppDb().db;
-  return dbClient.query(
-    "${DBConstants.CONTACT}",
-    where: "LOWER(name) = ?",
-    whereArgs: [name.toLowerCase()]
-  );
+  return dbClient.query(DBConstants.CONTACT,
+      where: "LOWER(name) = ?", whereArgs: [name.toLowerCase()]);
 }
 
 Future<int> deleteContact(Contact contact) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.delete(
-    "${DBConstants.CONTACT}",
+    DBConstants.CONTACT,
     where: "id = ?",
     whereArgs: [contact.id],
   );
@@ -148,7 +157,7 @@ Future<int> updateContact(Contact contact) async {
   }
   final dbClient = await AppDb().db;
   return dbClient.update(
-    "${DBConstants.CONTACT}",
+    DBConstants.CONTACT,
     <String, dynamic>{'name': contact.name},
     where: 'id = ?',
     whereArgs: <dynamic>[contact.id],
@@ -157,7 +166,8 @@ Future<int> updateContact(Contact contact) async {
 
 Future<List<Contact>> getContacts() async {
   var dbClient = await AppDb().db;
-  final contacts = await dbClient.rawQuery("SELECT * FROM ${DBConstants.CONTACT} ORDER BY name ASC");
+  final contacts = await dbClient
+      .rawQuery("SELECT * FROM ${DBConstants.CONTACT} ORDER BY name ASC");
 
   return contacts.map((contact) => Contact.fromJson(contact)).toList();
 }
@@ -181,7 +191,8 @@ Future<Contact?> getContactById(int id) async {
 }
 
 /// Sum of expenditure amounts per category for the inclusive date range (ms).
-Future<Map<String, int>> getExpenseTotalsByCategory(int startMs, int endMs) async {
+Future<Map<String, int>> getExpenseTotalsByCategory(
+    int startMs, int endMs) async {
   final dbClient = await AppDb().db;
   final rows = await dbClient.rawQuery(
     '''
@@ -219,7 +230,8 @@ Future<int> getExpenditureTotalFiltered(
     return 0;
   }
   final dbClient = await AppDb().db;
-  final StringBuffer where = StringBuffer("type = 'expenditure' AND date >= ? AND date <= ?");
+  final StringBuffer where =
+      StringBuffer("type = 'expenditure' AND date >= ? AND date <= ?");
   final List<Object?> args = <Object?>[startMs, endMs];
   if (useCat && useContact) {
     where.write(' AND (category = ? OR contactId = ?)');
@@ -243,7 +255,8 @@ Future<int> getExpenditureTotalFiltered(
 }
 
 /// Largest single expense rows in the range (minor units), newest first on ties.
-Future<List<Transaction>> getTopExpenditures(int startMs, int endMs, int limit) async {
+Future<List<Transaction>> getTopExpenditures(
+    int startMs, int endMs, int limit) async {
   final dbClient = await AppDb().db;
   final rows = await dbClient.rawQuery(
     '''
@@ -260,7 +273,8 @@ Future<List<Transaction>> getTopExpenditures(int startMs, int endMs, int limit) 
 /// Local calendar month bounds in epoch milliseconds (inclusive).
 ({int startMs, int endMs}) calendarMonthEpochRange(int year, int month) {
   final int startMs = DateTime(year, month, 1).millisecondsSinceEpoch;
-  final int endMs = DateTime(year, month + 1, 0, 23, 59, 59, 999).millisecondsSinceEpoch;
+  final int endMs =
+      DateTime(year, month + 1, 0, 23, 59, 59, 999).millisecondsSinceEpoch;
   return (startMs: startMs, endMs: endMs);
 }
 
@@ -284,7 +298,8 @@ Future<BudgetMonth> ensureBudgetMonth(int year, int month) async {
     return existing;
   }
   final dbClient = await AppDb().db;
-  final int id = await dbClient.insert(DBConstants.BUDGET_MONTH, <String, Object?>{
+  final int id =
+      await dbClient.insert(DBConstants.BUDGET_MONTH, <String, Object?>{
     'year': year,
     'month': month,
   });
@@ -334,7 +349,8 @@ Future<int> insertBudgetLine({
 }) async {
   final dbClient = await AppDb().db;
   final int sortOrder = await nextBudgetLineSortOrder(budgetMonthId);
-  final int entryAmt = planEntryAmountMinor > 0 ? planEntryAmountMinor : plannedAmount;
+  final int entryAmt =
+      planEntryAmountMinor > 0 ? planEntryAmountMinor : plannedAmount;
   return dbClient.insert(DBConstants.BUDGET_LINE, <String, Object?>{
     'budget_month_id': budgetMonthId,
     'description': description,
@@ -358,7 +374,9 @@ Future<void> updateBudgetLine(BudgetLine line) async {
       'category': line.categoryKey,
       'sort_order': line.sortOrder,
       'entryCurrency': line.planEntryIsFcy ? 'fcy' : 'lcy',
-      'entryAmount': line.planEntryAmountMinor > 0 ? line.planEntryAmountMinor : line.plannedAmount,
+      'entryAmount': line.planEntryAmountMinor > 0
+          ? line.planEntryAmountMinor
+          : line.plannedAmount,
     },
     where: 'id = ?',
     whereArgs: <Object>[line.id],
@@ -375,7 +393,8 @@ Future<void> deleteBudgetLine(int lineId) async {
 }
 
 /// Sum of expenditure amounts per contact for the inclusive date range (minor units).
-Future<Map<int, int>> getExpenditureTotalsByContact(int startMs, int endMs) async {
+Future<Map<int, int>> getExpenditureTotalsByContact(
+    int startMs, int endMs) async {
   final dbClient = await AppDb().db;
   final List<Map<String, dynamic>> rows = await dbClient.rawQuery(
     '''
@@ -390,9 +409,12 @@ Future<Map<int, int>> getExpenditureTotalsByContact(int startMs, int endMs) asyn
   final Map<int, int> out = <int, int>{};
   for (final Map<String, dynamic> row in rows) {
     final Object? rawCid = row['cid'];
-    final int cid = rawCid is int ? rawCid : (rawCid is num ? rawCid.toInt() : int.tryParse('$rawCid') ?? 0);
+    final int cid = rawCid is int
+        ? rawCid
+        : (rawCid is num ? rawCid.toInt() : int.tryParse('$rawCid') ?? 0);
     final Object? t = row['total'];
-    final int total = t is int ? t : (t is num ? t.toInt() : int.tryParse('$t') ?? 0);
+    final int total =
+        t is int ? t : (t is num ? t.toInt() : int.tryParse('$t') ?? 0);
     if (cid > 0) {
       out[cid] = total;
     }

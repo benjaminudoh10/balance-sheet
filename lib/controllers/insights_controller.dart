@@ -182,9 +182,11 @@ class InsightsController extends GetxController {
     switch (p) {
       case InsightsPeriod.today:
         final DateTime start = DateTime(now.year, now.month, now.day);
-        final DateTime end = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+        final DateTime end =
+            DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
         final DateTime yStart = start.subtract(const Duration(days: 1));
-        final DateTime yEnd = DateTime(yStart.year, yStart.month, yStart.day, 23, 59, 59, 999);
+        final DateTime yEnd =
+            DateTime(yStart.year, yStart.month, yStart.day, 23, 59, 59, 999);
         return (
           start.millisecondsSinceEpoch,
           end.millisecondsSinceEpoch,
@@ -194,8 +196,10 @@ class InsightsController extends GetxController {
       case InsightsPeriod.thisWeek:
         DateTime weekStart = now.subtract(Duration(days: now.weekday % 7));
         weekStart = DateTime(weekStart.year, weekStart.month, weekStart.day);
-        DateTime weekEnd = now.add(Duration(days: DateTime.daysPerWeek - now.weekday % 7 - 1));
-        weekEnd = DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59, 999);
+        DateTime weekEnd =
+            now.add(Duration(days: DateTime.daysPerWeek - now.weekday % 7 - 1));
+        weekEnd =
+            DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59, 999);
         final DateTime prevStart = weekStart.subtract(const Duration(days: 7));
         final DateTime prevEnd = weekEnd.subtract(const Duration(days: 7));
         return (
@@ -206,9 +210,11 @@ class InsightsController extends GetxController {
         );
       case InsightsPeriod.thisMonth:
         final DateTime first = DateTime(now.year, now.month, 1);
-        final DateTime last = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+        final DateTime last =
+            DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
         final DateTime prevFirst = DateTime(now.year, now.month - 1, 1);
-        final DateTime prevLast = DateTime(now.year, now.month, 0, 23, 59, 59, 999);
+        final DateTime prevLast =
+            DateTime(now.year, now.month, 0, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
@@ -219,7 +225,8 @@ class InsightsController extends GetxController {
         final DateTime first = DateTime(now.year, now.month - 1, 1);
         final DateTime last = DateTime(now.year, now.month, 0, 23, 59, 59, 999);
         final DateTime prevFirst = DateTime(now.year, now.month - 2, 1);
-        final DateTime prevLast = DateTime(now.year, now.month - 1, 0, 23, 59, 59, 999);
+        final DateTime prevLast =
+            DateTime(now.year, now.month - 1, 0, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
@@ -230,7 +237,8 @@ class InsightsController extends GetxController {
         final DateTime first = DateTime(now.year, 1, 1);
         final DateTime last = DateTime(now.year, 12, 31, 23, 59, 59, 999);
         final DateTime prevFirst = DateTime(now.year - 1, 1, 1);
-        final DateTime prevLast = DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
+        final DateTime prevLast =
+            DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
@@ -241,7 +249,8 @@ class InsightsController extends GetxController {
         final DateTime first = DateTime(now.year - 1, 1, 1);
         final DateTime last = DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
         final DateTime prevFirst = DateTime(now.year - 2, 1, 1);
-        final DateTime prevLast = DateTime(now.year - 2, 12, 31, 23, 59, 59, 999);
+        final DateTime prevLast =
+            DateTime(now.year - 2, 12, 31, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
@@ -349,7 +358,8 @@ class InsightsController extends GetxController {
     final DateTime rangeEnd = DateTime.fromMillisecondsSinceEpoch(endMs);
 
     if (useMonthlyBuckets) {
-      weeklyCashRows.value = _aggregateMonthlyCashRows(txns, rangeStart, rangeEnd);
+      weeklyCashRows.value =
+          _aggregateMonthlyCashRows(txns, rangeStart, rangeEnd);
       return;
     }
 
@@ -368,7 +378,9 @@ class InsightsController extends GetxController {
     }
 
     final List<WeeklyCashRow> rows = [];
-    for (DateTime w = firstMonday; !w.isAfter(lastMonday); w = w.add(const Duration(days: 7))) {
+    for (DateTime w = firstMonday;
+        !w.isAfter(lastMonday);
+        w = w.add(const Duration(days: 7))) {
       final _IncomeExpense? v = agg[w];
       rows.add(
         WeeklyCashRow(
@@ -398,9 +410,7 @@ class InsightsController extends GetxController {
     final DateTime lastMonth = _startOfMonth(rangeEnd);
 
     final List<WeeklyCashRow> rows = [];
-    for (DateTime m = firstMonth;
-        !m.isAfter(lastMonth);
-        m = _nextMonth(m)) {
+    for (DateTime m = firstMonth; !m.isAfter(lastMonth); m = _nextMonth(m)) {
       final _IncomeExpense? v = agg[m];
       rows.add(
         WeeklyCashRow(
@@ -413,7 +423,8 @@ class InsightsController extends GetxController {
     return rows;
   }
 
-  List<DailyNetPoint> _buildDailyNetSeries(List<Transaction> txns, int startMs, int endMs) {
+  List<DailyNetPoint> _buildDailyNetSeries(
+      List<Transaction> txns, int startMs, int endMs) {
     final DateTime start = DateTime.fromMillisecondsSinceEpoch(startMs);
     final DateTime end = DateTime.fromMillisecondsSinceEpoch(endMs);
 
@@ -432,7 +443,9 @@ class InsightsController extends GetxController {
     }
 
     final List<DailyNetPoint> out = [];
-    for (DateTime d = startDay; !d.isAfter(endDay); d = d.add(const Duration(days: 1))) {
+    for (DateTime d = startDay;
+        !d.isAfter(endDay);
+        d = d.add(const Duration(days: 1))) {
       out.add(DailyNetPoint(d, byDay[d] ?? 0));
     }
     return out;
@@ -457,7 +470,8 @@ class InsightsController extends GetxController {
     return out;
   }
 
-  void _applyTransactionAggregates(List<Transaction> txns, int startMs, int endMs) {
+  void _applyTransactionAggregates(
+      List<Transaction> txns, int startMs, int endMs) {
     _expenseTransactionCount = 0;
     _incomeTransactionCount = 0;
     _largestIncomeInRange = null;
@@ -472,11 +486,13 @@ class InsightsController extends GetxController {
         final DateTime d = DateTime(t.date.year, t.date.month, t.date.day);
         expenseByDay[d] = (expenseByDay[d] ?? 0) + t.amount;
         if (t.contactId > 0) {
-          expenseByContact[t.contactId] = (expenseByContact[t.contactId] ?? 0) + t.amount;
+          expenseByContact[t.contactId] =
+              (expenseByContact[t.contactId] ?? 0) + t.amount;
         }
       } else if (t.type == TransactionType.income) {
         _incomeTransactionCount++;
-        if (_largestIncomeInRange == null || t.amount > _largestIncomeInRange!.amount) {
+        if (_largestIncomeInRange == null ||
+            t.amount > _largestIncomeInRange!.amount) {
           _largestIncomeInRange = t;
         }
       }
@@ -494,7 +510,9 @@ class InsightsController extends GetxController {
     final DateTime endDay = DateTime(end.year, end.month, end.day);
     int free = 0;
     int calendarDays = 0;
-    for (DateTime d = startDay; !d.isAfter(endDay); d = d.add(const Duration(days: 1))) {
+    for (DateTime d = startDay;
+        !d.isAfter(endDay);
+        d = d.add(const Duration(days: 1))) {
       calendarDays++;
       if ((expenseByDay[d] ?? 0) == 0) {
         free++;
@@ -510,7 +528,8 @@ class InsightsController extends GetxController {
   }
 
   String _categoryLabel(String key) {
-    final matches = Categories.CATEGORIES.where((c) => c['key'] == key).toList();
+    final matches =
+        Categories.CATEGORIES.where((c) => c['key'] == key).toList();
     return matches.isNotEmpty ? matches[0]['label'] as String : key;
   }
 
@@ -542,7 +561,8 @@ class InsightsController extends GetxController {
     final int prevNet = prevInc - prevExp;
     final bool hasPriorTotals = prevExp > 0 || prevInc > 0;
     if (hasPriorTotals) {
-      lines.add('Net ${formatSignedNet(net)} — was ${formatSignedNet(prevNet)} $vs.');
+      lines.add(
+          'Net ${formatSignedNet(net)} — was ${formatSignedNet(prevNet)} $vs.');
     }
 
     if (inc > 0) {
@@ -551,10 +571,12 @@ class InsightsController extends GetxController {
         final int rate = (retained / inc * 100).round();
         lines.add('About $rate% of income remained after expenses.');
       } else {
-        lines.add('Spending exceeded income by ${formatAmount(-retained)} this period.');
+        lines.add(
+            'Spending exceeded income by ${formatAmount(-retained)} this period.');
       }
     } else if (exp > 0 && inc == 0) {
-      lines.add('No income logged this period — all spending draws down balance.');
+      lines.add(
+          'No income logged this period — all spending draws down balance.');
     }
 
     if (prevInc > 0 || prevExp > 0) {
@@ -572,12 +594,14 @@ class InsightsController extends GetxController {
     }
 
     if (categoryExpenses.isNotEmpty && exp > 0) {
-      final List<MapEntry<String, int>> sorted = categoryExpenses.entries.toList()
+      final List<MapEntry<String, int>> sorted = categoryExpenses.entries
+          .toList()
         ..sort((a, b) => b.value.compareTo(a.value));
       final MapEntry<String, int> top = sorted.first;
       final int share = (top.value / exp * 100).round();
       if (share >= 1) {
-        lines.add('${_categoryLabel(top.key)} leads at about $share% of expenses.');
+        lines.add(
+            '${_categoryLabel(top.key)} leads at about $share% of expenses.');
       }
       if (sorted.length >= 2) {
         final int topTwo = sorted[0].value + sorted[1].value;
@@ -595,7 +619,8 @@ class InsightsController extends GetxController {
       if (_calendarDaysInRange == 1) {
         lines.add('About ${formatAmount(avg)} in expenses for the day.');
       } else {
-        lines.add('Roughly ${formatAmount(avg)} in expenses per day on average.');
+        lines.add(
+            'Roughly ${formatAmount(avg)} in expenses per day on average.');
       }
     }
 
@@ -611,12 +636,16 @@ class InsightsController extends GetxController {
       final List<String> parts = [];
       if (_expenseTransactionCount > 0) {
         parts.add(
-          _expenseTransactionCount == 1 ? '1 expense entry' : '$_expenseTransactionCount expense entries',
+          _expenseTransactionCount == 1
+              ? '1 expense entry'
+              : '$_expenseTransactionCount expense entries',
         );
       }
       if (_incomeTransactionCount > 0) {
         parts.add(
-          _incomeTransactionCount == 1 ? '1 income entry' : '$_incomeTransactionCount income entries',
+          _incomeTransactionCount == 1
+              ? '1 income entry'
+              : '$_incomeTransactionCount income entries',
         );
       }
       lines.add('Activity: ${parts.join(', ')}.');
@@ -624,12 +653,14 @@ class InsightsController extends GetxController {
 
     if (topExpenses.isNotEmpty) {
       final Transaction t = topExpenses.first;
-      lines.add('Largest expense: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
+      lines.add(
+          'Largest expense: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
     }
 
     if (_largestIncomeInRange != null && inc > 0) {
       final Transaction t = _largestIncomeInRange!;
-      lines.add('Largest income: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
+      lines.add(
+          'Largest income: ${formatTransactionDisplayAmount(t)} · ${t.description}.');
     }
 
     if (_topContactExpense != null && _topContactExpense!.value > 0) {

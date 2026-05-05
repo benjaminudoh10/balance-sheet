@@ -1,4 +1,4 @@
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/screens/home.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
@@ -9,6 +9,8 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 class Splash extends StatefulWidget {
+  const Splash({super.key});
+
   @override
   State<Splash> createState() => _SplashState();
 }
@@ -58,7 +60,8 @@ class _SplashState extends State<Splash> {
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+                painter: MidnightGridPainter(
+                    heightFraction: 1.0, gridLineColor: p.gridLine),
               ),
             ),
             Column(
@@ -80,10 +83,13 @@ class _SplashState extends State<Splash> {
                           const SizedBox(width: 15.0),
                           Text(
                             'Balanced',
-                            style: Theme.of(context).textTheme.displayLarge!.copyWith(
-                              color: p.textPrimary,
-                              letterSpacing: -0.5,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .displayLarge!
+                                .copyWith(
+                                  color: p.textPrimary,
+                                  letterSpacing: -0.5,
+                                ),
                           ),
                         ],
                       ),
@@ -91,10 +97,10 @@ class _SplashState extends State<Splash> {
                       Text(
                         '...know where your money goes',
                         style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: p.textSecondary,
-                          height: 1.35,
-                          fontWeight: FontWeight.w400,
-                        ),
+                              color: p.textSecondary,
+                              height: 1.35,
+                              fontWeight: FontWeight.w400,
+                            ),
                       ),
                     ],
                   ),

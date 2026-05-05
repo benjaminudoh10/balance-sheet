@@ -21,5 +21,6 @@ analyzer:
 linter:
   rules:
     # Add per-rule overrides here, e.g.:
+    constant_identifier_names: false
     # prefer_single_quotes: true
     # avoid_print: false

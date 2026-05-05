@@ -5,10 +5,10 @@ import 'dart:ui' show ImageFilter;
 import 'package:balance_sheet/backup/backup_service.dart';
 import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/constants/currency_catalog.dart';
-import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/screens/debug_clear_data_screen.dart';
 import 'package:balance_sheet/screens/debug_seed_data_screen.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
@@ -28,6 +28,8 @@ import 'package:get_storage/get_storage.dart';
 
 /// Settings tab — identity-style header plus security controls (replaces flat settings list).
 class SettingsView extends StatelessWidget {
+  SettingsView({super.key});
+
   final SecurityController _securityController = Get.find();
   final AppController _appController = Get.find();
 
@@ -44,7 +46,8 @@ class SettingsView extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -244,8 +247,7 @@ class SettingsView extends StatelessWidget {
                             selected
                                 ? Icons.radio_button_checked_rounded
                                 : Icons.radio_button_off_rounded,
-                            color:
-                                selected ? p.mint : p.textSecondary,
+                            color: selected ? p.mint : p.textSecondary,
                             size: 22,
                           ),
                           const SizedBox(width: 12),
@@ -333,8 +335,7 @@ class SettingsView extends StatelessWidget {
               icon: Icons.fingerprint_rounded,
               switchValue: _securityController.fingerprintInUse.value,
               switchDisabled: !_securityController.pinIsSet.value,
-              onSwitch: (bool v) =>
-                  _securityController.activateFingerPrint(v),
+              onSwitch: (bool v) => _securityController.activateFingerPrint(v),
             )),
       ],
     );
@@ -475,7 +476,8 @@ class SettingsView extends StatelessWidget {
             ),
             content: Text(
               'This replaces your transactions, contacts, budgets, and investments on this device. Your PIN and fingerprint settings are kept. This cannot be undone.',
-              style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
+              style:
+                  tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
             ),
             actions: <Widget>[
               TextButton(
@@ -638,7 +640,8 @@ class _BackupActionRow extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                      style:
+                          textTheme.titleMedium!.copyWith(color: p.textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -700,55 +703,55 @@ class _SettingsHeroCard extends StatelessWidget {
               gradient: p.settingsHeroGradient,
             ),
             child: Column(
-            children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: p.mint.withValues(alpha: 0.5),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: p.mint.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Container(
-                  margin: const EdgeInsets.all(4),
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: p.surface.withValues(alpha: 0.92),
+                    border: Border.all(
+                      color: p.mint.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: p.mint.withValues(alpha: 0.35),
+                        blurRadius: 20,
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.account_balance_wallet_rounded,
-                    size: 40,
-                    color: p.mint,
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: p.surface.withValues(alpha: 0.92),
+                    ),
+                    child: Icon(
+                      Icons.account_balance_wallet_rounded,
+                      size: 40,
+                      color: p.mint,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Balanced',
-                style: textTheme.headlineSmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.4,
+                const SizedBox(height: 16),
+                Text(
+                  'Balanced',
+                  style: textTheme.headlineSmall!.copyWith(
+                    color: p.textPrimary,
+                    letterSpacing: -0.4,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Income & expenses on your phone',
-                textAlign: TextAlign.center,
-                style: textTheme.bodyMedium!.copyWith(
-                  height: 1.35,
-                  color: p.textSecondary.withValues(alpha: 0.95),
+                const SizedBox(height: 6),
+                Text(
+                  'Income & expenses on your phone',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium!.copyWith(
+                    height: 1.35,
+                    color: p.textSecondary.withValues(alpha: 0.95),
+                  ),
                 ),
-              ),
-            ],
+              ],
             ),
           ),
         ),
@@ -809,9 +812,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: switchDisabled
-                      ? p.textSecondary
-                      : p.mint,
+                  color: switchDisabled ? p.textSecondary : p.mint,
                   size: 22,
                 ),
               ),
@@ -823,9 +824,7 @@ class _SecuritySwitchRow extends StatelessWidget {
                     Text(
                       title,
                       style: textTheme.titleMedium!.copyWith(
-                        color: switchDisabled
-                            ? p.textSecondary
-                            : p.textPrimary,
+                        color: switchDisabled ? p.textSecondary : p.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -894,7 +893,9 @@ class _ThemeModeOptionRow extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
                 color: selected ? p.mint : p.textSecondary,
                 size: 22,
               ),
@@ -984,8 +985,10 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
 
   static List<Iso4217Currency> _codesWithFallback(String code) {
     final String u = code.trim().toUpperCase();
-    final List<Iso4217Currency> list = List<Iso4217Currency>.from(kCurrencyPickerOptions);
-    if (CurrencyController.isValidCurrencyCode(u) && !list.any((Iso4217Currency e) => e.code == u)) {
+    final List<Iso4217Currency> list =
+        List<Iso4217Currency>.from(kCurrencyPickerOptions);
+    if (CurrencyController.isValidCurrencyCode(u) &&
+        !list.any((Iso4217Currency e) => e.code == u)) {
       list.insert(0, Iso4217Currency(u, 'Custom'));
     }
     return list;
@@ -1005,8 +1008,10 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
       final CurrencyController c = Get.find<CurrencyController>();
       final String hint =
           '1 ${c.fcyCode.value} = ${c.rate.value == c.rate.value.roundToDouble() ? c.rate.value.round() : c.rate.value} ${c.lcyCode.value}';
-      final List<Iso4217Currency> lcyItems = _codesWithFallback(c.lcyCode.value);
-      final List<Iso4217Currency> fcyItems = _codesWithFallback(c.fcyCode.value);
+      final List<Iso4217Currency> lcyItems =
+          _codesWithFallback(c.lcyCode.value);
+      final List<Iso4217Currency> fcyItems =
+          _codesWithFallback(c.fcyCode.value);
       final String? lcyVal = _valueForDropdown(c.lcyCode.value, lcyItems);
       final String? fcyVal = _valueForDropdown(c.fcyCode.value, fcyItems);
       InputBorder border(Color color) => OutlineInputBorder(
@@ -1036,7 +1041,8 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
                       '${e.code} — ${e.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                      style:
+                          textTheme.bodyMedium!.copyWith(color: p.textPrimary),
                     ),
                   ),
                 )
@@ -1068,7 +1074,8 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
                       '${e.code} — ${e.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                      style:
+                          textTheme.bodyMedium!.copyWith(color: p.textPrimary),
                     ),
                   ),
                 )

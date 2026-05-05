@@ -116,12 +116,11 @@ class CurrencyController extends GetxController {
     final String c = iso4217.trim().toUpperCase();
     if (c.isEmpty) return '';
     try {
-      final String? s = NumberFormat.simpleCurrency(name: c).currencySymbol;
-      if (s != null && s.isNotEmpty) return s;
+      final String s = NumberFormat.simpleCurrency(name: c).currencySymbol;
+      if (s.isNotEmpty) return s;
     } catch (_) {}
     return c;
   }
 
-  bool get showDualTotals =>
-      lcyCode.value != fcyCode.value && rate.value > 0;
+  bool get showDualTotals => lcyCode.value != fcyCode.value && rate.value > 0;
 }

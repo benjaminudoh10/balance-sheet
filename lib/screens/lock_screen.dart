@@ -1,5 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/pin_field_card.dart';
@@ -11,6 +11,8 @@ import 'package:get/get.dart';
 
 /// PIN entry when unlocking the app, or when confirming removal of the access PIN from Settings.
 class LockScreen extends StatefulWidget {
+  const LockScreen({super.key});
+
   @override
   State<LockScreen> createState() => _LockScreenState();
 }
@@ -38,7 +40,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   }
 
   bool _lifecycleIsResumed() {
-    return SchedulerBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    return SchedulerBinding.instance.lifecycleState ==
+        AppLifecycleState.resumed;
   }
 
   /// Biometric prompt or PIN focus only after [AppLifecycleState.resumed], not while this route
@@ -83,11 +86,9 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       final AppPalette p = AppPalette.of(context);
       final bool turningOffPin = _securityController.fromSettings.value;
 
-      final String appBarTitle =
-          turningOffPin ? 'Turn off PIN' : 'Unlock';
-      final String headline = turningOffPin
-          ? 'Remove access PIN'
-          : 'Welcome back';
+      final String appBarTitle = turningOffPin ? 'Turn off PIN' : 'Unlock';
+      final String headline =
+          turningOffPin ? 'Remove access PIN' : 'Welcome back';
       final String subtitle = turningOffPin
           ? 'Enter your current PIN to turn off app lock. You can set a PIN again anytime in Settings.'
           : 'Enter your 4-digit PIN to open Balanced.';
@@ -95,9 +96,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       final IconData heroIcon =
           turningOffPin ? Icons.lock_open_rounded : Icons.lock_rounded;
       final String cardLabel = turningOffPin ? 'Verify PIN' : 'Your PIN';
-      final String cardHint = turningOffPin
-          ? 'Enter the PIN you use today'
-          : 'Four digits';
+      final String cardHint =
+          turningOffPin ? 'Enter the PIN you use today' : 'Four digits';
 
       return Scaffold(
         resizeToAvoidBottomInset: true,
@@ -110,8 +110,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
           title: Text(
             appBarTitle,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: p.textPrimary,
-            ),
+                  color: p.textPrimary,
+                ),
           ),
           centerTitle: true,
           automaticallyImplyLeading: true,
@@ -121,12 +121,14 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+                painter: MidnightGridPainter(
+                    heightFraction: 1.0, gridLineColor: p.gridLine),
               ),
             ),
             SafeArea(
               child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + keyboardInset),
                 child: Column(
@@ -137,19 +139,20 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                     Text(
                       headline,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        color: p.textPrimary,
-                        letterSpacing: -0.4,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                color: p.textPrimary,
+                                letterSpacing: -0.4,
+                              ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        height: 1.45,
-                        color: p.textSecondary.withValues(alpha: 0.92),
-                      ),
+                            height: 1.45,
+                            color: p.textSecondary.withValues(alpha: 0.92),
+                          ),
                     ),
                     const SizedBox(height: 28),
                     PinFieldCard(
@@ -193,12 +196,15 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                             Text(
                               'Use fingerprint',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: p.textSecondary.withValues(
-                                  alpha: 0.95,
-                                ),
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: p.textSecondary.withValues(
+                                      alpha: 0.95,
+                                    ),
+                                  ),
                             ),
                           ],
                         ),

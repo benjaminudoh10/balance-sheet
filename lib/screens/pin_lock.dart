@@ -1,5 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/securityController.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Pin extends StatelessWidget {
+  Pin({super.key});
+
   final SecurityController _securityController = Get.find();
 
   @override
@@ -27,8 +29,8 @@ class Pin extends StatelessWidget {
         title: Text(
           setNewPin ? 'Set up PIN' : 'Change PIN',
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
-            color: p.textPrimary,
-          ),
+                color: p.textPrimary,
+              ),
         ),
         centerTitle: true,
         automaticallyImplyLeading: true,
@@ -38,7 +40,8 @@ class Pin extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -51,6 +54,8 @@ class Pin extends StatelessWidget {
 }
 
 class NewPinScreen extends StatefulWidget {
+  const NewPinScreen({super.key});
+
   @override
   State<NewPinScreen> createState() => _NewPinScreenState();
 }
@@ -116,107 +121,107 @@ class _NewPinScreenState extends State<NewPinScreen> {
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Obx(() {
-          final AppPalette p = AppPalette.of(context);
-          return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(
-                child: PinHeroIcon(icon: Icons.pin_rounded),
+      final AppPalette p = AppPalette.of(context);
+      return SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(
+              child: PinHeroIcon(icon: Icons.pin_rounded),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Choose a 4-digit PIN',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: p.textPrimary,
+                    letterSpacing: -0.4,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You’ll use this to unlock Balanced. Pick something you’ll remember.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    height: 1.4,
+                    color: p.textSecondary.withValues(alpha: 0.95),
+                  ),
+            ),
+            const SizedBox(height: 28),
+            PinFieldCard(
+              label: 'New PIN',
+              hint: 'Enter four digits',
+              field: PinInput(
+                fullWidth: true,
+                focusNode: _newPinFocus,
+                autofocus: true,
+                unfocusOnCompleted: false,
+                onCompleted: (_) {
+                  c.showVerifyInput.value = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    _verifyPinFocus.requestFocus();
+                  });
+                },
+                onChanged: (value) => c.newPin.value = value,
+                controller: _newPinController,
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Choose a 4-digit PIN',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You’ll use this to unlock Balanced. Pick something you’ll remember.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  height: 1.4,
-                  color: p.textSecondary.withValues(alpha: 0.95),
-                ),
-              ),
-              const SizedBox(height: 28),
+            ),
+            if (c.showVerifyInput.value) ...[
+              const SizedBox(height: 16),
               PinFieldCard(
-                label: 'New PIN',
-                hint: 'Enter four digits',
+                label: 'Confirm PIN',
+                hint: 'Re-enter the same digits',
                 field: PinInput(
                   fullWidth: true,
-                  focusNode: _newPinFocus,
-                  autofocus: true,
-                  unfocusOnCompleted: false,
-                  onCompleted: (_) {
-                    c.showVerifyInput.value = true;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!mounted) return;
-                      _verifyPinFocus.requestFocus();
-                    });
-                  },
-                  onChanged: (value) => c.newPin.value = value,
-                  controller: _newPinController,
+                  focusNode: _verifyPinFocus,
+                  autofocus: false,
+                  onCompleted: (_) {},
+                  onChanged: (value) => c.verifyPin.value = value,
+                  controller: _verifyPinController,
                 ),
               ),
-              if (c.showVerifyInput.value) ...[
-                const SizedBox(height: 16),
-                PinFieldCard(
-                  label: 'Confirm PIN',
-                  hint: 'Re-enter the same digits',
-                  field: PinInput(
-                    fullWidth: true,
-                    focusNode: _verifyPinFocus,
-                    autofocus: false,
-                    onCompleted: (_) {},
-                    onChanged: (value) => c.verifyPin.value = value,
-                    controller: _verifyPinController,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: Material(
-                  color: _inputIsValid(c)
-                      ? p.mint
-                      : p.surfaceElevated,
+            ],
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: Material(
+                color: _inputIsValid(c) ? p.mint : p.surfaceElevated,
+                borderRadius: BorderRadius.circular(26),
+                child: InkWell(
+                  onTap: () {
+                    AppHaptics.light();
+                    _setNewPin(c);
+                  },
                   borderRadius: BorderRadius.circular(26),
-                  child: InkWell(
-                    onTap: () {
-                      AppHaptics.light();
-                      _setNewPin(c);
-                    },
-                    borderRadius: BorderRadius.circular(26),
-                    child: Center(
-                      child: Text(
-                        'Save PIN',
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: _inputIsValid(c)
-                              ? Colors.black87
-                              : p.textSecondary,
-                        ),
-                      ),
+                  child: Center(
+                    child: Text(
+                      'Save PIN',
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: _inputIsValid(c)
+                                ? Colors.black87
+                                : p.textSecondary,
+                          ),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
-        );
-        });
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
 class ChangePinScreen extends StatefulWidget {
+  const ChangePinScreen({super.key});
+
   @override
   State<ChangePinScreen> createState() => _ChangePinScreenState();
 }
@@ -290,125 +295,122 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Obx(() {
-          final AppPalette p = AppPalette.of(context);
-          return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(
-                child: PinHeroIcon(icon: Icons.lock_reset_rounded),
+      final AppPalette p = AppPalette.of(context);
+      return SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + keyboardInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(
+              child: PinHeroIcon(icon: Icons.lock_reset_rounded),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Update your PIN',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: p.textPrimary,
+                    letterSpacing: -0.4,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Enter your current PIN, then choose a new one.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    height: 1.4,
+                    color: p.textSecondary.withValues(alpha: 0.95),
+                  ),
+            ),
+            const SizedBox(height: 28),
+            PinFieldCard(
+              label: 'Current PIN',
+              hint: 'Your existing 4-digit PIN',
+              field: PinInput(
+                fullWidth: true,
+                focusNode: _currentPinFocus,
+                autofocus: true,
+                unfocusOnCompleted: false,
+                onCompleted: (_) {
+                  c.showNewPin.value = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    _newPinFocus.requestFocus();
+                  });
+                },
+                onChanged: (value) => c.currentPinEnteredByUser.value = value,
+                controller: _currentPinController,
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Update your PIN',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter your current PIN, then choose a new one.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  height: 1.4,
-                  color: p.textSecondary.withValues(alpha: 0.95),
-                ),
-              ),
-              const SizedBox(height: 28),
+            ),
+            if (c.showNewPin.value) ...[
+              const SizedBox(height: 16),
               PinFieldCard(
-                label: 'Current PIN',
-                hint: 'Your existing 4-digit PIN',
+                label: 'New PIN',
+                hint: 'Choose a new 4-digit PIN',
                 field: PinInput(
                   fullWidth: true,
-                  focusNode: _currentPinFocus,
-                  autofocus: true,
+                  focusNode: _newPinFocus,
+                  autofocus: false,
                   unfocusOnCompleted: false,
                   onCompleted: (_) {
-                    c.showNewPin.value = true;
+                    c.showVerifyInput.value = true;
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!mounted) return;
-                      _newPinFocus.requestFocus();
+                      _verifyPinFocus.requestFocus();
                     });
                   },
-                  onChanged: (value) =>
-                      c.currentPinEnteredByUser.value = value,
-                  controller: _currentPinController,
+                  onChanged: (value) => c.newPin.value = value,
+                  controller: _newPinController,
                 ),
               ),
-              if (c.showNewPin.value) ...[
-                const SizedBox(height: 16),
-                PinFieldCard(
-                  label: 'New PIN',
-                  hint: 'Choose a new 4-digit PIN',
-                  field: PinInput(
-                    fullWidth: true,
-                    focusNode: _newPinFocus,
-                    autofocus: false,
-                    unfocusOnCompleted: false,
-                    onCompleted: (_) {
-                      c.showVerifyInput.value = true;
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (!mounted) return;
-                        _verifyPinFocus.requestFocus();
-                      });
-                    },
-                    onChanged: (value) => c.newPin.value = value,
-                    controller: _newPinController,
-                  ),
+            ],
+            if (c.showVerifyInput.value) ...[
+              const SizedBox(height: 16),
+              PinFieldCard(
+                label: 'Confirm new PIN',
+                hint: 'Re-enter your new PIN',
+                field: PinInput(
+                  fullWidth: true,
+                  focusNode: _verifyPinFocus,
+                  autofocus: false,
+                  onCompleted: (_) {},
+                  onChanged: (value) => c.verifyPin.value = value,
+                  controller: _verifyPinController,
                 ),
-              ],
-              if (c.showVerifyInput.value) ...[
-                const SizedBox(height: 16),
-                PinFieldCard(
-                  label: 'Confirm new PIN',
-                  hint: 'Re-enter your new PIN',
-                  field: PinInput(
-                    fullWidth: true,
-                    focusNode: _verifyPinFocus,
-                    autofocus: false,
-                    onCompleted: (_) {},
-                    onChanged: (value) => c.verifyPin.value = value,
-                    controller: _verifyPinController,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: Material(
-                  color: _inputIsValid(c)
-                      ? p.mint
-                      : p.surfaceElevated,
+              ),
+            ],
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: Material(
+                color: _inputIsValid(c) ? p.mint : p.surfaceElevated,
+                borderRadius: BorderRadius.circular(26),
+                child: InkWell(
+                  onTap: () {
+                    AppHaptics.light();
+                    _changePin(c);
+                  },
                   borderRadius: BorderRadius.circular(26),
-                  child: InkWell(
-                    onTap: () {
-                      AppHaptics.light();
-                      _changePin(c);
-                    },
-                    borderRadius: BorderRadius.circular(26),
-                    child: Center(
-                      child: Text(
-                        'Update PIN',
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: _inputIsValid(c)
-                              ? Colors.black87
-                              : p.textSecondary,
-                        ),
-                      ),
+                  child: Center(
+                    child: Text(
+                      'Update PIN',
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: _inputIsValid(c)
+                                ? Colors.black87
+                                : p.textSecondary,
+                          ),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
-        );
-        });
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

@@ -813,8 +813,9 @@ class _NetTrendCard extends StatelessWidget {
                               : 1),
                       getTitlesWidget: (double value, TitleMeta meta) {
                         final int i = value.round();
-                        if (i < 0 || i >= points.length)
+                        if (i < 0 || i >= points.length) {
                           return const SizedBox.shrink();
+                        }
                         if (!monthly &&
                             points.length > 12 &&
                             i % ((points.length / 6).ceil()) != 0 &&

@@ -1,7 +1,7 @@
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
-import 'package:balance_sheet/controllers/contactController.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -40,6 +40,8 @@ Color _accentForContactName(String name, AppPalette p) {
 }
 
 class ContactView extends StatefulWidget {
+  const ContactView({super.key});
+
   @override
   State<ContactView> createState() => _ContactViewState();
 }
@@ -97,7 +99,8 @@ class _ContactViewState extends State<ContactView> {
                 // [LayoutBuilder], or GetX may not register [RxList] subscriptions.
                 return Obx(() {
                   final AppPalette p = AppPalette.of(context);
-                  final RxList<Contact> rxContacts = _contactController.contacts;
+                  final RxList<Contact> rxContacts =
+                      _contactController.contacts;
                   // Explicit read so Obx registers this [RxList] (GetX 4.7+).
                   rxContacts.length;
                   final List<Contact> all = rxContacts;
@@ -110,9 +113,8 @@ class _ContactViewState extends State<ContactView> {
 
                   final bool tightVertical = constraints.maxHeight < 220;
                   final double headerTopPad = tightVertical ? 4 : 8;
-                  final double afterHeaderGap = tightVertical
-                      ? 8
-                      : (landscapeContactsHeader ? 14 : 20);
+                  final double afterHeaderGap =
+                      tightVertical ? 8 : (landscapeContactsHeader ? 14 : 20);
                   final EdgeInsets composerOuter = tightVertical
                       ? const EdgeInsets.fromLTRB(
                           _horizontalPad,
@@ -153,7 +155,8 @@ class _ContactViewState extends State<ContactView> {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     flex: 2,
-                                    child: _SearchField(controller: _searchController),
+                                    child: _SearchField(
+                                        controller: _searchController),
                                   ),
                                 ],
                               )
@@ -167,7 +170,8 @@ class _ContactViewState extends State<ContactView> {
                                 _SearchField(controller: _searchController),
                               ],
                             ],
-                            if (all.isNotEmpty) SizedBox(height: afterHeaderGap),
+                            if (all.isNotEmpty)
+                              SizedBox(height: afterHeaderGap),
                           ],
                         ),
                       ),
@@ -258,7 +262,8 @@ class _ContactViewState extends State<ContactView> {
                                 'Name is required',
                                 colorText: p.textPrimary,
                                 snackPosition: SnackPosition.TOP,
-                                backgroundColor: p.coral.withValues(alpha: 0.85),
+                                backgroundColor:
+                                    p.coral.withValues(alpha: 0.85),
                               );
                               return;
                             }
@@ -323,10 +328,10 @@ class _ContactsHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.6,
-                  height: 1.15,
-                ),
+                      color: p.textPrimary,
+                      letterSpacing: -0.6,
+                      height: 1.15,
+                    ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -334,9 +339,9 @@ class _ContactsHeader extends StatelessWidget {
                     ? 'Showing matches in your network'
                     : 'Names you attach to income, expenses, and budgets',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  height: 1.4,
-                  color: p.textSecondary.withValues(alpha: 0.95),
-                ),
+                      height: 1.4,
+                      color: p.textSecondary.withValues(alpha: 0.95),
+                    ),
               ),
             ],
           ),
@@ -357,8 +362,8 @@ class _SearchField extends StatelessWidget {
     return TextField(
       controller: controller,
       style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: p.textPrimary,
-      ),
+            color: p.textPrimary,
+          ),
       cursorColor: p.mint,
       decoration: InputDecoration(
         isDense: true,
@@ -366,8 +371,8 @@ class _SearchField extends StatelessWidget {
         fillColor: p.surface,
         hintText: 'Search contacts',
         hintStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-          color: p.textSecondary.withValues(alpha: 0.85),
-        ),
+              color: p.textSecondary.withValues(alpha: 0.85),
+            ),
         prefixIcon: Icon(
           Icons.search_rounded,
           color: p.textSecondary.withValues(alpha: 0.9),
@@ -467,10 +472,13 @@ class _ContactTile extends StatelessWidget {
                               contact.name.isNotEmpty
                                   ? contact.name.substring(0, 1).toUpperCase()
                                   : '?',
-                              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                color: accent,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge!
+                                  .copyWith(
+                                    color: accent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -478,9 +486,12 @@ class _ContactTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             contact.name,
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: p.textPrimary,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(
+                                  color: p.textPrimary,
+                                ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -551,9 +562,7 @@ class _ComposerDock extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: invalid
-                        ? p.surface
-                        : p.mint,
+                    color: invalid ? p.surface : p.mint,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: invalid ? p.border : Colors.transparent,
@@ -562,9 +571,7 @@ class _ComposerDock extends StatelessWidget {
                   child: Icon(
                     Icons.add_rounded,
                     size: 26,
-                    color: invalid
-                        ? p.textSecondary
-                        : Colors.black87,
+                    color: invalid ? p.textSecondary : Colors.black87,
                   ),
                 ),
               ),
@@ -594,7 +601,9 @@ class _EmptyContactsState extends StatelessWidget {
               circular: true,
               padding: const EdgeInsets.all(28),
               child: Icon(
-                hasQuery ? Icons.search_off_rounded : Icons.people_outline_rounded,
+                hasQuery
+                    ? Icons.search_off_rounded
+                    : Icons.people_outline_rounded,
                 color: p.mint.withValues(alpha: 0.75),
                 size: 56,
               ),
@@ -604,9 +613,9 @@ class _EmptyContactsState extends StatelessWidget {
               hasQuery ? 'No matches' : 'No contacts yet',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                fontWeight: FontWeight.bold,
-                color: p.textPrimary,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: p.textPrimary,
+                  ),
             ),
             const SizedBox(height: 10),
             Text(
@@ -615,10 +624,10 @@ class _EmptyContactsState extends StatelessWidget {
                   : 'Add someone you split costs or income with',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                color: p.textSecondary,
-                height: 1.35,
-                fontWeight: FontWeight.w400,
-              ),
+                    color: p.textSecondary,
+                    height: 1.35,
+                    fontWeight: FontWeight.w400,
+                  ),
             ),
           ],
         ),

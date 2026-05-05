@@ -1,4 +1,4 @@
-import 'package:balance_sheet/controllers/reportController.dart';
+import 'package:balance_sheet/controllers/report_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db_ops;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -35,7 +35,8 @@ void main() {
         ),
       ];
 
-      final Map<int, List<Transaction>> split = rc.splitTransactionsIntoDays(txns);
+      final Map<int, List<Transaction>> split =
+          rc.splitTransactionsIntoDays(txns);
       expect(split[day1]?.length, 1);
       expect(split[day2]?.length, 1);
     });
@@ -63,8 +64,7 @@ void main() {
       final Map<int, List<Transaction>> split =
           rc.splitTransactionsIntoDays(txns);
       expect(split.length, 1);
-      expect(split.keys.first,
-          DateTime(2024, 6, 15).millisecondsSinceEpoch);
+      expect(split.keys.first, DateTime(2024, 6, 15).millisecondsSinceEpoch);
     });
 
     test('groups several transactions on the same day together', () {

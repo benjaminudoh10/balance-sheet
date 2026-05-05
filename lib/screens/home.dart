@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:balance_sheet/constants/app.dart';
-import 'package:balance_sheet/controllers/appController.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
 import 'package:balance_sheet/screens/insights_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Home extends StatefulWidget {
+  const Home({super.key});
+
   @override
   State<Home> createState() => _HomeState();
 }
@@ -46,7 +48,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool useRail = constraints.maxWidth >= AppConstants.adaptiveNavRailMinWidth;
+        final bool useRail =
+            constraints.maxWidth >= AppConstants.adaptiveNavRailMinWidth;
         return Obx(() => PopScope(
               canPop: _appController.index.value == 0,
               onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -63,7 +66,8 @@ class _HomeState extends State<Home> {
                             const MidnightNavigationRail(),
                             Expanded(
                               child: LayoutBuilder(
-                                builder: (BuildContext context, BoxConstraints inner) {
+                                builder: (BuildContext context,
+                                    BoxConstraints inner) {
                                   final double bodyW = math.min(
                                     AppConstants.adaptiveContentMaxWidth,
                                     inner.maxWidth,
@@ -81,7 +85,8 @@ class _HomeState extends State<Home> {
                                         child: SizedBox(
                                           width: bodyW,
                                           height: inner.maxHeight,
-                                          child: _bodyForIndex(_appController.index.value),
+                                          child: _bodyForIndex(
+                                              _appController.index.value),
                                         ),
                                       ),
                                       if (_planHubOpen)
@@ -90,10 +95,12 @@ class _HomeState extends State<Home> {
                                             behavior: HitTestBehavior.opaque,
                                             onTap: () {
                                               AppHaptics.light();
-                                              setState(() => _planHubOpen = false);
+                                              setState(
+                                                  () => _planHubOpen = false);
                                             },
                                             child: ColoredBox(
-                                              color: AppPalette.of(context).overlay,
+                                              color: AppPalette.of(context)
+                                                  .overlay,
                                             ),
                                           ),
                                         ),
@@ -104,7 +111,8 @@ class _HomeState extends State<Home> {
                                           child: PlanHubFab(
                                             expanded: _planHubOpen,
                                             onExpandedChanged: (bool v) =>
-                                                setState(() => _planHubOpen = v),
+                                                setState(
+                                                    () => _planHubOpen = v),
                                           ),
                                         ),
                                     ],
@@ -127,18 +135,21 @@ class _HomeState extends State<Home> {
                                   AppHaptics.light();
                                   setState(() => _planHubOpen = false);
                                 },
-                                child: ColoredBox(color: AppPalette.of(context).overlay),
+                                child: ColoredBox(
+                                    color: AppPalette.of(context).overlay),
                               ),
                             ),
                         ],
                       ),
                 bottomNavigationBar: useRail ? null : const MidnightBottomNav(),
-                floatingActionButton: !useRail && _appController.index.value == 0
-                    ? PlanHubFab(
-                        expanded: _planHubOpen,
-                        onExpandedChanged: (bool v) => setState(() => _planHubOpen = v),
-                      )
-                    : null,
+                floatingActionButton:
+                    !useRail && _appController.index.value == 0
+                        ? PlanHubFab(
+                            expanded: _planHubOpen,
+                            onExpandedChanged: (bool v) =>
+                                setState(() => _planHubOpen = v),
+                          )
+                        : null,
               ),
             ));
       },

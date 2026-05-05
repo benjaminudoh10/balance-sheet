@@ -1,6 +1,6 @@
 import 'package:balance_sheet/controllers/currency_controller.dart';
-import 'package:balance_sheet/controllers/reportController.dart';
-import 'package:balance_sheet/controllers/transactionController.dart';
+import 'package:balance_sheet/controllers/report_controller.dart';
+import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
@@ -42,7 +42,9 @@ void main() {
   }
 
   group('TransactionController balance updates', () {
-    test('updateControllerData adds expense to todaysExpense and subtracts total', () async {
+    test(
+        'updateControllerData adds expense to todaysExpense and subtracts total',
+        () async {
       final TransactionController c = await pumpController();
       c.total.value = 10000;
       c.todaysExpense.value = 0;
@@ -63,7 +65,8 @@ void main() {
       expect(c.description.value, '');
     });
 
-    test('updateControllerData adds income to todaysIncome and total', () async {
+    test('updateControllerData adds income to todaysIncome and total',
+        () async {
       final TransactionController c = await pumpController();
       c.total.value = 0;
       c.todaysExpense.value = 0;
@@ -83,7 +86,8 @@ void main() {
       expect(c.total.value, 2000);
     });
 
-    test('updateControllerDataAfterDeletion reverses expense from today', () async {
+    test('updateControllerDataAfterDeletion reverses expense from today',
+        () async {
       final TransactionController c = await pumpController();
       c.total.value = 9000;
       c.todaysExpense.value = 400;
@@ -104,7 +108,9 @@ void main() {
       expect(c.total.value, 9400);
     });
 
-    test('updateControllerDataAfterDeletion skips today adjustment when date differs', () async {
+    test(
+        'updateControllerDataAfterDeletion skips today adjustment when date differs',
+        () async {
       final TransactionController c = await pumpController();
       c.total.value = 5000;
       c.todaysExpense.value = 100;
@@ -124,7 +130,9 @@ void main() {
       expect(c.total.value, 5200);
     });
 
-    test('updateControllerDataAfterUpdate patches report list and resets fields', () async {
+    test(
+        'updateControllerDataAfterUpdate patches report list and resets fields',
+        () async {
       final TransactionController c = await pumpController();
       c.total.value = 10000;
       c.todaysExpense.value = 300;
