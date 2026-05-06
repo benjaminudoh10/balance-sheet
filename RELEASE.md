@@ -128,6 +128,54 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.1
+
+Date and time pickers
+- Replace the OS date and date-range pickers with custom in-app
+  widgets — clearer single-date and range selection, consistent
+  theming, no jump to a system modal.
+- Show the year in transaction day-group headers; anchor the date
+  pickers to 2021 (app launch year) instead of the platform default.
+- Don't pop the soft keyboard when switching the transaction form
+  into time-entry mode.
+
+Transactions
+- "All transactions" view stays open after editing an entry, so the
+  list keeps its scroll position and active filters.
+- Fix transaction modal navigation and clear up analyzer warnings on
+  the transaction form.
+- Optimise the all-transactions list for large numbers of entries
+  (smoother scroll, lower memory pressure).
+
+Insights
+- New "this year" and "last year" filters on the insights view.
+- Yearly insights group items by month for easier scanning.
+
+PDF export
+- Add an info dialog explaining what the PDF export contains before
+  generating the file.
+- Generate report PDFs on a background isolate so the UI stays
+  responsive on large datasets.
+
+Fixes
+- Release builds now include the `INTERNET` permission, which
+  `google_fonts` needs to download fonts at runtime. Without this the
+  font picker silently fell back to the bundled default in release.
+
+Build and release
+- Distinct adaptive launcher icons for debug vs release (mint book on
+  light lilac for release, blue book on light azure for debug) so the
+  two installs are easy to tell apart on the launcher.
+- Pin Flutter via `.fvmrc`, regenerate iOS launcher icons and tighten
+  the asset-drift check that catches stale generated icons / splash.
+- New CI workflows: format / analyze / coverage gates, Android debug
+  + iOS no-codesign build verification, prerelease APK from `main`,
+  tag-driven signed release, secret scan with keystore guard +
+  gitleaks, path-based PR labeler. All actions bumped to Node 24.
+- `tool/cut_release.sh` automates the release cut — bumps
+  `pubspec.yaml`, scaffolds (or validates) the `RELEASE.md` section,
+  and pushes the signed-release tag that `release.yml` triggers on.
+
 ### v1.0.0 — first public release
 
 Core ledger
