@@ -15,10 +15,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.2.0+2
+version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -28,42 +28,73 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  flutter_spinkit: "^4.1.2"
-  get: ^4.1.4
-  modal_bottom_sheet: ^2.0.0
-  sqflite: ^1.3.1+1
-  path_provider: ^2.0.0
+  flutter_spinkit: ^5.2.2
+  get: ^4.7.2
+  modal_bottom_sheet: ^3.0.0
+  sqflite: ^2.4.2
+  path_provider: ^2.1.5
   intl: any
-  google_fonts: ^2.1.0
+  google_fonts: ^8.0.2
   # csv: ^5.0.0
   # permission_handler: ^8.1.2
-  pinput: ^1.2.0
+  pinput: ^6.0.2
   get_storage: ^2.0.2
-  local_auth: ^1.1.6
-  # flutter_native_splash: ^1.2.0
-  # flutter_launcher_icons: ^0.9.0
+  local_auth: ^3.0.1
+  flutter_slidable: ^4.0.3
+  file_picker: ^11.0.2
+  crypto: ^3.0.7
+  fl_chart: ^1.2.0
+  flutter_local_notifications: ^21.0.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  package_info_plus: ^9.0.1
+  path: ^1.9.1
   # charts_flutter: ^0.10.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.7
+  flutter_launcher_icons: ^0.14.4
+  sqflite_common_ffi: ^2.3.4
+  image: ^4.5.3
 
-# flutter pub run flutter_launcher_icons:main (run this to generate app icon)
-flutter_icons:
+# Transitive pins for current Flutter / Dart SDK (AGP 8, dart:io API changes).
+dependency_overrides:
+  flutter_plugin_android_lifecycle: ^2.0.24
+  file: ^7.0.0
+  platform: ^3.1.0
+
+# pip3 install pillow && python3 tool/render_launcher_icon.py  (Material menu_book_rounded U+F8B4 + AppPalette.light)
+# dart run flutter_launcher_icons
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "lib/assets/logo.png"
-  adaptive_icon_background: "#C77DFF"
+  adaptive_icon_background: "#F5F3FA"
+  adaptive_icon_foreground: "lib/assets/app_icon_foreground.png"
   remove_alpha_ios: true
+  background_color_ios: "#F5F3FA"
 
-# flutter pub run flutter_native_splash:create (run this to generate splash screen)
+# pip3 install pillow && python3 tool/render_native_splash.py
+# dart run flutter_native_splash:create
+# Colors match AppPalette.light / .dark; art matches lib/screens/splash.dart (Material book + Roboto text).
+# Light vs dark follows the *system* appearance (native splash runs before Flutter).
 flutter_native_splash:
-  color: "#944BE7"
-  image: "lib/assets/logo.png"
-  color_dark: "#944BE7"
-  image_dark: "lib/assets/logo.png"
+  color: "#F5F3FA"
+  image: "lib/assets/splash/splash_full_light.png"
+  color_dark: "#0D1117"
+  image_dark: "lib/assets/splash/splash_full_dark.png"
   android: true
   ios: true
+  android_12:
+    color: "#F5F3FA"
+    color_dark: "#0D1117"
+    image: "lib/assets/splash/splash_android12_light.png"
+    image_dark: "lib/assets/splash/splash_android12_dark.png"
+    icon_background_color: "#EDE9F4"
+    icon_background_color_dark: "#21262D"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

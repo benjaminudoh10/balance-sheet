@@ -1,46 +1,175 @@
-import 'package:balance_sheet/constants/colors.dart';
-import 'package:balance_sheet/controllers/appController.dart';
+import 'dart:math' as math;
+
+import 'package:balance_sheet/constants/app.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/screens/contact_screen.dart';
+import 'package:balance_sheet/screens/insights_screen.dart';
 import 'package:balance_sheet/screens/main_screen.dart';
+import 'package:balance_sheet/screens/budget_screen.dart';
+import 'package:balance_sheet/screens/settings_screen.dart';
+import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:balance_sheet/widgets/midnight_bottom_nav.dart';
+import 'package:balance_sheet/widgets/midnight_navigation_rail.dart';
+import 'package:balance_sheet/utils/app_haptics.dart';
+import 'package:balance_sheet/widgets/plan_hub_fab.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   final AppController _appController = Get.find();
+  bool _planHubOpen = false;
+  Worker? _navHubWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    _navHubWorker = ever<int>(_appController.index, (_) {
+      if (!mounted) return;
+      if (_planHubOpen) {
+        setState(() => _planHubOpen = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _navHubWorker?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
-      body: _appController.index.value == 0
-        ? MainView()
-        : ContactView(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xffE6E2F4),
-        selectedItemColor: AppColors.PRIMARY,
-        unselectedItemColor: AppColors.LIGHT_PRIMARY,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _appController.index.value,
-        onTap: _appController.setIndex,
-        items: [
-          _buildBottomNavigationBarItem(icon: Icons.money_outlined, label: "Transactions"),
-          _buildBottomNavigationBarItem(icon: Icons.people_outline, label: "Contacts"),
-        ],
-      ),
-    ));
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool useRail =
+            constraints.maxWidth >= AppConstants.adaptiveNavRailMinWidth;
+        return Obx(() => PopScope(
+              canPop: _appController.index.value == 0,
+              onPopInvokedWithResult: (bool didPop, Object? result) {
+                if (!didPop && _appController.index.value != 0) {
+                  _appController.setIndex(0);
+                }
+              },
+              child: Scaffold(
+                body: useRail
+                    ? SafeArea(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            const MidnightNavigationRail(),
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (BuildContext context,
+                                    BoxConstraints inner) {
+                                  final double bodyW = math.min(
+                                    AppConstants.adaptiveContentMaxWidth,
+                                    inner.maxWidth,
+                                  );
+                                  final double trailing =
+                                      (inner.maxWidth - bodyW) / 2 + 24.0;
+                                  final double bottomInset =
+                                      MediaQuery.paddingOf(context).bottom;
+                                  return Stack(
+                                    fit: StackFit.expand,
+                                    clipBehavior: Clip.none,
+                                    children: <Widget>[
+                                      Align(
+                                        alignment: Alignment.topCenter,
+                                        child: SizedBox(
+                                          width: bodyW,
+                                          height: inner.maxHeight,
+                                          child: _bodyForIndex(
+                                              _appController.index.value),
+                                        ),
+                                      ),
+                                      if (_planHubOpen)
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () {
+                                              AppHaptics.light();
+                                              setState(
+                                                  () => _planHubOpen = false);
+                                            },
+                                            child: ColoredBox(
+                                              color: AppPalette.of(context)
+                                                  .overlay,
+                                            ),
+                                          ),
+                                        ),
+                                      if (_appController.index.value == 0)
+                                        Positioned(
+                                          right: trailing,
+                                          bottom: 16 + bottomInset,
+                                          child: PlanHubFab(
+                                            expanded: _planHubOpen,
+                                            onExpandedChanged: (bool v) =>
+                                                setState(
+                                                    () => _planHubOpen = v),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Stack(
+                        fit: StackFit.expand,
+                        children: <Widget>[
+                          _bodyForIndex(_appController.index.value),
+                          if (_planHubOpen)
+                            Positioned.fill(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  AppHaptics.light();
+                                  setState(() => _planHubOpen = false);
+                                },
+                                child: ColoredBox(
+                                    color: AppPalette.of(context).overlay),
+                              ),
+                            ),
+                        ],
+                      ),
+                bottomNavigationBar: useRail ? null : const MidnightBottomNav(),
+                floatingActionButton:
+                    !useRail && _appController.index.value == 0
+                        ? PlanHubFab(
+                            expanded: _planHubOpen,
+                            onExpandedChanged: (bool v) =>
+                                setState(() => _planHubOpen = v),
+                          )
+                        : null,
+              ),
+            ));
+      },
+    );
   }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem({IconData icon, String label}) {
-    return BottomNavigationBarItem(
-      activeIcon: Icon(
-        icon,
-        size: 36.0,
-      ),
-      icon: Icon(
-        icon,
-        size: 36.0,
-      ),
-      label: label,
-      tooltip: label
-    );
+  Widget _bodyForIndex(int index) {
+    switch (index) {
+      case 0:
+        return MainView();
+      case 1:
+        return ContactView();
+      case 2:
+        return const BudgetScreen();
+      case 3:
+        return const InsightsView();
+      case 4:
+        return SettingsView();
+      default:
+        return MainView();
+    }
   }
 }

@@ -1,6 +1,186 @@
+import 'package:flutter/material.dart';
+
+/// Per-category tint for transaction row category chips.
+class CategoryPillStyle {
+  const CategoryPillStyle({
+    required this.background,
+    required this.border,
+    required this.foreground,
+  });
+
+  final Color background;
+  final Color border;
+  final Color foreground;
+}
+
 class Categories {
   // NOTE: Don't change the keys after it has been released to the public
   // Labels can change though
+
+  static IconData iconForKey(String key) {
+    switch (key) {
+      case 'food':
+        return Icons.restaurant_outlined;
+      case 'transport':
+        return Icons.directions_car_outlined;
+      case 'investment':
+        return Icons.trending_up_outlined;
+      case 'salary':
+        return Icons.work_outline;
+      case 'savings':
+        return Icons.savings_outlined;
+      case 'charity':
+        return Icons.volunteer_activism_outlined;
+      case 'rent':
+        return Icons.home_work_outlined;
+      case 'utilities':
+        return Icons.bolt_outlined;
+      case 'misc':
+        return Icons.receipt_long_outlined;
+      default:
+        return Icons.payments_outlined;
+    }
+  }
+
+  /// Distinct background / border / label colors per category key.
+  /// [brightness] must match the surface behind the pill (dark theme = dark pills, light = high-contrast tints).
+  static CategoryPillStyle pillStyleForKey(String key, Brightness brightness) {
+    return brightness == Brightness.light
+        ? _pillStyleForLight(key)
+        : _pillStyleForDark(key);
+  }
+
+  /// Tuned for dark shells (translucent fills, light label hues).
+  static CategoryPillStyle _pillStyleForDark(String key) {
+    switch (key) {
+      case 'food':
+        return const CategoryPillStyle(
+          background: Color(0x26F59E0B),
+          border: Color(0x66D97706),
+          foreground: Color(0xFFFCD34D),
+        );
+      case 'transport':
+        return const CategoryPillStyle(
+          background: Color(0x260EA5E9),
+          border: Color(0x662890B4),
+          foreground: Color(0xFF7DD3FC),
+        );
+      case 'investment':
+        return const CategoryPillStyle(
+          background: Color(0x2610B981),
+          border: Color(0x66059669),
+          foreground: Color(0xFF6EE7B7),
+        );
+      case 'salary':
+        return const CategoryPillStyle(
+          background: Color(0x2614B8A6),
+          border: Color(0x660D9488),
+          foreground: Color(0xFF5EEAD4),
+        );
+      case 'savings':
+        return const CategoryPillStyle(
+          background: Color(0x266366F1),
+          border: Color(0x664F46E5),
+          foreground: Color(0xFFC7D2FE),
+        );
+      case 'charity':
+        return const CategoryPillStyle(
+          background: Color(0x26F43F5E),
+          border: Color(0x66E11D48),
+          foreground: Color(0xFFFBCFE8),
+        );
+      case 'rent':
+        return const CategoryPillStyle(
+          background: Color(0x26A855F7),
+          border: Color(0x667C3AED),
+          foreground: Color(0xFFE9D5FF),
+        );
+      case 'utilities':
+        return const CategoryPillStyle(
+          background: Color(0x26EAB308),
+          border: Color(0x66CA8A04),
+          foreground: Color(0xFFFEF08A),
+        );
+      case 'misc':
+        return const CategoryPillStyle(
+          background: Color(0x2694A3B8),
+          border: Color(0x66475569),
+          foreground: Color(0xFFE2E8F0),
+        );
+      default:
+        return const CategoryPillStyle(
+          background: Color(0xFF21262D),
+          border: Color(0xFF30363D),
+          foreground: Color(0xFFF0F6FC),
+        );
+    }
+  }
+
+  /// Opaque pastels + saturated foregrounds for light backgrounds.
+  static CategoryPillStyle _pillStyleForLight(String key) {
+    switch (key) {
+      case 'food':
+        return const CategoryPillStyle(
+          background: Color(0xFFFEF3C7),
+          border: Color(0xFFF59E0B),
+          foreground: Color(0xFF92400E),
+        );
+      case 'transport':
+        return const CategoryPillStyle(
+          background: Color(0xFFE0F2FE),
+          border: Color(0xFF38BDF8),
+          foreground: Color(0xFF0369A1),
+        );
+      case 'investment':
+        return const CategoryPillStyle(
+          background: Color(0xFFD1FAE5),
+          border: Color(0xFF34D399),
+          foreground: Color(0xFF047857),
+        );
+      case 'salary':
+        return const CategoryPillStyle(
+          background: Color(0xFFCCFBF1),
+          border: Color(0xFF2DD4BF),
+          foreground: Color(0xFF0F766E),
+        );
+      case 'savings':
+        return const CategoryPillStyle(
+          background: Color(0xFFE0E7FF),
+          border: Color(0xFF818CF8),
+          foreground: Color(0xFF4338CA),
+        );
+      case 'charity':
+        return const CategoryPillStyle(
+          background: Color(0xFFFCE7F3),
+          border: Color(0xFFF472B6),
+          foreground: Color(0xFF9D174D),
+        );
+      case 'rent':
+        return const CategoryPillStyle(
+          background: Color(0xFFF3E8FF),
+          border: Color(0xFFC084FC),
+          foreground: Color(0xFF6B21A8),
+        );
+      case 'utilities':
+        return const CategoryPillStyle(
+          background: Color(0xFFFEF9C3),
+          border: Color(0xFFEAB308),
+          foreground: Color(0xFFA16207),
+        );
+      case 'misc':
+        return const CategoryPillStyle(
+          background: Color(0xFFE2E8F0),
+          border: Color(0xFF64748B),
+          foreground: Color(0xFF1E293B),
+        );
+      default:
+        return const CategoryPillStyle(
+          background: Color(0xFFF1F5F9),
+          border: Color(0xFFCBD5E1),
+          foreground: Color(0xFF0F172A),
+        );
+    }
+  }
 
   static const CATEGORIES = [
     {
@@ -33,7 +213,7 @@ class Categories {
     },
     {
       "key": "utilities",
-      "label": "Utilities (e.g. Subscription, etc)",
+      "label": "Utilities",
     },
     {
       "key": "misc",

@@ -1,12 +1,12 @@
 class Contact {
   Contact({
-    this.id,
-    this.name,
+    this.id = 0,
+    required this.name,
   });
 
   @override
   String toString() {
-    return "${this.toJson()}";
+    return "${toJson()}";
   }
 
   int id;
@@ -14,15 +14,21 @@ class Contact {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": this.id,
-      "name": this.name,
+      "id": id,
+      "name": name,
     };
   }
 
   factory Contact.fromJson(Map<String, dynamic> data) {
+    final dynamic rawId = data['id'];
+    final int id = rawId is int
+        ? rawId
+        : rawId is num
+            ? rawId.toInt()
+            : int.tryParse('$rawId') ?? 0;
     return Contact(
-      id: data['id'],
-      name: data['name'],
+      id: id,
+      name: data['name'] as String? ?? '',
     );
   }
 }

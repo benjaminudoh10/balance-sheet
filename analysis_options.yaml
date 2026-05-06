@@ -1,0 +1,26 @@
+# Static analysis configuration for the Balanced app.
+#
+# Picks up the Flutter team's recommended lint set. Tighten or loosen by
+# adding entries under `analyzer.errors` or `linter.rules` below. The CI
+# workflow runs `flutter analyze --fatal-infos`, so anything reported here
+# will block the PR until fixed (or downgraded explicitly).
+#
+# References:
+#   - https://dart.dev/tools/analysis
+#   - https://pub.dev/packages/flutter_lints
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "build/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/generated_plugin_registrant.dart"
+
+linter:
+  rules:
+    # Add per-rule overrides here, e.g.:
+    constant_identifier_names: false
+    # prefer_single_quotes: true
+    # avoid_print: false

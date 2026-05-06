@@ -1,0 +1,85 @@
+# Path-based labels applied automatically by .github/workflows/labeler.yml.
+# Format reference:
+#   https://github.com/actions/labeler#create-labeleryml
+#
+# Labels referenced here must exist in the repo (Settings → Labels) — the
+# action will not create them. Colours and descriptions are up to you.
+
+"area: android":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "android/**"
+
+"area: ios":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ios/**"
+
+"area: ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/screens/**"
+          - "lib/widgets/**"
+          - "lib/dialogs/**"
+          - "lib/theme/**"
+
+"area: data":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/database/**"
+          - "lib/models/**"
+          - "lib/backup/**"
+
+"area: controllers":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/controllers/**"
+
+"area: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/security/**"
+          - "lib/screens/lock_screen.dart"
+          - "lib/screens/pin_lock.dart"
+
+"area: assets":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/assets/**"
+          - "tool/render_*.py"
+          - "android/app/src/**/res/**"
+          - "ios/Runner/Assets.xcassets/**"
+
+"area: tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "test/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".flutter-version"
+          - "analysis_options.yaml"
+
+"area: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pubspec.yaml"
+          - "pubspec.lock"
+          - "android/**/*.gradle*"
+          - "android/gradle.properties"
+          - "ios/Podfile*"
+          - "tool/setup_release_signing.sh"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+          - "design/**"
+
+"area: tooling":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tool/**"
