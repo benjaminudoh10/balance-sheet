@@ -123,9 +123,9 @@ class _NavItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected ? active : inactive,
-                ),
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected ? active : inactive,
+                    ),
               ),
             ],
           ),

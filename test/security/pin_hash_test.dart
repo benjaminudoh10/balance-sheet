@@ -20,7 +20,8 @@ void main() {
 
   group('PinHash.computeHash', () {
     test('same pin and salt yields same hash', () {
-      final Uint8List salt = Uint8List.fromList(List<int>.generate(16, (i) => i));
+      final Uint8List salt =
+          Uint8List.fromList(List<int>.generate(16, (i) => i));
       final String a = PinHash.computeHash('1234', salt);
       final String b = PinHash.computeHash('1234', salt);
       expect(a, b);
@@ -43,7 +44,8 @@ void main() {
     });
 
     test('returns false when hash missing', () async {
-      await box.write(AppConstants.USER_PIN_SALT_KEY, base64Encode(Uint8List(16)));
+      await box.write(
+          AppConstants.USER_PIN_SALT_KEY, base64Encode(Uint8List(16)));
       expect(PinHash.verify(box, '1234'), isFalse);
     });
 

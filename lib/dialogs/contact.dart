@@ -104,7 +104,8 @@ class _EditContactSheetState extends State<_EditContactSheet> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         color: p.mint.withValues(alpha: 0.12),
-                        border: Border.all(color: p.mint.withValues(alpha: 0.28)),
+                        border:
+                            Border.all(color: p.mint.withValues(alpha: 0.28)),
                       ),
                       child: Icon(
                         Icons.person_rounded,
@@ -119,7 +120,10 @@ class _EditContactSheetState extends State<_EditContactSheet> {
                         children: <Widget>[
                           Text(
                             'Edit contact',
-                            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
                                   color: p.textPrimary,
                                   letterSpacing: -0.4,
                                 ),
@@ -127,7 +131,10 @@ class _EditContactSheetState extends State<_EditContactSheet> {
                           const SizedBox(height: 4),
                           Text(
                             'Update how this name appears across transactions.',
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
                                   height: 1.35,
                                   color: p.textSecondary.withValues(alpha: 0.9),
                                 ),
@@ -177,10 +184,12 @@ class _EditContactSheetState extends State<_EditContactSheet> {
                         ),
                     decoration: InputDecoration(
                       hintText: 'e.g. Jane Doe',
-                      hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: p.textSecondary,
-                          ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      hintStyle:
+                          Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                color: p.textSecondary,
+                              ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
                       border: InputBorder.none,
                     ),
                   ),
@@ -221,6 +230,7 @@ class _EditContactSheetState extends State<_EditContactSheet> {
 Future<void> showContactPickerSheet(
   BuildContext context, {
   required dynamic controller,
+
   /// When true, navigating to add a contact also dismisses the sheet under this
   /// one (e.g. the new-transaction bottom sheet).
   bool popUnderlyingSheetWhenAddingContact = false,
@@ -327,10 +337,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                       child: Text(
                         'Select contact',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: p.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium!.copyWith(
+                                  color: p.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                       ),
                     ),
                     IconButton(
@@ -364,9 +375,10 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                         cursorColor: p.mint,
                         decoration: InputDecoration(
                           hintText: 'Search contacts',
-                          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                color: p.textSecondary,
-                              ),
+                          hintStyle:
+                              Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: p.textSecondary,
+                                  ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
                             color: p.textSecondary.withValues(alpha: 0.85),
@@ -388,7 +400,8 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: p.mint.withValues(alpha: 0.65)),
+                            borderSide: BorderSide(
+                                color: p.mint.withValues(alpha: 0.65)),
                           ),
                         ),
                       ),
@@ -413,14 +426,20 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                           ),
                           primaryText: Text(
                             'No contact has been added',
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: p.textPrimary,
                                 ),
                           ),
                           secondaryText: Text(
                             'Tap below to add a contact',
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
                                   color: p.textSecondary,
                                 ),
                           ),
@@ -429,7 +448,10 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                           onPressed: _openAddContact,
                           child: Text(
                             'Add contact',
-                            style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge!
+                                .copyWith(
                                   color: p.mint,
                                 ),
                           ),
@@ -443,9 +465,10 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                         padding: const EdgeInsets.all(24),
                         child: Text(
                           'No matching contacts',
-                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                color: p.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    color: p.textSecondary,
+                                  ),
                         ),
                       ),
                     );

@@ -110,8 +110,7 @@ class _ReportViewState extends State<ReportView> {
         context: context,
         barrierDismissible: false,
         useRootNavigator: true,
-        builder: (BuildContext ctx) =>
-            PdfExportProgressDialog(stage: stage),
+        builder: (BuildContext ctx) => PdfExportProgressDialog(stage: stage),
       ).whenComplete(() {
         dialogOpen = false;
         stage.dispose();
@@ -210,8 +209,7 @@ class _ReportViewState extends State<ReportView> {
                   final bool isLoadingMore =
                       _reportController.isLoadingMore.value;
                   final bool hasMore = _reportController.hasMore.value;
-                  final bool isEmpty =
-                      _reportController.transactions.isEmpty;
+                  final bool isEmpty = _reportController.transactions.isEmpty;
                   final List<Widget> rows = isEmpty
                       ? const <Widget>[]
                       : _buildGroupedTransactionSlivers(

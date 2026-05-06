@@ -36,7 +36,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -55,7 +56,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                       Expanded(
                         child: Text(
                           'Clear local data',
-                          style: textTheme.titleLarge!.copyWith(color: p.textPrimary),
+                          style: textTheme.titleLarge!
+                              .copyWith(color: p.textPrimary),
                         ),
                       ),
                     ],
@@ -82,7 +84,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         onPressed: _busy
                             ? null
                             : () => setState(() {
-                                  _selected.addAll(DebugDataClearService.allDatabaseTargets);
+                                  _selected.addAll(
+                                      DebugDataClearService.allDatabaseTargets);
                                 }),
                       ),
                       ActionChip(
@@ -90,7 +93,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         onPressed: _busy
                             ? null
                             : () => setState(() {
-                                  _selected.addAll(DebugDataClearService.allPreferenceTargets);
+                                  _selected.addAll(DebugDataClearService
+                                      .allPreferenceTargets);
                                 }),
                       ),
                       ActionChip(
@@ -98,12 +102,14 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         onPressed: _busy
                             ? null
                             : () => setState(() {
-                                  _selected.addAll(DebugDataClearService.allTargets);
+                                  _selected
+                                      .addAll(DebugDataClearService.allTargets);
                                 }),
                       ),
                       ActionChip(
                         label: const Text('Clear selection'),
-                        onPressed: _busy ? null : () => setState(_selected.clear),
+                        onPressed:
+                            _busy ? null : () => setState(_selected.clear),
                       ),
                     ],
                   ),
@@ -132,7 +138,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         context,
                         target: DebugDataClearTarget.budget,
                         title: 'Budget months & lines',
-                        caption: 'SQLite: ${DBConstants.BUDGET_LINE}, ${DBConstants.BUDGET_MONTH}',
+                        caption:
+                            'SQLite: ${DBConstants.BUDGET_LINE}, ${DBConstants.BUDGET_MONTH}',
                       ),
                       const SizedBox(height: 20),
                       _sectionLabel(context, 'Investments'),
@@ -147,7 +154,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         context,
                         target: DebugDataClearTarget.investmentOther,
                         title: 'Other investment assets',
-                        caption: 'SQLite: ${DBConstants.INVESTMENT_OTHER_ASSET}',
+                        caption:
+                            'SQLite: ${DBConstants.INVESTMENT_OTHER_ASSET}',
                       ),
                       const SizedBox(height: 20),
                       _sectionLabel(context, 'Stored settings'),
@@ -167,19 +175,22 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         context,
                         target: DebugDataClearTarget.prefSecurity,
                         title: 'PIN & biometrics',
-                        caption: 'PIN hash/salt and fingerprint flag (GetStorage)',
+                        caption:
+                            'PIN hash/salt and fingerprint flag (GetStorage)',
                       ),
                       _targetTile(
                         context,
                         target: DebugDataClearTarget.prefSlidablePeek,
                         title: 'First-run UI tips',
-                        caption: 'Slidable row peeks and home balance / net worth coach (GetStorage)',
+                        caption:
+                            'Slidable row peeks and home balance / net worth coach (GetStorage)',
                       ),
                       _targetTile(
                         context,
                         target: DebugDataClearTarget.savedViews,
                         title: 'Saved views',
-                        caption: 'Named presets for All transactions, Insights, and Budget (GetStorage)',
+                        caption:
+                            'Named presets for All transactions, Insights, and Budget (GetStorage)',
                       ),
                     ],
                   ),
@@ -187,7 +198,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                   child: FilledButton(
-                    onPressed: _busy || _selected.isEmpty ? null : _onClearPressed,
+                    onPressed:
+                        _busy || _selected.isEmpty ? null : _onClearPressed,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.SNACKBAR_RED,
                       foregroundColor: Colors.white,
@@ -197,7 +209,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         ? const SizedBox(
                             height: 22,
                             width: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('Delete selected'),
                   ),
@@ -257,13 +270,16 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: p.surface,
-              border: Border.all(color: on ? p.mint.withValues(alpha: 0.45) : p.border),
+              border: Border.all(
+                  color: on ? p.mint.withValues(alpha: 0.45) : p.border),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  on ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                  on
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
                   color: on ? p.mint : p.textSecondary,
                   size: 26,
                 ),
@@ -274,7 +290,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                     children: [
                       Text(
                         title,
-                        style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                        style: textTheme.titleMedium!
+                            .copyWith(color: p.textPrimary),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -309,7 +326,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
           ),
           content: Text(
             'This permanently removes the selected rows and/or keys from this device.',
-            style: tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
+            style:
+                tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
           ),
           actions: [
             TextButton(
@@ -324,7 +342,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                 AppHaptics.medium();
                 Navigator.of(ctx).pop(true);
               },
-              child: Text('Delete', style: TextStyle(color: AppColors.SNACKBAR_RED)),
+              child: Text('Delete',
+                  style: TextStyle(color: AppColors.SNACKBAR_RED)),
             ),
           ],
         );
@@ -334,7 +353,8 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
 
     setState(() => _busy = true);
     try {
-      await DebugDataClearService.apply(Set<DebugDataClearTarget>.from(_selected));
+      await DebugDataClearService.apply(
+          Set<DebugDataClearTarget>.from(_selected));
       if (!mounted) return;
       setState(() {
         _selected.clear();

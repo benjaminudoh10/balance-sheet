@@ -53,7 +53,8 @@ class BackupImportProgressDialog extends StatelessWidget {
         ),
         content: ValueListenableBuilder<BackupImportProgress>(
           valueListenable: progress,
-          builder: (BuildContext context, BackupImportProgress prog, Widget? _) {
+          builder:
+              (BuildContext context, BackupImportProgress prog, Widget? _) {
             final double? value = prog.value;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

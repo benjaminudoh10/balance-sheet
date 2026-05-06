@@ -81,10 +81,12 @@ class _OtherInvestmentEditorContent extends StatefulWidget {
   final OtherInvestment? existing;
 
   @override
-  State<_OtherInvestmentEditorContent> createState() => _OtherInvestmentEditorContentState();
+  State<_OtherInvestmentEditorContent> createState() =>
+      _OtherInvestmentEditorContentState();
 }
 
-class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorContent> {
+class _OtherInvestmentEditorContentState
+    extends State<_OtherInvestmentEditorContent> {
   late final TextEditingController _labelCtrl;
   late final TextEditingController _amountCtrl;
   late final FocusNode _labelFocus;
@@ -102,7 +104,8 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
     _amountCtrl = TextEditingController(
       text: e != null
           ? (e.entryIsFcy ? e.entryMinor : e.valueLcyMinor) != 0
-              ? ((e.entryIsFcy ? e.entryMinor : e.valueLcyMinor) / 100).toStringAsFixed(2)
+              ? ((e.entryIsFcy ? e.entryMinor : e.valueLcyMinor) / 100)
+                  .toStringAsFixed(2)
               : ''
           : '',
     );
@@ -136,7 +139,8 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
       Get.snackbar('Amount', 'Enter a value greater than zero.');
       return;
     }
-    final int lcy = _entryIsFcy ? _cur.lcyMinorFromFcyMinor(entryMinor) : entryMinor;
+    final int lcy =
+        _entryIsFcy ? _cur.lcyMinorFromFcyMinor(entryMinor) : entryMinor;
     final OtherInvestment? existing = widget.existing;
     if (existing == null) {
       await widget.inv.addOtherInvestment(
@@ -160,7 +164,8 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
     }
     if (!mounted) return;
     Navigator.of(context).pop();
-    _snackbarAfterRouteSettled('Saved', existing == null ? 'Investment added' : 'Investment updated');
+    _snackbarAfterRouteSettled(
+        'Saved', existing == null ? 'Investment added' : 'Investment updated');
   }
 
   @override
@@ -173,13 +178,21 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
-            widget.existing == null ? 'Add other investment' : 'Edit investment',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w700),
+            widget.existing == null
+                ? 'Add other investment'
+                : 'Edit investment',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: p.textPrimary, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(
             'Name it (e.g. Cash, Land, Gold) and enter the value in local or foreign currency.',
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary, height: 1.4),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: p.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -191,8 +204,10 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
             decoration: InputDecoration(
               labelText: 'Label',
               labelStyle: TextStyle(color: p.textSecondary),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
+              enabledBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _kInvestAccent)),
             ),
             onSubmitted: (_) {
               _amountFocus.requestFocus();
@@ -201,7 +216,8 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
           const SizedBox(height: 12),
           Obx(
             () {
-              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              final String code =
+                  _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -211,10 +227,11 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                       Expanded(
                         child: Text(
                           'Value ($code)',
-                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: p.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: p.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -222,8 +239,10 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                       const SizedBox(width: 8),
                       SegmentedButton<bool>(
                         segments: <ButtonSegment<bool>>[
-                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: true, label: Text(_cur.fcyCode.value)),
                         ],
                         selected: <bool>{_entryIsFcy},
                         onSelectionChanged: (Set<bool> next) {
@@ -232,16 +251,21 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                           if (toFcy == _entryIsFcy) return;
                           AppHaptics.selection();
                           setState(() {
-                            final int m = parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
+                            final int m =
+                                parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
                             if (m <= 0) {
                               _entryIsFcy = toFcy;
                               return;
                             }
                             if (toFcy) {
-                              _amountCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _amountCtrl.text =
+                                  (_cur.fcyMinorFromLcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = true;
                             } else {
-                              _amountCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _amountCtrl.text =
+                                  (_cur.lcyMinorFromFcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = false;
                             }
                           });
@@ -259,15 +283,20 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
                   TextField(
                     controller: _amountCtrl,
                     focusNode: _amountFocus,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     textInputAction: TextInputAction.done,
-                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    inputFormatters: <TextInputFormatter>[
+                      DecimalTextInputFormatter()
+                    ],
                     style: TextStyle(color: p.textPrimary),
                     decoration: InputDecoration(
                       hintText: '0.00',
                       hintStyle: TextStyle(color: p.textSecondary),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: p.border)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: _kInvestAccent)),
                     ),
                     onSubmitted: (_) async {
                       AppHaptics.light();
@@ -284,7 +313,8 @@ class _OtherInvestmentEditorContentState extends State<_OtherInvestmentEditorCon
               AppHaptics.light();
               await _save();
             },
-            style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
+            style: FilledButton.styleFrom(
+                backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
             child: Text(widget.existing == null ? 'Add' : 'Save'),
           ),
         ],
@@ -303,7 +333,8 @@ class _AddHoldingEditorContent extends StatefulWidget {
   final Future<void> Function(String ticker, String displayName) onSave;
 
   @override
-  State<_AddHoldingEditorContent> createState() => _AddHoldingEditorContentState();
+  State<_AddHoldingEditorContent> createState() =>
+      _AddHoldingEditorContentState();
 }
 
 class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
@@ -356,7 +387,11 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('Add holding', style: Theme.of(context).textTheme.titleLarge!.copyWith(color: p.textPrimary)),
+          Text('Add holding',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge!
+                  .copyWith(color: p.textPrimary)),
           const SizedBox(height: 16),
           TextField(
             controller: _tickerCtrl,
@@ -367,8 +402,10 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
             decoration: InputDecoration(
               labelText: 'Ticker',
               labelStyle: TextStyle(color: p.textSecondary),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
+              enabledBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _kInvestAccent)),
             ),
             onSubmitted: (_) => _nameFocus.requestFocus(),
           ),
@@ -383,8 +420,10 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
             decoration: InputDecoration(
               labelText: 'Name (optional)',
               labelStyle: TextStyle(color: p.textSecondary),
-              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _kInvestAccent)),
+              enabledBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _kInvestAccent)),
             ),
             onSubmitted: (_) => _submit(),
           ),
@@ -424,6 +463,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   late final FocusNode _qtyFocus;
   late final FocusNode _priceFocus;
   bool _entryIsFcy = true;
+
   /// When true, quantity is stored as negative (sale). Avoids relying on `-` on keyboards where `.` and `-` share one key.
   bool _isSale = false;
   late DateTime _purchaseDay;
@@ -465,11 +505,13 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
       Get.snackbar('Quantity', 'Enter a non-zero quantity.');
       return;
     }
-    final DateTime atMidnight = DateTime(_purchaseDay.year, _purchaseDay.month, _purchaseDay.day);
+    final DateTime atMidnight =
+        DateTime(_purchaseDay.year, _purchaseDay.month, _purchaseDay.day);
     final int lotMs = atMidnight.millisecondsSinceEpoch;
 
     if (_isSale) {
-      final double available = await inv.totalQuantityForHoldingAtMs(widget.holding.id, lotMs);
+      final double available =
+          await inv.totalQuantityForHoldingAtMs(widget.holding.id, lotMs);
       final double maxSell = math.max(0.0, available);
       if (mag > maxSell + 1e-9) {
         if (maxSell <= 1e-9) {
@@ -481,7 +523,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
           Get.snackbar(
             'Cannot sell',
             'You have ${_formatShareQtyPlain(maxSell)} shares available on this date; '
-            '${_formatShareQtyPlain(mag)} is too many.',
+                '${_formatShareQtyPlain(mag)} is too many.',
           );
         }
         return;
@@ -498,7 +540,8 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
       Get.snackbar('Price', 'Enter a per-share price greater than zero.');
       return;
     }
-    final int lcyPx = _entryIsFcy ? _cur.lcyMinorFromFcyMinor(pxEntry) : pxEntry;
+    final int lcyPx =
+        _entryIsFcy ? _cur.lcyMinorFromFcyMinor(pxEntry) : pxEntry;
     await inv.insertInvestmentLot(
       holdingId: widget.holding.id,
       occurredAtMs: lotMs,
@@ -522,11 +565,15 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('Buy / sell shares', style: Theme.of(context).textTheme.titleMedium),
+          Text('Buy / sell shares',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Choose Buy or Sell, then enter quantity and price. For sales, use a positive amount — no minus key needed. Decimals use the dedicated . key on the number keyboard.',
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: p.textSecondary),
           ),
           const SizedBox(height: 12),
           SegmentedButton<bool>(
@@ -568,7 +615,8 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
           const SizedBox(height: 12),
           Obx(
             () {
-              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              final String code =
+                  _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -578,10 +626,11 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                       Expanded(
                         child: Text(
                           'Price per share ($code)',
-                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: p.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: p.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -589,8 +638,10 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                       const SizedBox(width: 8),
                       SegmentedButton<bool>(
                         segments: <ButtonSegment<bool>>[
-                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: true, label: Text(_cur.fcyCode.value)),
                         ],
                         selected: <bool>{_entryIsFcy},
                         onSelectionChanged: (Set<bool> next) {
@@ -599,16 +650,21 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                           if (toFcy == _entryIsFcy) return;
                           AppHaptics.selection();
                           setState(() {
-                            final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
+                            final int m =
+                                parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
                             if (m <= 0) {
                               _entryIsFcy = toFcy;
                               return;
                             }
                             if (toFcy) {
-                              _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _priceCtrl.text =
+                                  (_cur.fcyMinorFromLcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = true;
                             } else {
-                              _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _priceCtrl.text =
+                                  (_cur.lcyMinorFromFcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = false;
                             }
                           });
@@ -626,9 +682,12 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                   TextField(
                     controller: _priceCtrl,
                     focusNode: _priceFocus,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     textInputAction: TextInputAction.done,
-                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    inputFormatters: <TextInputFormatter>[
+                      DecimalTextInputFormatter()
+                    ],
                     decoration: InputDecoration(
                       hintText: '0.00',
                       hintStyle: TextStyle(color: p.textSecondary),
@@ -686,7 +745,8 @@ class _LogInvestmentPriceSheet extends StatefulWidget {
   final Future<void> Function() onCompleted;
 
   @override
-  State<_LogInvestmentPriceSheet> createState() => _LogInvestmentPriceSheetState();
+  State<_LogInvestmentPriceSheet> createState() =>
+      _LogInvestmentPriceSheetState();
 }
 
 class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
@@ -722,7 +782,8 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
       Get.snackbar('Price', 'Enter a value greater than zero.');
       return;
     }
-    final int lcyMinor = _entryIsFcy ? _cur.lcyMinorFromFcyMinor(entryMinor) : entryMinor;
+    final int lcyMinor =
+        _entryIsFcy ? _cur.lcyMinorFromFcyMinor(entryMinor) : entryMinor;
     final int day = encodeLocalYyyymmdd(_priceDay);
     await inv.insertInvestmentPricePoint(
       holdingId: widget.holding.id,
@@ -746,16 +807,21 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('Market price per share', style: Theme.of(context).textTheme.titleMedium),
+          Text('Market price per share',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'The stock’s price on this calendar day (latest entry wins for current value).',
-            style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: p.textSecondary),
           ),
           const SizedBox(height: 12),
           Obx(
             () {
-              final String code = _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              final String code =
+                  _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -765,10 +831,11 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
                       Expanded(
                         child: Text(
                           'Amount ($code)',
-                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: p.textSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: p.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -776,8 +843,10 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
                       const SizedBox(width: 8),
                       SegmentedButton<bool>(
                         segments: <ButtonSegment<bool>>[
-                          ButtonSegment<bool>(value: false, label: Text(_cur.lcyCode.value)),
-                          ButtonSegment<bool>(value: true, label: Text(_cur.fcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: false, label: Text(_cur.lcyCode.value)),
+                          ButtonSegment<bool>(
+                              value: true, label: Text(_cur.fcyCode.value)),
                         ],
                         selected: <bool>{_entryIsFcy},
                         onSelectionChanged: (Set<bool> next) {
@@ -786,16 +855,21 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
                           if (toFcy == _entryIsFcy) return;
                           AppHaptics.selection();
                           setState(() {
-                            final int m = parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
+                            final int m =
+                                parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
                             if (m <= 0) {
                               _entryIsFcy = toFcy;
                               return;
                             }
                             if (toFcy) {
-                              _priceCtrl.text = (_cur.fcyMinorFromLcyMinor(m) / 100).toStringAsFixed(2);
+                              _priceCtrl.text =
+                                  (_cur.fcyMinorFromLcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = true;
                             } else {
-                              _priceCtrl.text = (_cur.lcyMinorFromFcyMinor(m) / 100).toStringAsFixed(2);
+                              _priceCtrl.text =
+                                  (_cur.lcyMinorFromFcyMinor(m) / 100)
+                                      .toStringAsFixed(2);
                               _entryIsFcy = false;
                             }
                           });
@@ -813,9 +887,12 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
                   TextField(
                     controller: _priceCtrl,
                     focusNode: _priceFocus,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     textInputAction: TextInputAction.done,
-                    inputFormatters: <TextInputFormatter>[DecimalTextInputFormatter()],
+                    inputFormatters: <TextInputFormatter>[
+                      DecimalTextInputFormatter()
+                    ],
                     decoration: InputDecoration(
                       hintText: '0.00',
                       hintStyle: TextStyle(color: p.textSecondary),
@@ -868,7 +945,8 @@ class PlanStocksScreen extends StatefulWidget {
   State<PlanStocksScreen> createState() => _PlanStocksScreenState();
 }
 
-class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerProviderStateMixin {
+class _PlanStocksScreenState extends State<PlanStocksScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 2, vsync: this);
   final InvestmentController _inv = Get.find<InvestmentController>();
   int _stocksTabIndex = 0;
@@ -947,7 +1025,8 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
         children: <Widget>[
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -1011,13 +1090,17 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                 if (_inv.holdings.isNotEmpty) ...<Widget>[
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                    sliver: SliverToBoxAdapter(child: _PortfolioSummary(p: p, inv: _inv)),
+                    sliver: SliverToBoxAdapter(
+                        child: _PortfolioSummary(p: p, inv: _inv)),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverToBoxAdapter(child: _PortfolioChart(p: p, inv: _inv)),
+                    sliver: SliverToBoxAdapter(
+                        child: _PortfolioChart(p: p, inv: _inv)),
                   ),
-                  const SliverPadding(padding: EdgeInsets.only(top: 8), sliver: SliverToBoxAdapter(child: SizedBox())),
+                  const SliverPadding(
+                      padding: EdgeInsets.only(top: 8),
+                      sliver: SliverToBoxAdapter(child: SizedBox())),
                 ],
                 if (_inv.holdings.isEmpty)
                   SliverFillRemaining(
@@ -1025,15 +1108,22 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: EmptyState(
-                        icon: Icon(Icons.inventory_2_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                        icon: Icon(Icons.inventory_2_outlined,
+                            size: 40, color: p.mint.withValues(alpha: 0.6)),
                         primaryText: Text(
                           'No positions yet',
-                          style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(color: p.textPrimary),
                         ),
                         secondaryText: Text(
                           'Add a ticker, log fractional shares over time, and enter prices manually to track value and growth.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.4),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium!
+                              .copyWith(color: p.textSecondary, height: 1.4),
                         ),
                       ),
                     ),
@@ -1047,146 +1137,187 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                       final InvestmentHolding h = _inv.holdings[i];
                       final HoldingRowData? row = _inv.rowByHoldingId[h.id];
                       return Slidable(
-                          key: ValueKey<String>('holding_${h.id}'),
-                          endActionPane: ActionPane(
-                            motion: const DrawerMotion(),
-                            children: <Widget>[
-                              SlidableAction(
-                                onPressed: (_) async {
-                                  AppHaptics.light();
-                                  final bool? ok = await Get.dialog<bool>(
-                                    AlertDialog(
-                                      title: const Text('Remove holding?'),
-                                      content: Text('Delete ${h.ticker} and all its history?'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            AppHaptics.light();
-                                            Get.back(result: false);
-                                          },
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            AppHaptics.medium();
-                                            Get.back(result: true);
-                                          },
-                                          child: Text('Delete', style: TextStyle(color: p.coral)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (ok == true) {
-                                    await inv.deleteInvestmentHolding(h.id);
-                                    await _reload();
-                                  }
-                                },
-                                backgroundColor: p.coral.withValues(alpha: 0.25),
-                                foregroundColor: p.coral,
-                                icon: Icons.delete_outline_rounded,
-                                label: 'Delete',
-                              ),
-                            ],
-                          ),
-                          child: SlidablePeekHint(
-                            storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS,
-                            enabled: i == 0,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  AppHaptics.light();
-                                  _showHoldingDetailSheet(context, p, h);
-                                },
-                                child: Ink(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    color: p.surface.withValues(alpha: 0.85),
-                                    border: Border.all(color: p.border.withValues(alpha: 0.6)),
-                                  ),
-                                  child: Row(
-                                    children: <Widget>[
-                                      CircleAvatar(
-                                        backgroundColor: p.surfaceElevated,
-                                        child: Text(
-                                          h.ticker.length <= 4 ? h.ticker : h.ticker.substring(0, 4),
-                                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                                color: _kInvestAccent,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
+                        key: ValueKey<String>('holding_${h.id}'),
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          children: <Widget>[
+                            SlidableAction(
+                              onPressed: (_) async {
+                                AppHaptics.light();
+                                final bool? ok = await Get.dialog<bool>(
+                                  AlertDialog(
+                                    title: const Text('Remove holding?'),
+                                    content: Text(
+                                        'Delete ${h.ticker} and all its history?'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          AppHaptics.light();
+                                          Get.back(result: false);
+                                        },
+                                        child: const Text('Cancel'),
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              h.ticker,
-                                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                                    color: p.textPrimary,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                            ),
-                                            Text(
-                                              h.displayName.isEmpty ? '—' : h.displayName,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
-                                            ),
-                                            if (row != null)
-                                              Text(
-                                                _fmtQty(row.quantity),
-                                                style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: <Widget>[
-                                          DualCurrencyTotal(
-                                            lcyMinor: row?.valueMinor ?? 0,
-                                            textAlign: TextAlign.end,
-                                            compactSecondary: true,
-                                            primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                                  color: p.textPrimary,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                            secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                                  color: p.textSecondary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                          ),
-                                          if (row != null && row.deltaMinor != null && row.deltaPct != null)
-                                            Text(
-                                              'P/L ${row.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(row.deltaMinor!.abs())} '
-                                              '(${row.deltaPct! >= 0 ? '+' : ''}${row.deltaPct!.toStringAsFixed(2)}% vs cost)',
-                                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                                    color: row.deltaMinor! >= 0 ? p.mint : p.coral,
-                                                  ),
-                                            )
-                                          else
-                                            Text(
-                                              '—',
-                                              style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary),
-                                            ),
-                                        ],
+                                      TextButton(
+                                        onPressed: () {
+                                          AppHaptics.medium();
+                                          Get.back(result: true);
+                                        },
+                                        child: Text('Delete',
+                                            style: TextStyle(color: p.coral)),
                                       ),
                                     ],
                                   ),
+                                );
+                                if (ok == true) {
+                                  await inv.deleteInvestmentHolding(h.id);
+                                  await _reload();
+                                }
+                              },
+                              backgroundColor: p.coral.withValues(alpha: 0.25),
+                              foregroundColor: p.coral,
+                              icon: Icons.delete_outline_rounded,
+                              label: 'Delete',
+                            ),
+                          ],
+                        ),
+                        child: SlidablePeekHint(
+                          storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS,
+                          enabled: i == 0,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                AppHaptics.light();
+                                _showHoldingDetailSheet(context, p, h);
+                              },
+                              child: Ink(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 14),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: p.surface.withValues(alpha: 0.85),
+                                  border: Border.all(
+                                      color: p.border.withValues(alpha: 0.6)),
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    CircleAvatar(
+                                      backgroundColor: p.surfaceElevated,
+                                      child: Text(
+                                        h.ticker.length <= 4
+                                            ? h.ticker
+                                            : h.ticker.substring(0, 4),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall!
+                                            .copyWith(
+                                              color: _kInvestAccent,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                            h.ticker,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall!
+                                                .copyWith(
+                                                  color: p.textPrimary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          Text(
+                                            h.displayName.isEmpty
+                                                ? '—'
+                                                : h.displayName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall!
+                                                .copyWith(
+                                                    color: p.textSecondary),
+                                          ),
+                                          if (row != null)
+                                            Text(
+                                              _fmtQty(row.quantity),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall!
+                                                  .copyWith(
+                                                      color: p.textSecondary),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: <Widget>[
+                                        DualCurrencyTotal(
+                                          lcyMinor: row?.valueMinor ?? 0,
+                                          textAlign: TextAlign.end,
+                                          compactSecondary: true,
+                                          primaryStyle: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall!
+                                              .copyWith(
+                                                color: p.textPrimary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                          secondaryStyle: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall!
+                                              .copyWith(
+                                                color: p.textSecondary,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ),
+                                        if (row != null &&
+                                            row.deltaMinor != null &&
+                                            row.deltaPct != null)
+                                          Text(
+                                            'P/L ${row.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(row.deltaMinor!.abs())} '
+                                            '(${row.deltaPct! >= 0 ? '+' : ''}${row.deltaPct!.toStringAsFixed(2)}% vs cost)',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall!
+                                                .copyWith(
+                                                  color: row.deltaMinor! >= 0
+                                                      ? p.mint
+                                                      : p.coral,
+                                                ),
+                                          )
+                                        else
+                                          Text(
+                                            '—',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall!
+                                                .copyWith(
+                                                    color: p.textSecondary),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        );
+                        ),
+                      );
                     },
                   ),
-          ],
-        ),
-      );
+              ],
+            ),
+          );
         },
       );
     });
@@ -1209,9 +1340,12 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                 if (_inv.otherInvestments.isNotEmpty) ...<Widget>[
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                    sliver: SliverToBoxAdapter(child: _OtherInvestmentsSummary(p: p, inv: _inv)),
+                    sliver: SliverToBoxAdapter(
+                        child: _OtherInvestmentsSummary(p: p, inv: _inv)),
                   ),
-                  const SliverPadding(padding: EdgeInsets.only(top: 4), sliver: SliverToBoxAdapter(child: SizedBox())),
+                  const SliverPadding(
+                      padding: EdgeInsets.only(top: 4),
+                      sliver: SliverToBoxAdapter(child: SizedBox())),
                 ],
                 if (_inv.otherInvestments.isEmpty)
                   SliverFillRemaining(
@@ -1219,15 +1353,22 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: EmptyState(
-                        icon: Icon(Icons.savings_outlined, size: 40, color: p.mint.withValues(alpha: 0.6)),
+                        icon: Icon(Icons.savings_outlined,
+                            size: 40, color: p.mint.withValues(alpha: 0.6)),
                         primaryText: Text(
                           'No other investments yet',
-                          style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(color: p.textPrimary),
                         ),
                         secondaryText: Text(
                           'Add cash, land, gold, or anything else. Each line is converted to your local currency and included in net worth.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary, height: 1.45),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium!
+                              .copyWith(color: p.textSecondary, height: 1.45),
                         ),
                       ),
                     ),
@@ -1240,126 +1381,151 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
                     itemBuilder: (BuildContext context, int i) {
                       final OtherInvestment o = _inv.otherInvestments[i];
                       return Slidable(
-                          key: ValueKey<String>('other_invest_${o.id}'),
-                          endActionPane: ActionPane(
-                            motion: const DrawerMotion(),
-                            children: <Widget>[
-                              SlidableAction(
-                                onPressed: (_) async {
-                                  AppHaptics.light();
-                                  final bool? ok = await Get.dialog<bool>(
-                                    AlertDialog(
-                                      title: const Text('Remove item?'),
-                                      content: Text('Delete “${o.label}”?'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            AppHaptics.light();
-                                            Get.back(result: false);
-                                          },
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            AppHaptics.medium();
-                                            Get.back(result: true);
-                                          },
-                                          child: Text('Delete', style: TextStyle(color: p.coral)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (ok == true) {
-                                    await _inv.deleteOtherInvestment(o.id);
-                                  }
-                                },
-                                backgroundColor: p.coral.withValues(alpha: 0.25),
-                                foregroundColor: p.coral,
-                                icon: Icons.delete_outline_rounded,
-                                label: 'Delete',
-                              ),
-                            ],
-                          ),
-                          child: SlidablePeekHint(
-                            storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
-                            enabled: i == 0,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  AppHaptics.light();
-                                  _showOtherInvestmentSheet(context, p, o);
-                                },
-                                child: Ink(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    color: p.surface.withValues(alpha: 0.85),
-                                    border: Border.all(color: p.border.withValues(alpha: 0.6)),
-                                  ),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(Icons.account_balance_wallet_outlined, color: _kInvestAccent, size: 26),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              o.label.isEmpty ? '—' : o.label,
-                                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                                    color: p.textPrimary,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                            ),
-                                            Obx(() {
-                                              final CurrencyController c = Get.find<CurrencyController>();
-                                              if (o.entryIsFcy) {
-                                                return Text(
-                                                  '${formatMinorUnits(o.entryMinor, c.fcyCode.value)} • ${formatAmount(o.valueLcyMinor)}',
-                                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
-                                                );
-                                              }
-                                              return Text(
-                                                formatAmount(o.valueLcyMinor),
-                                                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
-                                              );
-                                            }),
-                                          ],
-                                        ),
+                        key: ValueKey<String>('other_invest_${o.id}'),
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          children: <Widget>[
+                            SlidableAction(
+                              onPressed: (_) async {
+                                AppHaptics.light();
+                                final bool? ok = await Get.dialog<bool>(
+                                  AlertDialog(
+                                    title: const Text('Remove item?'),
+                                    content: Text('Delete “${o.label}”?'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          AppHaptics.light();
+                                          Get.back(result: false);
+                                        },
+                                        child: const Text('Cancel'),
                                       ),
-                                      DualCurrencyTotal(
-                                        lcyMinor: o.valueLcyMinor,
-                                        textAlign: TextAlign.end,
-                                        compactSecondary: true,
-                                        primaryStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                              color: p.textPrimary,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                        secondaryStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                              color: p.textSecondary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                      TextButton(
+                                        onPressed: () {
+                                          AppHaptics.medium();
+                                          Get.back(result: true);
+                                        },
+                                        child: Text('Delete',
+                                            style: TextStyle(color: p.coral)),
                                       ),
                                     ],
                                   ),
+                                );
+                                if (ok == true) {
+                                  await _inv.deleteOtherInvestment(o.id);
+                                }
+                              },
+                              backgroundColor: p.coral.withValues(alpha: 0.25),
+                              foregroundColor: p.coral,
+                              icon: Icons.delete_outline_rounded,
+                              label: 'Delete',
+                            ),
+                          ],
+                        ),
+                        child: SlidablePeekHint(
+                          storageKey:
+                              AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
+                          enabled: i == 0,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                AppHaptics.light();
+                                _showOtherInvestmentSheet(context, p, o);
+                              },
+                              child: Ink(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 14),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: p.surface.withValues(alpha: 0.85),
+                                  border: Border.all(
+                                      color: p.border.withValues(alpha: 0.6)),
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(Icons.account_balance_wallet_outlined,
+                                        color: _kInvestAccent, size: 26),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                            o.label.isEmpty ? '—' : o.label,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall!
+                                                .copyWith(
+                                                  color: p.textPrimary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          Obx(() {
+                                            final CurrencyController c =
+                                                Get.find<CurrencyController>();
+                                            if (o.entryIsFcy) {
+                                              return Text(
+                                                '${formatMinorUnits(o.entryMinor, c.fcyCode.value)} • ${formatAmount(o.valueLcyMinor)}',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall!
+                                                    .copyWith(
+                                                        color: p.textSecondary),
+                                              );
+                                            }
+                                            return Text(
+                                              formatAmount(o.valueLcyMinor),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall!
+                                                  .copyWith(
+                                                      color: p.textSecondary),
+                                            );
+                                          }),
+                                        ],
+                                      ),
+                                    ),
+                                    DualCurrencyTotal(
+                                      lcyMinor: o.valueLcyMinor,
+                                      textAlign: TextAlign.end,
+                                      compactSecondary: true,
+                                      primaryStyle: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall!
+                                          .copyWith(
+                                            color: p.textPrimary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                      secondaryStyle: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall!
+                                          .copyWith(
+                                            color: p.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        );
+                        ),
+                      );
                     },
                   ),
-          ],
-        ),
-      );
+              ],
+            ),
+          );
         },
       );
     });
   }
 
-  Future<void> _showOtherInvestmentSheet(BuildContext context, AppPalette p, OtherInvestment? existing) async {
+  Future<void> _showOtherInvestmentSheet(
+      BuildContext context, AppPalette p, OtherInvestment? existing) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1428,7 +1594,8 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
               _AddHoldingEditorContent(
                 palette: p,
                 onSave: (String ticker, String displayName) async {
-                  await inv.insertInvestmentHolding(ticker: ticker, displayName: displayName);
+                  await inv.insertInvestmentHolding(
+                      ticker: ticker, displayName: displayName);
                 },
               ),
             ],
@@ -1439,7 +1606,8 @@ class _PlanStocksScreenState extends State<PlanStocksScreen> with SingleTickerPr
     await _reload();
   }
 
-  Future<void> _showHoldingDetailSheet(BuildContext context, AppPalette p, InvestmentHolding h) async {
+  Future<void> _showHoldingDetailSheet(
+      BuildContext context, AppPalette p, InvestmentHolding h) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1470,7 +1638,8 @@ class _PortfolioSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+      final SummaryAmountsPrivacyController priv =
+          Get.find<SummaryAmountsPrivacyController>();
       final bool showAmt = priv.showInvestmentSummaryAmounts.value;
       final int total = inv.stocksTotalMinor.value;
       final int d = inv.portfolioDayChangeMinor.value;
@@ -1483,7 +1652,10 @@ class _PortfolioSummary extends StatelessWidget {
           color: p.surface.withValues(alpha: 0.92),
           border: Border.all(color: _kInvestAccent.withValues(alpha: 0.35)),
           boxShadow: <BoxShadow>[
-            BoxShadow(color: _kInvestAccent.withValues(alpha: 0.12), blurRadius: 24, offset: const Offset(0, 10)),
+            BoxShadow(
+                color: _kInvestAccent.withValues(alpha: 0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 10)),
           ],
         ),
         child: Column(
@@ -1495,7 +1667,10 @@ class _PortfolioSummary extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Total portfolio value',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge!
+                        .copyWith(color: p.textSecondary),
                   ),
                 ),
                 if (pct != null)
@@ -1506,18 +1681,30 @@ class _PortfolioSummary extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                Icon(up ? Icons.north_east_rounded : Icons.south_east_rounded, size: 16, color: up ? p.mint : p.coral),
+                                Icon(
+                                    up
+                                        ? Icons.north_east_rounded
+                                        : Icons.south_east_rounded,
+                                    size: 16,
+                                    color: up ? p.mint : p.coral),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${up ? '+' : ''}${pct.toStringAsFixed(2)}% (${up ? '+' : '−'}${formatAmount(d.abs())})',
-                                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
                                         color: up ? p.mint : p.coral,
                                         fontWeight: FontWeight.w600,
                                       ),
                                 ),
                               ],
                             ),
-                            Text('Today', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
+                            Text('Today',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall!
+                                    .copyWith(color: p.textSecondary)),
                           ],
                         )
                       : Column(
@@ -1526,11 +1713,19 @@ class _PortfolioSummary extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                Icon(up ? Icons.north_east_rounded : Icons.south_east_rounded, size: 16, color: up ? p.mint : p.coral),
+                                Icon(
+                                    up
+                                        ? Icons.north_east_rounded
+                                        : Icons.south_east_rounded,
+                                    size: 16,
+                                    color: up ? p.mint : p.coral),
                                 const SizedBox(width: 4),
                                 Text(
                                   '****',
-                                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
                                         color: up ? p.mint : p.coral,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: 2,
@@ -1538,7 +1733,11 @@ class _PortfolioSummary extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            Text('Today', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: p.textSecondary)),
+                            Text('Today',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall!
+                                    .copyWith(color: p.textSecondary)),
                           ],
                         ),
                 IconButton(
@@ -1549,9 +1748,12 @@ class _PortfolioSummary extends StatelessWidget {
                   },
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints:
+                      const BoxConstraints(minWidth: 36, minHeight: 36),
                   icon: Icon(
-                    showAmt ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    showAmt
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
                     size: 22,
                     color: p.textSecondary.withValues(alpha: 0.88),
                   ),
@@ -1563,11 +1765,12 @@ class _PortfolioSummary extends StatelessWidget {
               lcyMinor: total,
               textAlign: TextAlign.start,
               obscureAmount: !showAmt,
-              primaryStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                    color: p.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
+              primaryStyle:
+                  Theme.of(context).textTheme.headlineMedium!.copyWith(
+                        color: p.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
               secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: p.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -1576,7 +1779,10 @@ class _PortfolioSummary extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'Rolls into net worth',
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: p.textSecondary),
             ),
           ],
         ),
@@ -1594,7 +1800,8 @@ class _OtherInvestmentsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final SummaryAmountsPrivacyController priv = Get.find<SummaryAmountsPrivacyController>();
+      final SummaryAmountsPrivacyController priv =
+          Get.find<SummaryAmountsPrivacyController>();
       final bool showAmt = priv.showInvestmentSummaryAmounts.value;
       final int total = inv.otherInvestmentsTotalMinor.value;
       final int n = inv.otherInvestments.length;
@@ -1605,7 +1812,10 @@ class _OtherInvestmentsSummary extends StatelessWidget {
           color: p.surface.withValues(alpha: 0.92),
           border: Border.all(color: _kInvestAccent.withValues(alpha: 0.35)),
           boxShadow: <BoxShadow>[
-            BoxShadow(color: _kInvestAccent.withValues(alpha: 0.12), blurRadius: 24, offset: const Offset(0, 10)),
+            BoxShadow(
+                color: _kInvestAccent.withValues(alpha: 0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 10)),
           ],
         ),
         child: Column(
@@ -1617,7 +1827,10 @@ class _OtherInvestmentsSummary extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Total other investments',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: p.textSecondary),
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge!
+                        .copyWith(color: p.textSecondary),
                   ),
                 ),
                 IconButton(
@@ -1628,9 +1841,12 @@ class _OtherInvestmentsSummary extends StatelessWidget {
                   },
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints:
+                      const BoxConstraints(minWidth: 36, minHeight: 36),
                   icon: Icon(
-                    showAmt ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    showAmt
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
                     size: 22,
                     color: p.textSecondary.withValues(alpha: 0.88),
                   ),
@@ -1642,11 +1858,12 @@ class _OtherInvestmentsSummary extends StatelessWidget {
               lcyMinor: total,
               textAlign: TextAlign.start,
               obscureAmount: !showAmt,
-              primaryStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                    color: p.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
+              primaryStyle:
+                  Theme.of(context).textTheme.headlineMedium!.copyWith(
+                        color: p.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
               secondaryStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: p.textSecondary,
                     fontWeight: FontWeight.w500,
@@ -1659,7 +1876,10 @@ class _OtherInvestmentsSummary extends StatelessWidget {
                   : n == 1
                       ? '1 entry • Rolls into net worth'
                       : '$n entries • Rolls into net worth',
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(color: p.textSecondary),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: p.textSecondary),
             ),
           ],
         ),
@@ -1710,7 +1930,8 @@ class _PortfolioChart extends StatelessWidget {
         } else {
           minY = minDisplay - range * headroomFrac;
         }
-        maxY = maxDisplay + math.max(range * headroomFrac, maxDisplay.abs() * 0.02 + 1e-6);
+        maxY = maxDisplay +
+            math.max(range * headroomFrac, maxDisplay.abs() * 0.02 + 1e-6);
       }
       return Padding(
         padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -1719,7 +1940,10 @@ class _PortfolioChart extends StatelessWidget {
           children: <Widget>[
             Text(
               'Portfolio value over time',
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w600),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall!
+                  .copyWith(color: p.textPrimary, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -1728,10 +1952,15 @@ class _PortfolioChart extends StatelessWidget {
                 LineChartData(
                   minY: minY,
                   maxY: maxY,
-                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: (maxY - minY) / 4),
+                  gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval: (maxY - minY) / 4),
                   titlesData: FlTitlesData(
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -1739,7 +1968,8 @@ class _PortfolioChart extends StatelessWidget {
                         getTitlesWidget: (double value, TitleMeta meta) {
                           return Text(
                             NumberFormat.compact().format(value),
-                            style: TextStyle(color: p.textSecondary, fontSize: 10),
+                            style:
+                                TextStyle(color: p.textSecondary, fontSize: 10),
                           );
                         },
                       ),
@@ -1748,16 +1978,20 @@ class _PortfolioChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 22,
-                        interval: math.max(1, (spots.length / 5).floorToDouble()),
+                        interval:
+                            math.max(1, (spots.length / 5).floorToDouble()),
                         getTitlesWidget: (double value, TitleMeta meta) {
                           final int i = value.round();
-                          if (i < 0 || i >= hist.length) return const SizedBox.shrink();
-                          final DateTime d = DateTime.fromMillisecondsSinceEpoch(hist[i].ms);
+                          if (i < 0 || i >= hist.length)
+                            return const SizedBox.shrink();
+                          final DateTime d =
+                              DateTime.fromMillisecondsSinceEpoch(hist[i].ms);
                           return Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               DateFormat.Md().format(d),
-                              style: TextStyle(color: p.textSecondary, fontSize: 10),
+                              style: TextStyle(
+                                  color: p.textSecondary, fontSize: 10),
                             ),
                           );
                         },
@@ -1818,8 +2052,10 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final List<InvestmentLotEntry> l = await inv.listLotsForHolding(widget.holding.id);
-    final List<InvestmentPricePoint> pr = await inv.listPricePointsForHolding(widget.holding.id);
+    final List<InvestmentLotEntry> l =
+        await inv.listLotsForHolding(widget.holding.id);
+    final List<InvestmentPricePoint> pr =
+        await inv.listPricePointsForHolding(widget.holding.id);
     if (mounted) {
       setState(() {
         _lots = l;
@@ -1848,139 +2084,169 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
             physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             children: <Widget>[
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: p.border, borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.holding.ticker,
-            style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: p.textPrimary, fontWeight: FontWeight.w800),
-          ),
-          if (widget.holding.displayName.isNotEmpty)
-            Text(widget.holding.displayName, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: p.textSecondary)),
-          const SizedBox(height: 20),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    AppHaptics.light();
-                    _addLot(context);
-                  },
-                  icon: const Icon(Icons.add_chart_rounded),
-                  label: const Text('Add shares'),
-                  style: OutlinedButton.styleFrom(foregroundColor: _kInvestAccent),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: p.border, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    AppHaptics.light();
-                    _addPrice(context);
-                  },
-                  icon: const Icon(Icons.price_change_outlined),
-                  label: const Text('Log price'),
-                  style: FilledButton.styleFrom(backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
-                ),
+              const SizedBox(height: 16),
+              Text(
+                widget.holding.ticker,
+                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: p.textPrimary, fontWeight: FontWeight.w800),
               ),
+              if (widget.holding.displayName.isNotEmpty)
+                Text(widget.holding.displayName,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium!
+                        .copyWith(color: p.textSecondary)),
+              const SizedBox(height: 20),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        AppHaptics.light();
+                        _addLot(context);
+                      },
+                      icon: const Icon(Icons.add_chart_rounded),
+                      label: const Text('Add shares'),
+                      style: OutlinedButton.styleFrom(
+                          foregroundColor: _kInvestAccent),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        AppHaptics.light();
+                        _addPrice(context);
+                      },
+                      icon: const Icon(Icons.price_change_outlined),
+                      label: const Text('Log price'),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: _kInvestAccent,
+                          foregroundColor: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text('Share lots (purchase price)',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(color: p.textPrimary)),
+              const SizedBox(height: 8),
+              if (_loading)
+                const Center(
+                    child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator()))
+              else if (_lots.isEmpty)
+                Text(
+                    'No lots yet — add shares with the price you paid per share.',
+                    style: TextStyle(color: p.textSecondary))
+              else
+                ..._lots.map((InvestmentLotEntry e) {
+                  return ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatAmount(e.purchasePriceMinorPerShare)}',
+                      style: TextStyle(
+                          color: p.textPrimary, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          DateFormat.yMMMd().format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  e.occurredAtMs)),
+                          style: TextStyle(color: p.textSecondary),
+                        ),
+                        if (e.purchaseEntryIsFcy)
+                          Obx(
+                            () => Text(
+                              '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
+                              style: TextStyle(
+                                  color: p.textSecondary.withValues(alpha: 0.9),
+                                  fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+                      onPressed: () async {
+                        AppHaptics.light();
+                        await inv.deleteInvestmentLot(e.id);
+                        await _load();
+                        await widget.onChanged();
+                      },
+                    ),
+                  );
+                }),
+              const SizedBox(height: 20),
+              Text('Market price history (date)',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(color: p.textPrimary)),
+              const SizedBox(height: 8),
+              if (!_loading && _prices.isEmpty)
+                Text(
+                  'No market prices — log the current price per share by date to track value and growth.',
+                  style: TextStyle(color: p.textSecondary),
+                )
+              else if (!_loading)
+                ..._prices.map((InvestmentPricePoint e) {
+                  final DateTime day = e.asOfDay > 0
+                      ? localMidnightFromYyyymmdd(e.asOfDay)
+                      : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
+                  return ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      formatAmount(e.priceMinorPerShare),
+                      style: TextStyle(
+                          color: p.textPrimary, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          DateFormat.yMMMd().format(day),
+                          style: TextStyle(color: p.textSecondary),
+                        ),
+                        if (e.entryIsFcy)
+                          Obx(
+                            () => Text(
+                              '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
+                              style: TextStyle(
+                                  color: p.textSecondary.withValues(alpha: 0.9),
+                                  fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+                      onPressed: () async {
+                        AppHaptics.light();
+                        await inv.deleteInvestmentPricePoint(e.id);
+                        await _load();
+                        await widget.onChanged();
+                      },
+                    ),
+                  );
+                }),
             ],
-          ),
-          const SizedBox(height: 24),
-          Text('Share lots (purchase price)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
-          const SizedBox(height: 8),
-          if (_loading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-          else if (_lots.isEmpty)
-            Text('No lots yet — add shares with the price you paid per share.', style: TextStyle(color: p.textSecondary))
-          else
-            ..._lots.map((InvestmentLotEntry e) {
-              return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatAmount(e.purchasePriceMinorPerShare)}',
-                  style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(e.occurredAtMs)),
-                      style: TextStyle(color: p.textSecondary),
-                    ),
-                    if (e.purchaseEntryIsFcy)
-                      Obx(
-                        () => Text(
-                          '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
-                          style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                  onPressed: () async {
-                    AppHaptics.light();
-                    await inv.deleteInvestmentLot(e.id);
-                    await _load();
-                    await widget.onChanged();
-                  },
-                ),
-              );
-            }),
-          const SizedBox(height: 20),
-          Text('Market price history (date)', style: Theme.of(context).textTheme.titleSmall!.copyWith(color: p.textPrimary)),
-          const SizedBox(height: 8),
-          if (!_loading && _prices.isEmpty)
-            Text(
-              'No market prices — log the current price per share by date to track value and growth.',
-              style: TextStyle(color: p.textSecondary),
-            )
-          else if (!_loading)
-            ..._prices.map((InvestmentPricePoint e) {
-              final DateTime day = e.asOfDay > 0
-                  ? localMidnightFromYyyymmdd(e.asOfDay)
-                  : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
-              return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  formatAmount(e.priceMinorPerShare),
-                  style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      DateFormat.yMMMd().format(day),
-                      style: TextStyle(color: p.textSecondary),
-                    ),
-                    if (e.entryIsFcy)
-                      Obx(
-                        () => Text(
-                          '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
-                          style: TextStyle(color: p.textSecondary.withValues(alpha: 0.9), fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                  onPressed: () async {
-                    AppHaptics.light();
-                    await inv.deleteInvestmentPricePoint(e.id);
-                    await _load();
-                    await widget.onChanged();
-                  },
-                ),
-              );
-            }),
-        ],
           );
         },
       ),

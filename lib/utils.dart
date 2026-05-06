@@ -16,7 +16,9 @@ int? parseMoneyStringToMinor(String raw) {
 String formatMinorUnits(int minor, String iso4217Code) {
   final String code = iso4217Code.trim().toUpperCase();
   if (code.isEmpty) {
-    return NumberFormat.currency(locale: 'en_US', symbol: '').format(minor / 100).trim();
+    return NumberFormat.currency(locale: 'en_US', symbol: '')
+        .format(minor / 100)
+        .trim();
   }
   try {
     return NumberFormat.simpleCurrency(name: code).format(minor / 100);

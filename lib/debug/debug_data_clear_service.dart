@@ -51,7 +51,8 @@ class DebugDataClearService {
       return;
     }
 
-    final bool dbStock = targets.contains(DebugDataClearTarget.investmentStocks);
+    final bool dbStock =
+        targets.contains(DebugDataClearTarget.investmentStocks);
     final bool dbOther = targets.contains(DebugDataClearTarget.investmentOther);
     final bool dbBudget = targets.contains(DebugDataClearTarget.budget);
     final bool dbTxn = targets.contains(DebugDataClearTarget.transactions);
@@ -72,8 +73,10 @@ class DebugDataClearService {
         await txn.delete(DBConstants.BUDGET_MONTH);
       }
       if (dbContact) {
-        await txn.rawUpdate('UPDATE ${DBConstants.TRANSACTION} SET contactId = NULL');
-        await txn.rawUpdate('UPDATE ${DBConstants.BUDGET_LINE} SET contact_id = NULL');
+        await txn.rawUpdate(
+            'UPDATE ${DBConstants.TRANSACTION} SET contactId = NULL');
+        await txn.rawUpdate(
+            'UPDATE ${DBConstants.BUDGET_LINE} SET contact_id = NULL');
       }
       if (dbTxn) {
         await txn.delete(DBConstants.TRANSACTION);
@@ -108,7 +111,8 @@ class DebugDataClearService {
   }
 
   /// Every database-backed target (excludes preferences).
-  static const Set<DebugDataClearTarget> allDatabaseTargets = <DebugDataClearTarget>{
+  static const Set<DebugDataClearTarget> allDatabaseTargets =
+      <DebugDataClearTarget>{
     DebugDataClearTarget.transactions,
     DebugDataClearTarget.contacts,
     DebugDataClearTarget.budget,
@@ -116,7 +120,8 @@ class DebugDataClearService {
     DebugDataClearTarget.investmentOther,
   };
 
-  static const Set<DebugDataClearTarget> allPreferenceTargets = <DebugDataClearTarget>{
+  static const Set<DebugDataClearTarget> allPreferenceTargets =
+      <DebugDataClearTarget>{
     DebugDataClearTarget.prefAppearance,
     DebugDataClearTarget.prefCurrency,
     DebugDataClearTarget.prefSecurity,

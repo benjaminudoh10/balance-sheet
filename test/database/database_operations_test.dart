@@ -22,7 +22,8 @@ void main() {
   });
 
   group('transactions', () {
-    test('addTransaction assigns id and getAllTransactions returns row', () async {
+    test('addTransaction assigns id and getAllTransactions returns row',
+        () async {
       final Transaction t = Transaction(
         description: 'Lunch',
         type: TransactionType.expenditure,
@@ -35,8 +36,10 @@ void main() {
       expect(id, greaterThan(0));
 
       final int start = DateTime(2025, 3, 1).millisecondsSinceEpoch;
-      final int end = DateTime(2025, 3, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
-      final List<Transaction> list = await db_ops.getAllTransactions(start, end);
+      final int end =
+          DateTime(2025, 3, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
+      final List<Transaction> list =
+          await db_ops.getAllTransactions(start, end);
       expect(list.length, 1);
       expect(list.first.id, id);
       expect(list.first.category, 'food');
@@ -66,7 +69,8 @@ void main() {
     test('getTodayBalances only counts current local day', () async {
       final DateTime now = DateTime.now();
       final DateTime todayNoon = DateTime(now.year, now.month, now.day, 12);
-      final DateTime y = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
+      final DateTime y = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 1));
       final DateTime yesterday = DateTime(y.year, y.month, y.day, 12);
 
       await db_ops.addTransaction(Transaction(
@@ -110,7 +114,8 @@ void main() {
       ));
       final int start = DateTime(2025, 7, 1).millisecondsSinceEpoch;
       final int end = DateTime(2025, 7, 31).millisecondsSinceEpoch;
-      final List<Transaction> food = await db_ops.getAllTransactions(start, end, category: 'food');
+      final List<Transaction> food =
+          await db_ops.getAllTransactions(start, end, category: 'food');
       expect(food.length, 1);
       expect(food.first.category, 'food');
     });
@@ -131,7 +136,8 @@ void main() {
         ids.add(id);
       }
       final int start = DateTime(2025, 6, 1).millisecondsSinceEpoch;
-      final int end = DateTime(2025, 6, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
+      final int end =
+          DateTime(2025, 6, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
 
       final List<Transaction> page1 =
           await db_ops.getAllTransactions(start, end, limit: 2, offset: 0);
@@ -163,7 +169,8 @@ void main() {
         ));
       }
       final int start = DateTime(2025, 5, 1).millisecondsSinceEpoch;
-      final int end = DateTime(2025, 5, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
+      final int end =
+          DateTime(2025, 5, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
       expect((await db_ops.getAllTransactions(start, end)).length, 4);
     });
 
@@ -215,7 +222,8 @@ void main() {
       expect(await db_ops.updateTransaction(updated), 1);
       final int start = DateTime(2025, 9, 1).millisecondsSinceEpoch;
       final int end = DateTime(2025, 9, 30).millisecondsSinceEpoch;
-      final List<Transaction> rows = await db_ops.getAllTransactions(start, end);
+      final List<Transaction> rows =
+          await db_ops.getAllTransactions(start, end);
       expect(rows.first.description, 'new desc');
       expect(rows.first.amount, 200);
     });
@@ -267,16 +275,19 @@ void main() {
       ));
       final int start = DateTime(2025, 11, 1).millisecondsSinceEpoch;
       final int end = DateTime(2025, 11, 30).millisecondsSinceEpoch;
-      final Map<String, int> totals =
-          await db_ops.getExpenseForTimePeriod(start, end, category: 'utilities', contactId: cid);
+      final Map<String, int> totals = await db_ops.getExpenseForTimePeriod(
+          start, end,
+          category: 'utilities', contactId: cid);
       expect(totals['expenses'], 40);
       expect(totals['income'], 0);
     });
 
-    test('getExpenseTotalsByCategory sums only expenditures in range', () async {
+    test('getExpenseTotalsByCategory sums only expenditures in range',
+        () async {
       final DateTime ts = DateTime(2025, 12, 5);
       final int start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
-      final int end = DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
+      final int end =
+          DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
       await db_ops.addTransaction(Transaction(
         description: 'food',
         type: TransactionType.expenditure,
@@ -301,7 +312,8 @@ void main() {
         category: 'salary',
         contactId: 0,
       ));
-      final Map<String, int> byCat = await db_ops.getExpenseTotalsByCategory(start, end);
+      final Map<String, int> byCat =
+          await db_ops.getExpenseTotalsByCategory(start, end);
       expect(byCat['food'], 4000);
       expect(byCat.containsKey('salary'), isFalse);
     });
@@ -318,7 +330,8 @@ void main() {
     test('getTopExpenditures returns largest expense rows first', () async {
       final DateTime ts = DateTime(2025, 12, 8);
       final int start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
-      final int end = DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
+      final int end =
+          DateTime(2025, 12, 31, 23, 59, 59, 999).millisecondsSinceEpoch;
       await db_ops.addTransaction(Transaction(
         description: 'small',
         type: TransactionType.expenditure,
@@ -335,7 +348,8 @@ void main() {
         category: 'rent',
         contactId: 0,
       ));
-      final List<Transaction> top = await db_ops.getTopExpenditures(start, end, 2);
+      final List<Transaction> top =
+          await db_ops.getTopExpenditures(start, end, 2);
       expect(top.length, 2);
       expect(top.first.amount, 9999);
       expect(top.first.description, 'big');
@@ -352,7 +366,8 @@ void main() {
 
     test('getContactWithName is case-insensitive', () async {
       await db_ops.addContact(Contact(name: 'Bob'));
-      final List<Map<String, dynamic>> found = await db_ops.getContactWithName('bob');
+      final List<Map<String, dynamic>> found =
+          await db_ops.getContactWithName('bob');
       expect(found.length, 1);
     });
 
@@ -392,7 +407,10 @@ void main() {
       expect(lines.first.categoryKey, 'rent');
 
       await db_ops.updateBudgetLine(
-        lines.first.copyWith(description: 'Rent updated', plannedAmount: 160000, categoryKey: 'utilities'),
+        lines.first.copyWith(
+            description: 'Rent updated',
+            plannedAmount: 160000,
+            categoryKey: 'utilities'),
       );
       final List<BudgetLine> after = await db_ops.getBudgetLinesForMonth(m.id);
       expect(after.single.description, 'Rent updated');
@@ -405,7 +423,8 @@ void main() {
 
     test('getExpenditureTotalsByContact sums expenditure in range', () async {
       final int cid = await db_ops.addContact(Contact(name: 'Shop'));
-      final ({int startMs, int endMs}) r = db_ops.calendarMonthEpochRange(2026, 3);
+      final ({int startMs, int endMs}) r =
+          db_ops.calendarMonthEpochRange(2026, 3);
       await db_ops.addTransaction(Transaction(
         description: 'a',
         type: TransactionType.expenditure,
@@ -422,13 +441,16 @@ void main() {
         category: 'salary',
         contactId: cid,
       ));
-      final Map<int, int> map = await db_ops.getExpenditureTotalsByContact(r.startMs, r.endMs);
+      final Map<int, int> map =
+          await db_ops.getExpenditureTotalsByContact(r.startMs, r.endMs);
       expect(map[cid], 5000);
     });
 
-    test('getExpenditureTotalFiltered matches category and/or contact', () async {
+    test('getExpenditureTotalFiltered matches category and/or contact',
+        () async {
       final int cid = await db_ops.addContact(Contact(name: 'Shop'));
-      final ({int startMs, int endMs}) r = db_ops.calendarMonthEpochRange(2026, 5);
+      final ({int startMs, int endMs}) r =
+          db_ops.calendarMonthEpochRange(2026, 5);
       await db_ops.addTransaction(Transaction(
         description: 'lunch',
         type: TransactionType.expenditure,
@@ -447,18 +469,29 @@ void main() {
       ));
       // Food ∪ contact Shop: lunch (food+Shop) + bus (transport+Shop) — union, not intersection.
       expect(
-        await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'food', contactId: cid),
+        await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs,
+            categoryKey: 'food', contactId: cid),
         3500,
       );
-      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'food'), 1000);
-      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, contactId: cid), 3500);
-      expect(await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs, categoryKey: 'transport'), 2500);
+      expect(
+          await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs,
+              categoryKey: 'food'),
+          1000);
+      expect(
+          await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs,
+              contactId: cid),
+          3500);
+      expect(
+          await db_ops.getExpenditureTotalFiltered(r.startMs, r.endMs,
+              categoryKey: 'transport'),
+          2500);
     });
   });
 
   group('investments', () {
     test('lots and manual prices value portfolio in minor units', () async {
-      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'TST', displayName: 'Test Co');
+      final int hid = await inv_ops.insertInvestmentHolding(
+          ticker: 'TST', displayName: 'Test Co');
       final int t0 = DateTime(2026, 1, 5, 12).millisecondsSinceEpoch;
       await inv_ops.insertInvestmentLot(
         holdingId: hid,
@@ -472,11 +505,14 @@ void main() {
         priceMinorPerShare: 10000,
       );
       expect(await inv_ops.totalQuantityForHolding(hid), 2.5);
-      expect(await inv_ops.getInvestmentStocksTotalMinor(), (2.5 * 10000).round());
+      expect(
+          await inv_ops.getInvestmentStocksTotalMinor(), (2.5 * 10000).round());
     });
 
-    test('lot and price persist entry currency alongside LCY canonical', () async {
-      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'FCY', displayName: '');
+    test('lot and price persist entry currency alongside LCY canonical',
+        () async {
+      final int hid =
+          await inv_ops.insertInvestmentHolding(ticker: 'FCY', displayName: '');
       final int t0 = DateTime(2026, 2, 1).millisecondsSinceEpoch;
       await inv_ops.insertInvestmentLot(
         holdingId: hid,
@@ -493,12 +529,14 @@ void main() {
         entryIsFcy: true,
         priceEntryMinorPerShare: 200,
       );
-      final List<InvestmentLotEntry> lots = await inv_ops.listLotsForHolding(hid);
+      final List<InvestmentLotEntry> lots =
+          await inv_ops.listLotsForHolding(hid);
       expect(lots.length, 1);
       expect(lots.first.purchasePriceMinorPerShare, 100000);
       expect(lots.first.purchaseEntryIsFcy, isTrue);
       expect(lots.first.purchasePriceEntryMinorPerShare, 100);
-      final List<InvestmentPricePoint> pts = await inv_ops.listPricePointsForHolding(hid);
+      final List<InvestmentPricePoint> pts =
+          await inv_ops.listPricePointsForHolding(hid);
       expect(pts.length, 1);
       expect(pts.first.priceMinorPerShare, 200000);
       expect(pts.first.entryIsFcy, isTrue);
@@ -518,10 +556,12 @@ void main() {
         entryCurrency: 'fcy',
         entryMinor: 120000,
       );
-      expect(await inv_ops.getOtherInvestmentsTotalLcyMinor(), 2000000 + 1800000);
+      expect(
+          await inv_ops.getOtherInvestmentsTotalLcyMinor(), 2000000 + 1800000);
       final List<OtherInvestment> rows = await inv_ops.listOtherInvestments();
       expect(rows.length, 2);
-      expect(rows.map((OtherInvestment e) => e.label).toSet(), <String>{'Cash', 'Gold'});
+      expect(rows.map((OtherInvestment e) => e.label).toSet(),
+          <String>{'Cash', 'Gold'});
     });
   });
 }

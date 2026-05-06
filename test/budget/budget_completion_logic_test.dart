@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final int startMs = DateTime(2026, 4, 1).millisecondsSinceEpoch;
-  final int endMs = DateTime(2026, 4, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
+  final int endMs =
+      DateTime(2026, 4, 30, 23, 59, 59, 999).millisecondsSinceEpoch;
   final DateTime midMonth = DateTime(2026, 4, 15);
 
   group('expenditureMatchesBudgetLine', () {
@@ -35,7 +36,8 @@ void main() {
         contactId: 5,
       );
       expect(expenditureMatchesBudgetLine(byCat, line, startMs, endMs), isTrue);
-      expect(expenditureMatchesBudgetLine(byContact, line, startMs, endMs), isTrue);
+      expect(expenditureMatchesBudgetLine(byContact, line, startMs, endMs),
+          isTrue);
     });
 
     test('income does not match', () {

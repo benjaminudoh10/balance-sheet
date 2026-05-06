@@ -45,8 +45,10 @@ class DebugDataSeedService {
     await sqlTxn.delete(DBConstants.INVESTMENT_OTHER_ASSET);
     await sqlTxn.delete(DBConstants.BUDGET_LINE);
     await sqlTxn.delete(DBConstants.BUDGET_MONTH);
-    await sqlTxn.rawUpdate('UPDATE ${DBConstants.TRANSACTION} SET contactId = NULL');
-    await sqlTxn.rawUpdate('UPDATE ${DBConstants.BUDGET_LINE} SET contact_id = NULL');
+    await sqlTxn
+        .rawUpdate('UPDATE ${DBConstants.TRANSACTION} SET contactId = NULL');
+    await sqlTxn
+        .rawUpdate('UPDATE ${DBConstants.BUDGET_LINE} SET contact_id = NULL');
     await sqlTxn.delete(DBConstants.TRANSACTION);
     await sqlTxn.delete(DBConstants.CONTACT);
   }
@@ -98,7 +100,8 @@ Future<_Contacts> _insertContacts(Transaction sqlTxn) async {
   );
 }
 
-Future<void> _insertTransactions(Transaction sqlTxn, _Contacts c, math.Random r) async {
+Future<void> _insertTransactions(
+    Transaction sqlTxn, _Contacts c, math.Random r) async {
   final DateTime now = DateTime.now();
 
   Future<void> income({
@@ -170,9 +173,14 @@ Future<void> _insertTransactions(Transaction sqlTxn, _Contacts c, math.Random r)
 
     final int rentMinor = _rnd(r, 1080000, 1320000);
     final int rentDay = _rnd(r, 1, math.min(7, lastDay));
-    await exp(description: 'Rent', category: 'rent', amountMinor: rentMinor, date: _rndTimeOnDay(r, y, m, rentDay));
+    await exp(
+        description: 'Rent',
+        category: 'rent',
+        amountMinor: rentMinor,
+        date: _rndTimeOnDay(r, y, m, rentDay));
 
-    final int foodTrips = sparse ? _rnd(r, 2, 4) : (medium ? _rnd(r, 4, 7) : _rnd(r, 5, 10));
+    final int foodTrips =
+        sparse ? _rnd(r, 2, 4) : (medium ? _rnd(r, 4, 7) : _rnd(r, 5, 10));
     for (int t = 0; t < foodTrips; t++) {
       final int day = _rnd(r, 1, lastDay);
       final int amt = _rnd(r, 75000, 165000);
@@ -281,7 +289,8 @@ Future<void> _insertTransactions(Transaction sqlTxn, _Contacts c, math.Random r)
   );
 }
 
-Future<void> _insertBudgets(Transaction sqlTxn, _Contacts c, math.Random r) async {
+Future<void> _insertBudgets(
+    Transaction sqlTxn, _Contacts c, math.Random r) async {
   final DateTime now = DateTime.now();
 
   Future<int> monthId(int year, int month) async {
@@ -437,14 +446,16 @@ Future<void> _insertInvestments(Transaction sqlTxn, math.Random r) async {
   );
   await lot(
     holdingId: vti,
-    when: _rndTimeOnDay(r, today.year, today.month - _rnd(r, 5, 10), _rnd(r, 1, 28)),
+    when: _rndTimeOnDay(
+        r, today.year, today.month - _rnd(r, 5, 10), _rnd(r, 1, 28)),
     qty: 4 + r.nextDouble() * 6,
     priceMinorLcy: _rnd(r, 205000, 245000),
   );
   if (r.nextBool()) {
     await lot(
       holdingId: vti,
-      when: _rndTimeOnDay(r, today.year, today.month - _rnd(r, 1, 4), _rnd(r, 1, 28)),
+      when: _rndTimeOnDay(
+          r, today.year, today.month - _rnd(r, 1, 4), _rnd(r, 1, 28)),
       qty: -(1 + r.nextDouble() * 4),
       priceMinorLcy: _rnd(r, 210000, 250000),
     );
@@ -452,7 +463,8 @@ Future<void> _insertInvestments(Transaction sqlTxn, math.Random r) async {
 
   int vtiMark = _rnd(r, 198000, 228000);
   for (int i = 0; i <= vtiHorizon; i++) {
-    final DateTime d = DateTime(today.year, today.month - (vtiHorizon - i), _rnd(r, 1, 28));
+    final DateTime d =
+        DateTime(today.year, today.month - (vtiHorizon - i), _rnd(r, 1, 28));
     vtiMark += _rnd(r, -8000, 12000);
     vtiMark = vtiMark.clamp(170000, 280000);
     await price(holdingId: vti, day: d, priceMinorLcy: vtiMark);
@@ -462,7 +474,8 @@ Future<void> _insertInvestments(Transaction sqlTxn, math.Random r) async {
   final int aaplLcyPerShare = _usdCentsToLcyMinor(usdCentsBuy);
   await lot(
     holdingId: aapl,
-    when: _rndTimeOnDay(r, today.year, today.month - _rnd(r, 4, 9), _rnd(r, 1, 28)),
+    when: _rndTimeOnDay(
+        r, today.year, today.month - _rnd(r, 4, 9), _rnd(r, 1, 28)),
     qty: 2 + r.nextDouble() * 5,
     priceMinorLcy: aaplLcyPerShare,
     purchaseFcy: true,
@@ -473,7 +486,8 @@ Future<void> _insertInvestments(Transaction sqlTxn, math.Random r) async {
   int aaplMarkLcy = _rnd(r, 25000000, 28500000);
   int aaplUsdCents = _rnd(r, 17500, 20500);
   for (int w = 0; w < weeks; w++) {
-    final DateTime d = DateTime(today.year, today.month, today.day).subtract(Duration(days: w * 7 + _rnd(r, 0, 3)));
+    final DateTime d = DateTime(today.year, today.month, today.day)
+        .subtract(Duration(days: w * 7 + _rnd(r, 0, 3)));
     aaplMarkLcy += _rnd(r, -420000, 480000);
     aaplUsdCents += _rnd(r, -250, 280);
     await price(
@@ -489,7 +503,8 @@ Future<void> _insertInvestments(Transaction sqlTxn, math.Random r) async {
 Future<void> _insertOtherAssets(Transaction sqlTxn, math.Random r) async {
   final int t = DateTime.now().millisecondsSinceEpoch;
 
-  Future<void> row(String label, int lcyMinor, int sort, {bool fcy = false, int entryMinor = 0}) async {
+  Future<void> row(String label, int lcyMinor, int sort,
+      {bool fcy = false, int entryMinor = 0}) async {
     final int em = fcy ? entryMinor : lcyMinor;
     await sqlTxn.insert(DBConstants.INVESTMENT_OTHER_ASSET, <String, Object?>{
       'label': label,

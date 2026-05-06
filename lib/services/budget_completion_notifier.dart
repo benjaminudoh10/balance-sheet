@@ -22,7 +22,8 @@ Future<void> notifyBudgetCompletionsAfterTransactionSave(
       return;
     }
 
-    final ({int startMs, int endMs}) range = db.calendarMonthEpochRange(d.year, d.month);
+    final ({int startMs, int endMs}) range =
+        db.calendarMonthEpochRange(d.year, d.month);
 
     for (final line in lines) {
       if (!line.hasSpendTracker || line.plannedAmount <= 0) {
@@ -37,18 +38,24 @@ Future<void> notifyBudgetCompletionsAfterTransactionSave(
       );
 
       int spentBefore = spentAfter;
-      spentBefore -= lineContributionForMonth(current, line, range.startMs, range.endMs);
+      spentBefore -=
+          lineContributionForMonth(current, line, range.startMs, range.endMs);
       if (previous != null) {
-        spentBefore += lineContributionForMonth(previous, line, range.startMs, range.endMs);
+        spentBefore += lineContributionForMonth(
+            previous, line, range.startMs, range.endMs);
       }
 
-      if (spentBefore < line.plannedAmount && spentAfter >= line.plannedAmount) {
-        final String label = line.description.trim().isEmpty ? 'Budget line' : line.description.trim();
+      if (spentBefore < line.plannedAmount &&
+          spentAfter >= line.plannedAmount) {
+        final String label = line.description.trim().isEmpty
+            ? 'Budget line'
+            : line.description.trim();
         final int nid = month.id * 100000 + line.id;
         await LocalNotificationService.instance.showBudgetLineReached(
           id: nid,
           title: 'Budget reached',
-          body: '$label: planned ${formatAmount(line.plannedAmount)} — spending has reached this amount.',
+          body:
+              '$label: planned ${formatAmount(line.plannedAmount)} — spending has reached this amount.',
         );
       }
     }

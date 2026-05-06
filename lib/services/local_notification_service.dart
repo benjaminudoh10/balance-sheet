@@ -7,7 +7,8 @@ class LocalNotificationService {
 
   static final LocalNotificationService instance = LocalNotificationService._();
 
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   /// Channel id bumped so devices that already created the old channel pick up
@@ -31,8 +32,10 @@ class LocalNotificationService {
       return;
     }
     try {
-      const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/launcher_icon');
-      const DarwinInitializationSettings darwinInit = DarwinInitializationSettings();
+      const AndroidInitializationSettings androidInit =
+          AndroidInitializationSettings('@mipmap/launcher_icon');
+      const DarwinInitializationSettings darwinInit =
+          DarwinInitializationSettings();
       const InitializationSettings initSettings = InitializationSettings(
         android: androidInit,
         iOS: darwinInit,
@@ -41,16 +44,19 @@ class LocalNotificationService {
       await _plugin.initialize(settings: initSettings);
 
       final AndroidFlutterLocalNotificationsPlugin? android =
-          _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+          _plugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
       await android?.createNotificationChannel(_channel);
       await android?.requestNotificationsPermission();
 
       final IOSFlutterLocalNotificationsPlugin? ios =
-          _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+          _plugin.resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>();
       await ios?.requestPermissions(alert: true, badge: true, sound: true);
 
       final MacOSFlutterLocalNotificationsPlugin? mac =
-          _plugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>();
+          _plugin.resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin>();
       await mac?.requestPermissions(alert: true, badge: true, sound: true);
 
       _initialized = true;

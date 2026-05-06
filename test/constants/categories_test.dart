@@ -34,20 +34,25 @@ void main() {
 
   group('Categories.pillStyleForKey', () {
     test('light and dark differ for food', () {
-      final CategoryPillStyle light = Categories.pillStyleForKey('food', Brightness.light);
-      final CategoryPillStyle dark = Categories.pillStyleForKey('food', Brightness.dark);
+      final CategoryPillStyle light =
+          Categories.pillStyleForKey('food', Brightness.light);
+      final CategoryPillStyle dark =
+          Categories.pillStyleForKey('food', Brightness.dark);
       expect(light.background, isNot(dark.background));
     });
 
     test('default branch for unknown key', () {
-      final CategoryPillStyle l = Categories.pillStyleForKey('custom', Brightness.light);
-      final CategoryPillStyle d = Categories.pillStyleForKey('custom', Brightness.dark);
+      final CategoryPillStyle l =
+          Categories.pillStyleForKey('custom', Brightness.light);
+      final CategoryPillStyle d =
+          Categories.pillStyleForKey('custom', Brightness.dark);
       expect(l.foreground, isNot(equals(Colors.transparent)));
       expect(d.foreground, isNot(equals(Colors.transparent)));
     });
 
     test('CATEGORIES list has keys matching known set', () {
-      final Set<String> keys = Categories.CATEGORIES.map((e) => e['key']!).toSet();
+      final Set<String> keys =
+          Categories.CATEGORIES.map((e) => e['key']!).toSet();
       expect(keys, knownKeys);
     });
   });

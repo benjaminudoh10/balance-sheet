@@ -41,15 +41,15 @@ class MidnightNavigationRail extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border(
-                      right: BorderSide(color: p.border.withValues(alpha: 0.55)),
+                      right:
+                          BorderSide(color: p.border.withValues(alpha: 0.55)),
                     ),
                   ),
                   child: NavigationRailTheme(
                     data: NavigationRailThemeData(
                       backgroundColor: p.surface,
                       indicatorColor: p.mint.withValues(alpha: 0.18),
-                      selectedIconTheme:
-                          IconThemeData(color: p.mint, size: 24),
+                      selectedIconTheme: IconThemeData(color: p.mint, size: 24),
                       unselectedIconTheme:
                           IconThemeData(color: p.textSecondary, size: 22),
                       selectedLabelTextStyle: textTheme.labelMedium!.copyWith(
@@ -76,7 +76,8 @@ class MidnightNavigationRail extends StatelessWidget {
                         ),
                         NavigationRailDestination(
                           icon: Icon(Icons.account_balance_wallet_outlined),
-                          selectedIcon: Icon(Icons.account_balance_wallet_rounded),
+                          selectedIcon:
+                              Icon(Icons.account_balance_wallet_rounded),
                           label: Text('Contacts'),
                         ),
                         NavigationRailDestination(

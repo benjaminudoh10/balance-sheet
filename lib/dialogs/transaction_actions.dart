@@ -43,7 +43,8 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
         (transaction.amount / 100).toStringAsFixed(2);
   }
   transactionController.entryDateTime.value = transaction.date;
-  transactionController.applyAmountFieldText(transactionController.amountController.value.text);
+  transactionController
+      .applyAmountFieldText(transactionController.amountController.value.text);
 
   final BuildContext context = Get.context!;
   final AppPalette p = AppPalette.of(context);
@@ -102,9 +103,9 @@ void showDeleteModal(Transaction transaction) {
               Text(
                 'Are you sure you want to delete this transaction?',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: p.textPrimary,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: p.textPrimary,
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -126,9 +127,9 @@ void showDeleteModal(Transaction transaction) {
                   child: Text(
                     'YES',
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                   ),
                 ),
               ),
@@ -152,9 +153,9 @@ void showDeleteModal(Transaction transaction) {
                   child: Text(
                     'NO',
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: p.mint,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: p.mint,
+                        ),
                   ),
                 ),
               ),

@@ -34,7 +34,8 @@ class _DebugSeedDataScreenState extends State<DebugSeedDataScreen> {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -53,7 +54,8 @@ class _DebugSeedDataScreenState extends State<DebugSeedDataScreen> {
                       Expanded(
                         child: Text(
                           'Seed sample data',
-                          style: textTheme.titleLarge!.copyWith(color: p.textPrimary),
+                          style: textTheme.titleLarge!
+                              .copyWith(color: p.textPrimary),
                         ),
                       ),
                     ],
@@ -113,7 +115,8 @@ class _DebugSeedDataScreenState extends State<DebugSeedDataScreen> {
           content: Text(
             'This removes existing transactions, contacts, budgets, and investments on this device, '
             'then inserts demo content.',
-            style: tt.bodyMedium?.copyWith(color: pal.textSecondary, height: 1.35),
+            style:
+                tt.bodyMedium?.copyWith(color: pal.textSecondary, height: 1.35),
           ),
           actions: [
             TextButton(

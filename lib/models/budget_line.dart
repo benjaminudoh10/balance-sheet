@@ -19,12 +19,15 @@ class BudgetLine {
   int id;
   final int budgetMonthId;
   final String description;
+
   /// Planned total in **LCY minor units** (for comparisons to spent sums).
   final int plannedAmount;
   final bool planEntryIsFcy;
+
   /// Minor units in the currency the user chose when entering the plan.
   final int planEntryAmountMinor;
   final int contactId;
+
   /// Same string keys as transaction `category` in the ledger; empty = no category filter.
   final String categoryKey;
   final int sortOrder;
@@ -56,7 +59,8 @@ class BudgetLine {
       description: data['description'] as String? ?? '',
       plannedAmount: planned,
       contactId: _asInt(data['contact_id'] ?? data['contactId']),
-      categoryKey: data['category'] as String? ?? data['categoryKey'] as String? ?? '',
+      categoryKey:
+          data['category'] as String? ?? data['categoryKey'] as String? ?? '',
       sortOrder: _asInt(data['sort_order'] ?? data['sortOrder']),
       planEntryIsFcy: isFcy,
       planEntryAmountMinor: isFcy ? rawEntry : planned,

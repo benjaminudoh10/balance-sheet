@@ -41,8 +41,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version-file: .flutter-version
-          channel: stable
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Set up Python
@@ -53,6 +52,12 @@ jobs:
       - name: Install Pillow
         run: pip install --quiet Pillow
 
+      # `pub get` may rewrite pubspec.lock here if the runner's Flutter
+      # SDK pins transitive deps (characters / matcher / test_api / etc.)
+      # to different versions than the committed lockfile. That churn is
+      # not a rendered-asset problem and is intentionally ignored by the
+      # drift check below — the test and build workflows are what should
+      # surface a real lockfile/SDK mismatch.
       - name: Install dependencies
         run: flutter pub get
 
@@ -84,8 +89,14 @@ jobs:
           # surfaces both modifications and untracked outputs — the launcher
           # icon tool in particular can start emitting new legacy sizes after
           # a version bump and those would otherwise slip past the check.
+          #
+          # Exclude pubspec.lock: it can be incidentally rewritten by
+          # `flutter pub get` if the runner's Flutter SDK resolves transitive
+          # pins differently than the SDK the lockfile was generated with.
+          # That is an orthogonal lockfile/Flutter-version problem caught by
+          # the test/build workflows, not "rendered assets are stale".
           git add -A
-          if ! git diff --cached --exit-code; then
+          if ! git diff --cached --exit-code -- ':!pubspec.lock'; then
             echo ""
             echo "::error::Generated assets are out of date with their sources."
             echo "::error::Run the asset regeneration pipeline locally and commit the result:"

@@ -46,33 +46,40 @@ class SavedViewsStorage {
     if (raw == null) {
       return <SavedViewRecord>[];
     }
-    final Map<String, dynamic> root = Map<String, dynamic>.from(raw as Map<dynamic, dynamic>);
+    final Map<String, dynamic> root =
+        Map<String, dynamic>.from(raw as Map<dynamic, dynamic>);
     final List<dynamic>? list = root[featureKey] as List<dynamic>?;
     if (list == null) {
       return <SavedViewRecord>[];
     }
     return list
-        .map((dynamic e) => SavedViewRecord.fromJson(Map<String, dynamic>.from(e as Map<dynamic, dynamic>)))
+        .map((dynamic e) => SavedViewRecord.fromJson(
+            Map<String, dynamic>.from(e as Map<dynamic, dynamic>)))
         .toList();
   }
 
-  static Future<void> add(String featureKey, String name, Map<String, dynamic> payload) async {
+  static Future<void> add(
+      String featureKey, String name, Map<String, dynamic> payload) async {
     final String trimmed = name.trim();
     if (trimmed.isEmpty) {
       return;
     }
-    final String id = '${DateTime.now().microsecondsSinceEpoch}_${_randomSuffix()}';
-    final SavedViewRecord record = SavedViewRecord(id: id, name: trimmed, payload: payload);
+    final String id =
+        '${DateTime.now().microsecondsSinceEpoch}_${_randomSuffix()}';
+    final SavedViewRecord record =
+        SavedViewRecord(id: id, name: trimmed, payload: payload);
     final List<SavedViewRecord> next = listFor(featureKey)..add(record);
     await _writeFeature(featureKey, next);
   }
 
   static Future<void> remove(String featureKey, String id) async {
-    final List<SavedViewRecord> next = listFor(featureKey).where((SavedViewRecord e) => e.id != id).toList();
+    final List<SavedViewRecord> next =
+        listFor(featureKey).where((SavedViewRecord e) => e.id != id).toList();
     await _writeFeature(featureKey, next);
   }
 
-  static Future<void> _writeFeature(String featureKey, List<SavedViewRecord> list) async {
+  static Future<void> _writeFeature(
+      String featureKey, List<SavedViewRecord> list) async {
     final GetStorage box = GetStorage();
     final dynamic raw = box.read(rootKey);
     final Map<String, dynamic> root = raw == null

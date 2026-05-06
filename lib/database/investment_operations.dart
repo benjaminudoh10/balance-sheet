@@ -103,6 +103,7 @@ Future<int> insertInvestmentLot({
   required int holdingId,
   required int occurredAtMs,
   required double quantityDelta,
+
   /// Canonical FIFO cost: **LCY** minor per share.
   required int purchasePriceMinorPerShare,
   bool purchaseEntryIsFcy = false,
@@ -110,7 +111,8 @@ Future<int> insertInvestmentLot({
   String note = '',
 }) async {
   final Database dbClient = await AppDb().db;
-  final int entryMinor = purchasePriceEntryMinorPerShare ?? purchasePriceMinorPerShare;
+  final int entryMinor =
+      purchasePriceEntryMinorPerShare ?? purchasePriceMinorPerShare;
   return dbClient.insert(DBConstants.INVESTMENT_LOT, <String, Object?>{
     'holding_id': holdingId,
     'occurred_at_ms': occurredAtMs,
@@ -168,13 +170,15 @@ Future<double> totalQuantityForHolding(int holdingId) async {
 Future<int> insertInvestmentPricePoint({
   required int holdingId,
   required int asOfDayYyyymmdd,
+
   /// Canonical **LCY** minor per share.
   required int priceMinorPerShare,
   bool entryIsFcy = false,
   int? priceEntryMinorPerShare,
 }) async {
   final Database dbClient = await AppDb().db;
-  final int ms = localMidnightFromYyyymmdd(asOfDayYyyymmdd).millisecondsSinceEpoch;
+  final int ms =
+      localMidnightFromYyyymmdd(asOfDayYyyymmdd).millisecondsSinceEpoch;
   final int entryMinor = priceEntryMinorPerShare ?? priceMinorPerShare;
   return dbClient.insert(DBConstants.INVESTMENT_PRICE, <String, Object?>{
     'holding_id': holdingId,
@@ -195,7 +199,8 @@ Future<void> deleteInvestmentPricePoint(int priceId) async {
   );
 }
 
-Future<List<InvestmentPricePoint>> listPricePointsForHolding(int holdingId) async {
+Future<List<InvestmentPricePoint>> listPricePointsForHolding(
+    int holdingId) async {
   final Database dbClient = await AppDb().db;
   final List<Map<String, Object?>> rows = await dbClient.query(
     DBConstants.INVESTMENT_PRICE,
@@ -207,7 +212,8 @@ Future<List<InvestmentPricePoint>> listPricePointsForHolding(int holdingId) asyn
 }
 
 /// Latest market price on or before local calendar day [maxDayYyyymmdd] (and [maxMs] for legacy rows).
-Future<int?> latestMarketPriceMinorOnOrBeforeDay(int holdingId, int maxDayYyyymmdd, int maxMsInclusive) async {
+Future<int?> latestMarketPriceMinorOnOrBeforeDay(
+    int holdingId, int maxDayYyyymmdd, int maxMsInclusive) async {
   final Database dbClient = await AppDb().db;
   final List<Map<String, Object?>> rows = await dbClient.rawQuery(
     '''
@@ -241,7 +247,8 @@ Future<int?> latestPriceMinorForHolding(int holdingId) async {
 }
 
 /// FIFO remaining position cost (minor) and share count from purchase lots.
-Future<({int costBasisMinor, double quantity})> fifoOpenPosition(int holdingId) async {
+Future<({int costBasisMinor, double quantity})> fifoOpenPosition(
+    int holdingId) async {
   final List<InvestmentLotEntry> lots = await listLotsForHolding(holdingId);
   final List<_FifoLayer> layers = <_FifoLayer>[];
   for (final InvestmentLotEntry lot in lots) {
@@ -389,7 +396,8 @@ Future<int> portfolioStocksValueAtMs(int maxMs) async {
 /// Today’s change vs portfolio value at local start-of-day (stocks only).
 Future<({int deltaMinor, double? pct})> portfolioStocksDayChange() async {
   final DateTime now = DateTime.now();
-  final int startToday = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+  final int startToday =
+      DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
   final int endNow = now.millisecondsSinceEpoch;
   final int vNow = await portfolioStocksValueAtMs(endNow);
   final int vOpen = await portfolioStocksValueAtMs(startToday);
@@ -401,16 +409,19 @@ Future<({int deltaMinor, double? pct})> portfolioStocksDayChange() async {
 }
 
 /// [deltaMinor] / [deltaPct] = unrealized gain vs FIFO cost basis from lot purchase prices vs last market price.
-Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(int holdingId) async {
+Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(
+    int holdingId) async {
   final int now = DateTime.now().millisecondsSinceEpoch;
   final double q = await totalQuantityForHoldingAtMs(holdingId, now);
   final int maxDay = encodeLocalYyyymmddFromMs(now);
-  final int? mkt = await latestMarketPriceMinorOnOrBeforeDay(holdingId, maxDay, now);
+  final int? mkt =
+      await latestMarketPriceMinorOnOrBeforeDay(holdingId, maxDay, now);
   final int value = _positionValueMinor(q, mkt);
   if (q <= 0 || mkt == null) {
     return (valueMinor: value, deltaMinor: null, deltaPct: null);
   }
-  final ({int costBasisMinor, double quantity}) fifo = await fifoOpenPosition(holdingId);
+  final ({int costBasisMinor, double quantity}) fifo =
+      await fifoOpenPosition(holdingId);
   if (fifo.costBasisMinor <= 0) {
     return (valueMinor: value, deltaMinor: null, deltaPct: null);
   }
@@ -423,7 +434,8 @@ Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(int
 }
 
 /// Sorted points (end-of-day ms, total minor) for charting portfolio growth. Downsamples if huge.
-Future<List<({int ms, int valueMinor})>> getPortfolioStocksHistory({int maxPoints = 200}) async {
+Future<List<({int ms, int valueMinor})>> getPortfolioStocksHistory(
+    {int maxPoints = 200}) async {
   final Database dbClient = await AppDb().db;
   final Set<int> days = <int>{};
   final List<Map<String, Object?>> lotRows = await dbClient.rawQuery(

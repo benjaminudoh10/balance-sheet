@@ -169,8 +169,10 @@ const List<Iso4217Currency> kIso4217Currencies = <Iso4217Currency>[
   Iso4217Currency('XAU', 'Gold'),
   Iso4217Currency('XBA', 'Bond Markets Unit European Composite Unit (EURCO)'),
   Iso4217Currency('XBB', 'Bond Markets Unit European Monetary Unit (E.M.U.-6)'),
-  Iso4217Currency('XBC', 'Bond Markets Unit European Unit of Account 9 (E.U.A.-9)'),
-  Iso4217Currency('XBD', 'Bond Markets Unit European Unit of Account 17 (E.U.A.-17)'),
+  Iso4217Currency(
+      'XBC', 'Bond Markets Unit European Unit of Account 9 (E.U.A.-9)'),
+  Iso4217Currency(
+      'XBD', 'Bond Markets Unit European Unit of Account 17 (E.U.A.-17)'),
   Iso4217Currency('XCD', 'East Caribbean Dollar'),
   Iso4217Currency('XCG', 'Caribbean Guilder'),
   Iso4217Currency('XDR', 'SDR (Special Drawing Right)'),
@@ -181,7 +183,8 @@ const List<Iso4217Currency> kIso4217Currencies = <Iso4217Currency>[
   Iso4217Currency('XSU', 'Sucre'),
   Iso4217Currency('XTS', 'Codes specifically reserved for testing purposes'),
   Iso4217Currency('XUA', 'ADB Unit of Account'),
-  Iso4217Currency('XXX', 'The codes assigned for transactions where no currency is involved'),
+  Iso4217Currency('XXX',
+      'The codes assigned for transactions where no currency is involved'),
   Iso4217Currency('YER', 'Yemeni Rial'),
   Iso4217Currency('ZAR', 'Rand'),
   Iso4217Currency('ZMW', 'Zambian Kwacha'),

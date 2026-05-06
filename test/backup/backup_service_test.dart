@@ -68,8 +68,10 @@ void main() {
 
     test('throws on wrong format id', () async {
       expect(
-        () => BackupService.importFromJsonString('{"format":"other","version":2,"contacts":[],"transactions":[]}'),
-        throwsA(predicate((Object e) => e.toString().contains('Balanced backup'))),
+        () => BackupService.importFromJsonString(
+            '{"format":"other","version":2,"contacts":[],"transactions":[]}'),
+        throwsA(
+            predicate((Object e) => e.toString().contains('Balanced backup'))),
       );
     });
 
@@ -164,7 +166,8 @@ void main() {
       expect(box.read(AppConstants.CURRENCY_LCY_KEY), 'NGN');
     });
 
-    test('PIN material in backup is ignored — local PIN is never overwritten', () async {
+    test('PIN material in backup is ignored — local PIN is never overwritten',
+        () async {
       final GetStorage box = GetStorage();
       box.write(AppConstants.USER_PIN_HASH_KEY, 'local-hash');
       box.write(AppConstants.USER_PIN_SALT_KEY, 'local-salt');
@@ -188,7 +191,9 @@ void main() {
       expect(box.read(AppConstants.USER_PIN_SALT_KEY), 'local-salt');
     });
 
-    test('PIN material in backup does not create a PIN when none is set locally', () async {
+    test(
+        'PIN material in backup does not create a PIN when none is set locally',
+        () async {
       final GetStorage box = GetStorage();
       expect(box.read(AppConstants.USER_PIN_HASH_KEY), isNull);
 
@@ -211,7 +216,9 @@ void main() {
       expect(box.read(AppConstants.USER_PIN_SALT_KEY), isNull);
     });
 
-    test('USE_FINGERPRINT in backup is ignored — local biometric flag is preserved', () async {
+    test(
+        'USE_FINGERPRINT in backup is ignored — local biometric flag is preserved',
+        () async {
       final GetStorage box = GetStorage();
       box.write(AppConstants.USE_FINGERPRINT, true);
 
@@ -255,7 +262,8 @@ void main() {
       expect(events.last.message.toLowerCase(), contains('preference'));
     });
 
-    test('determinate progress values are within [0, 1] and end at 1.0', () async {
+    test('determinate progress values are within [0, 1] and end at 1.0',
+        () async {
       // Build a payload with several contacts + transactions so we get multiple
       // restoring ticks back from the chunked emitter.
       final StringBuffer contactsBuf = StringBuffer();
@@ -351,7 +359,8 @@ void main() {
       expect(json, contains('"savedViews"'));
     });
 
-    test('omits security keys (PIN hash/salt, biometric flag, legacy PIN) from preferences',
+    test(
+        'omits security keys (PIN hash/salt, biometric flag, legacy PIN) from preferences',
         () async {
       final GetStorage box = GetStorage();
       box.write(AppConstants.USER_PIN_HASH_KEY, 'should-not-leak');
@@ -369,7 +378,8 @@ void main() {
     });
 
     test('includes saved view presets when present', () async {
-      await SavedViewsStorage.add(SavedViewsStorage.featureReport, 'Work trips', <String, dynamic>{
+      await SavedViewsStorage.add(
+          SavedViewsStorage.featureReport, 'Work trips', <String, dynamic>{
         'type': 'month',
         'categoryKey': 'Category',
         'contactId': 0,
@@ -379,7 +389,9 @@ void main() {
       expect(json, contains('"Work trips"'));
     });
 
-    test('roundtrip preserves investment holdings, lots, prices, and other assets', () async {
+    test(
+        'roundtrip preserves investment holdings, lots, prices, and other assets',
+        () async {
       final int cid = await db_ops.addContact(Contact(name: 'Only'));
       await db_ops.addTransaction(Transaction(
         description: 'seed',
@@ -389,14 +401,16 @@ void main() {
         category: 'salary',
         contactId: cid,
       ));
-      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'X', displayName: 'Y');
+      final int hid =
+          await inv_ops.insertInvestmentHolding(ticker: 'X', displayName: 'Y');
       await inv_ops.insertInvestmentLot(
         holdingId: hid,
         occurredAtMs: 1,
         quantityDelta: 3,
         purchasePriceMinorPerShare: 400,
       );
-      await inv_ops.insertInvestmentPricePoint(holdingId: hid, asOfDayYyyymmdd: 19700101, priceMinorPerShare: 500);
+      await inv_ops.insertInvestmentPricePoint(
+          holdingId: hid, asOfDayYyyymmdd: 19700101, priceMinorPerShare: 500);
       await inv_ops.insertOtherInvestment(
         label: 'Cash',
         valueLcyMinor: 9900,
@@ -408,7 +422,8 @@ void main() {
       await resetAppDatabaseFile();
       await BackupService.importFromJsonString(exported);
 
-      final List<InvestmentHolding> holdings = await inv_ops.listInvestmentHoldings();
+      final List<InvestmentHolding> holdings =
+          await inv_ops.listInvestmentHoldings();
       expect(holdings.length, 1);
       expect(holdings.first.ticker, 'X');
       expect(await inv_ops.totalQuantityForHolding(holdings.first.id), 3.0);
@@ -436,7 +451,8 @@ void main() {
 
       final BudgetMonth? loaded = await db_ops.getBudgetMonth(2026, 2);
       expect(loaded, isNotNull);
-      final List<BudgetLine> lines = await db_ops.getBudgetLinesForMonth(loaded!.id);
+      final List<BudgetLine> lines =
+          await db_ops.getBudgetLinesForMonth(loaded!.id);
       expect(lines.length, 1);
       expect(lines.single.description, 'Supplies');
       expect(lines.single.plannedAmount, 4200);
@@ -445,7 +461,8 @@ void main() {
     });
 
     test('roundtrip preserves saved views', () async {
-      await SavedViewsStorage.add(SavedViewsStorage.featureInsights, 'Weekly', <String, dynamic>{
+      await SavedViewsStorage.add(
+          SavedViewsStorage.featureInsights, 'Weekly', <String, dynamic>{
         'period': 'thisWeek',
       });
       final String exported = await BackupService.exportJsonString();
@@ -453,19 +470,22 @@ void main() {
       await GetStorage().erase();
       await BackupService.importFromJsonString(exported);
 
-      final List<SavedViewRecord> rows = SavedViewsStorage.listFor(SavedViewsStorage.featureInsights);
+      final List<SavedViewRecord> rows =
+          SavedViewsStorage.listFor(SavedViewsStorage.featureInsights);
       expect(rows.length, 1);
       expect(rows.single.name, 'Weekly');
       expect(rows.single.payload['period'], 'thisWeek');
     });
 
     test('backup without savedViews clears stored presets', () async {
-      await SavedViewsStorage.add(SavedViewsStorage.featureBudget, 'Jan', <String, dynamic>{
+      await SavedViewsStorage.add(
+          SavedViewsStorage.featureBudget, 'Jan', <String, dynamic>{
         'year': 2026,
         'month': 1,
       });
       await BackupService.importFromJsonString(validBackupPayload());
-      expect(SavedViewsStorage.listFor(SavedViewsStorage.featureBudget), isEmpty);
+      expect(
+          SavedViewsStorage.listFor(SavedViewsStorage.featureBudget), isEmpty);
     });
   });
 }

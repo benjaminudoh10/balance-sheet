@@ -4,6 +4,7 @@ class InvestmentPricePoint {
     required this.holdingId,
     required this.asOfMs,
     required this.asOfDay,
+
     /// **LCY** minor per share (canonical for portfolio / net worth).
     required this.priceMinorPerShare,
     required this.entryCurrency,

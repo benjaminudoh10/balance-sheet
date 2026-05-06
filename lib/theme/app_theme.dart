@@ -119,12 +119,15 @@ ThemeData _buildAppTheme(String fontId, AppPalette palette) {
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: palette.surfaceElevated,
-      titleTextStyle: textTheme.titleLarge?.copyWith(color: palette.textPrimary),
-      contentTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
+      titleTextStyle:
+          textTheme.titleLarge?.copyWith(color: palette.textPrimary),
+      contentTextStyle:
+          textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: palette.surfaceElevated,
-      contentTextStyle: textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
+      contentTextStyle:
+          textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
     ),
     inputDecorationTheme: InputDecorationTheme(
       hintStyle: textTheme.bodyMedium?.copyWith(color: palette.textSecondary),
@@ -133,7 +136,9 @@ ThemeData _buildAppTheme(String fontId, AppPalette palette) {
 }
 
 /// Dark theme (previous default).
-ThemeData buildDarkAppTheme(String fontId) => _buildAppTheme(fontId, AppPalette.dark);
+ThemeData buildDarkAppTheme(String fontId) =>
+    _buildAppTheme(fontId, AppPalette.dark);
 
 /// Light theme.
-ThemeData buildLightAppTheme(String fontId) => _buildAppTheme(fontId, AppPalette.light);
+ThemeData buildLightAppTheme(String fontId) =>
+    _buildAppTheme(fontId, AppPalette.light);

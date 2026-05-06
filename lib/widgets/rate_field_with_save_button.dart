@@ -27,7 +27,8 @@ class RateFieldWithSaveButton extends StatefulWidget {
   final FocusNode? focusNode;
 
   @override
-  State<RateFieldWithSaveButton> createState() => _RateFieldWithSaveButtonState();
+  State<RateFieldWithSaveButton> createState() =>
+      _RateFieldWithSaveButtonState();
 }
 
 class _RateFieldWithSaveButtonState extends State<RateFieldWithSaveButton> {
@@ -63,7 +64,8 @@ class _RateFieldWithSaveButtonState extends State<RateFieldWithSaveButton> {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final Color borderColor = _focused ? p.mint.withValues(alpha: 0.85) : p.border;
+    final Color borderColor =
+        _focused ? p.mint.withValues(alpha: 0.85) : p.border;
     final double strokeWidth = _focused ? 2.0 : 1.0;
     const double radius = 12;
 
@@ -103,14 +105,17 @@ class _RateFieldWithSaveButtonState extends State<RateFieldWithSaveButton> {
                   child: TextField(
                     controller: widget.controller,
                     focusNode: _focusNode,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     style: textTheme.bodyLarge!.copyWith(color: p.textPrimary),
                     decoration: InputDecoration(
                       hintText: '1400',
-                      hintStyle: textTheme.bodyLarge!.copyWith(color: p.textSecondary),
+                      hintStyle:
+                          textTheme.bodyLarge!.copyWith(color: p.textSecondary),
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                     ),
                   ),
                 ),

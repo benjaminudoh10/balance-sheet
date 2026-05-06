@@ -81,7 +81,9 @@ class PlanHubFab extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  expanded ? Icons.close_rounded : Icons.dashboard_customize_rounded,
+                  expanded
+                      ? Icons.close_rounded
+                      : Icons.dashboard_customize_rounded,
                   color: const Color(0xFF0D1117),
                   size: 26,
                 ),
@@ -162,7 +164,8 @@ class _HubActionPill extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.chevron_right_rounded, color: p.textSecondary, size: 22),
+              Icon(Icons.chevron_right_rounded,
+                  color: p.textSecondary, size: 22),
             ],
           ),
         ),

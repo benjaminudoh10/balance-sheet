@@ -18,5 +18,6 @@ int encodeLocalYyyymmddFromMs(int msSinceEpoch) {
 /// End of local calendar day [yyyymmdd], for quantity / valuation cutoffs.
 int endOfLocalDayMs(int yyyymmdd) {
   final DateTime start = localMidnightFromYyyymmdd(yyyymmdd);
-  return DateTime(start.year, start.month, start.day, 23, 59, 59, 999).millisecondsSinceEpoch;
+  return DateTime(start.year, start.month, start.day, 23, 59, 59, 999)
+      .millisecondsSinceEpoch;
 }

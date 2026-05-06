@@ -24,7 +24,8 @@ class PlaceholderTab extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: MidnightGridPainter(heightFraction: 1.0, gridLineColor: p.gridLine),
+              painter: MidnightGridPainter(
+                  heightFraction: 1.0, gridLineColor: p.gridLine),
             ),
           ),
           SafeArea(
@@ -46,18 +47,19 @@ class PlaceholderTab extends StatelessWidget {
                     Text(
                       title,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        color: p.textPrimary,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                color: p.textPrimary,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        color: p.textSecondary,
-                        fontWeight: FontWeight.w400,
-                      ),
+                            color: p.textSecondary,
+                            fontWeight: FontWeight.w400,
+                          ),
                     ),
                   ],
                 ),

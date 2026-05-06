@@ -22,6 +22,7 @@ class SlidablePeekHint extends StatefulWidget {
     required this.child,
     this.enabled = true,
     this.peekSide = SlidablePeekSide.end,
+
     /// Portion of the full action extent to reveal (e.g. `0.5` ≈ half-open).
     this.peekExtentFraction = 0.52,
   });
@@ -70,7 +71,8 @@ class _SlidablePeekHintState extends State<SlidablePeekHint> {
     final Duration pause = const Duration(milliseconds: 520);
     final Duration closeDuration = const Duration(milliseconds: 320);
 
-    if (widget.peekSide == SlidablePeekSide.end && controller.enableEndActionPane) {
+    if (widget.peekSide == SlidablePeekSide.end &&
+        controller.enableEndActionPane) {
       final double full = controller.endActionPaneExtentRatio;
       if (full <= 0) {
         return;
@@ -80,7 +82,8 @@ class _SlidablePeekHintState extends State<SlidablePeekHint> {
         duration: openDuration,
         curve: Curves.easeOutCubic,
       );
-    } else if (widget.peekSide == SlidablePeekSide.start && controller.enableStartActionPane) {
+    } else if (widget.peekSide == SlidablePeekSide.start &&
+        controller.enableStartActionPane) {
       final double full = controller.startActionPaneExtentRatio;
       if (full <= 0) {
         return;

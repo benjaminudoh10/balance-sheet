@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('DecimalTextInputFormatter', () {
-    TextEditingValue apply(String oldText, String newText, {int decimalRange = 2}) {
-      final DecimalTextInputFormatter f = DecimalTextInputFormatter(decimalRange: decimalRange);
+    TextEditingValue apply(String oldText, String newText,
+        {int decimalRange = 2}) {
+      final DecimalTextInputFormatter f =
+          DecimalTextInputFormatter(decimalRange: decimalRange);
       final TextEditingValue oldValue = TextEditingValue(
         text: oldText,
         selection: TextSelection.collapsed(offset: oldText.length),

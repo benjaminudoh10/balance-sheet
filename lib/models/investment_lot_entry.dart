@@ -4,6 +4,7 @@ class InvestmentLotEntry {
     required this.holdingId,
     required this.occurredAtMs,
     required this.quantityDelta,
+
     /// FIFO cost basis: **LCY** minor units per share (canonical).
     required this.purchasePriceMinorPerShare,
     required this.purchaseEntryCurrency,
@@ -16,8 +17,10 @@ class InvestmentLotEntry {
   final int occurredAtMs;
   final double quantityDelta;
   final int purchasePriceMinorPerShare;
+
   /// `lcy` or `fcy` — currency the user typed for [purchasePriceEntryMinorPerShare].
   final String purchaseEntryCurrency;
+
   /// Minor units in [purchaseEntryCurrency] per share (for display).
   final int purchasePriceEntryMinorPerShare;
   final String note;

@@ -85,7 +85,8 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
       return;
     }
     AppHaptics.light();
-    await SavedViewsStorage.add(widget.featureKey, trimmed, widget.capturePayload());
+    await SavedViewsStorage.add(
+        widget.featureKey, trimmed, widget.capturePayload());
     _reload();
   }
 
@@ -119,17 +120,19 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
                       children: <Widget>[
                         Text(
                           'Saved views',
-                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                color: p.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium!.copyWith(
+                                    color: p.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           widget.surfaceTitle,
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: p.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: p.textSecondary,
+                                  ),
                         ),
                       ],
                     ),
@@ -189,7 +192,8 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
                             onTap: () => _onApply(r),
                             borderRadius: BorderRadius.circular(12),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
@@ -197,14 +201,20 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
                                       contentPadding: EdgeInsets.zero,
                                       title: Text(
                                         r.name,
-                                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall!
+                                            .copyWith(
                                               color: p.textPrimary,
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
                                       subtitle: Text(
                                         'Tap to apply',
-                                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall!
+                                            .copyWith(
                                               color: p.textSecondary,
                                             ),
                                       ),
@@ -212,7 +222,8 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
                                   ),
                                   IconButton(
                                     tooltip: 'Delete',
-                                    icon: Icon(Icons.delete_outline_rounded, color: p.textSecondary, size: 22),
+                                    icon: Icon(Icons.delete_outline_rounded,
+                                        color: p.textSecondary, size: 22),
                                     onPressed: () => _onDelete(r),
                                   ),
                                 ],
@@ -263,8 +274,10 @@ class _SaveViewNameDialogState extends State<_SaveViewNameDialog> {
         decoration: InputDecoration(
           labelText: 'Name',
           labelStyle: TextStyle(color: p.textSecondary),
-          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: p.border)),
-          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: p.mint)),
+          enabledBorder:
+              OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+          focusedBorder:
+              OutlineInputBorder(borderSide: BorderSide(color: p.mint)),
         ),
         onSubmitted: (_) => Navigator.of(context).pop(_nameCtrl.text.trim()),
       ),
@@ -275,7 +288,8 @@ class _SaveViewNameDialogState extends State<_SaveViewNameDialog> {
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(_nameCtrl.text.trim()),
-          child: Text('Save', style: TextStyle(color: p.mint, fontWeight: FontWeight.w600)),
+          child: Text('Save',
+              style: TextStyle(color: p.mint, fontWeight: FontWeight.w600)),
         ),
       ],
     );

@@ -51,7 +51,9 @@ SliverPadding adaptiveCardListSliver({
                 Expanded(child: itemBuilder(context, i0)),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: i1 != null ? itemBuilder(context, i1) : const SizedBox.shrink(),
+                  child: i1 != null
+                      ? itemBuilder(context, i1)
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),

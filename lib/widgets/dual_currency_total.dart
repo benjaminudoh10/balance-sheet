@@ -83,7 +83,10 @@ class DualCurrencyTotal extends StatelessWidget {
     return Obx(() {
       final TextStyle sec = secondaryStyle ??
           Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.72),
                 fontWeight: FontWeight.w500,
               );
       final bool dual = showFcyEquivalent && c.showDualTotals;
@@ -146,7 +149,10 @@ class DualCurrencySignedNet extends StatelessWidget {
     return Obx(() {
       final TextStyle sec = secondaryStyle ??
           Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.72),
                 fontWeight: FontWeight.w500,
               );
       if (netMinor == 0) {
