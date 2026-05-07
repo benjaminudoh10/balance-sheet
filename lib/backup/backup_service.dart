@@ -384,8 +384,9 @@ class BackupService {
         inserted++;
         await tickProgress('Restoring contacts');
       }
-      if (contacts.isNotEmpty)
+      if (contacts.isNotEmpty) {
         await tickProgress('Restoring contacts', force: true);
+      }
 
       for (final txn_model.Transaction t in transactions) {
         final Map<String, dynamic> row = t.toJson();
@@ -403,8 +404,9 @@ class BackupService {
         inserted++;
         await tickProgress('Restoring transactions');
       }
-      if (transactions.isNotEmpty)
+      if (transactions.isNotEmpty) {
         await tickProgress('Restoring transactions', force: true);
+      }
 
       for (final BudgetMonth b in budgetMonths) {
         await sqlTxn.insert(DBConstants.BUDGET_MONTH, <String, Object?>{

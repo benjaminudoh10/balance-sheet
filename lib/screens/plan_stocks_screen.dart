@@ -531,24 +531,46 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
     }
 
     final double qty = _isSale ? -mag : mag;
-    final int? pxEntry = parseMoneyStringToMinor(_priceCtrl.text);
-    if (pxEntry == null) {
-      Get.snackbar('Price required', 'Enter the per-share price for this lot.');
+    final int? pxEntryTotal = parseMoneyStringToMinor(_priceCtrl.text);
+    if (pxEntryTotal == null) {
+      Get.snackbar(
+          'Amount required', 'Enter the total amount for this transaction.');
       return;
     }
-    if (pxEntry <= 0) {
-      Get.snackbar('Price', 'Enter a per-share price greater than zero.');
+    if (pxEntryTotal <= 0) {
+      Get.snackbar('Amount', 'Enter a total amount greater than zero.');
       return;
     }
-    final int lcyPx =
-        _entryIsFcy ? _cur.lcyMinorFromFcyMinor(pxEntry) : pxEntry;
+    // The user types the total transaction amount; the canonical per-share
+    // price is derived from it. Storing per-share keeps the DB schema (and all
+    // existing rows from prior app versions) working unchanged.
+    final int pxEntryPerShare = (pxEntryTotal / mag).round();
+    if (pxEntryPerShare <= 0) {
+      Get.snackbar(
+        'Amount',
+        'Total is too small for this quantity — per-share price rounds to zero.',
+      );
+      return;
+    }
+    final int lcyPxPerShare = _entryIsFcy
+        ? _cur.lcyMinorFromFcyMinor(pxEntryPerShare)
+        : pxEntryPerShare;
     await inv.insertInvestmentLot(
       holdingId: widget.holding.id,
       occurredAtMs: lotMs,
       quantityDelta: qty,
-      purchasePriceMinorPerShare: lcyPx,
+      purchasePriceMinorPerShare: lcyPxPerShare,
       purchaseEntryIsFcy: _entryIsFcy,
-      purchasePriceEntryMinorPerShare: pxEntry,
+      purchasePriceEntryMinorPerShare: pxEntryPerShare,
+    );
+    // Mirror the derived per-share price into the price log so the holding has
+    // a market-price datapoint on the transaction day.
+    await inv.insertInvestmentPricePoint(
+      holdingId: widget.holding.id,
+      asOfDayYyyymmdd: encodeLocalYyyymmdd(_purchaseDay),
+      priceMinorPerShare: lcyPxPerShare,
+      entryIsFcy: _entryIsFcy,
+      priceEntryMinorPerShare: pxEntryPerShare,
     );
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -569,7 +591,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Choose Buy or Sell, then enter quantity and price. For sales, use a positive amount — no minus key needed. Decimals use the dedicated . key on the number keyboard.',
+            'Choose Buy or Sell, then enter quantity and the total amount of the transaction. The per-share price is computed automatically and added to the price history. For sales, use a positive quantity — no minus key needed.',
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
@@ -617,6 +639,8 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
             () {
               final String code =
                   _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+              final String totalLabel =
+                  _isSale ? 'Total sale proceeds' : 'Total purchase price';
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -625,7 +649,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                     children: <Widget>[
                       Expanded(
                         child: Text(
-                          'Price per share ($code)',
+                          '$totalLabel ($code)',
                           style:
                               Theme.of(context).textTheme.labelSmall!.copyWith(
                                     color: p.textSecondary,
@@ -704,7 +728,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
           const SizedBox(height: 8),
           ListTile(
             title: Text(DateFormat.yMMMd().format(_purchaseDay)),
-            subtitle: const Text('Purchase date'),
+            subtitle: Text(_isSale ? 'Sale date' : 'Purchase date'),
             trailing: const Icon(Icons.event_rounded),
             onTap: () async {
               AppHaptics.light();
@@ -1982,8 +2006,9 @@ class _PortfolioChart extends StatelessWidget {
                             math.max(1, (spots.length / 5).floorToDouble()),
                         getTitlesWidget: (double value, TitleMeta meta) {
                           final int i = value.round();
-                          if (i < 0 || i >= hist.length)
+                          if (i < 0 || i >= hist.length) {
                             return const SizedBox.shrink();
+                          }
                           final DateTime d =
                               DateTime.fromMillisecondsSinceEpoch(hist[i].ms);
                           return Padding(
