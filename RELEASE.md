@@ -128,6 +128,16 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.2
+
+Investments
+- Stock buy/sell entry now takes the *total* transaction amount (total purchase price for buys, total sale proceeds for sales) instead of a per-share figure. The per-share price is derived automatically.
+- The trade also appends a matching datapoint to the holding's price history on the transaction date, so the portfolio chart picks the trade up without a separate manual price entry.
+- Sheet copy and the date-row subtitle now adapt to "Sale" vs "Purchase" wording based on the active side.
+
+Build and release
+- `tool/cut_release.sh` lands in the repo (previewed in v1.0.1's notes) — bumps `pubspec.yaml`, scaffolds or validates the `### vX.Y.Z` section in `RELEASE.md`, and pushes the signed-release tag that `release.yml` triggers on.
+
 ### v1.0.1
 
 Date and time pickers
