@@ -59,6 +59,8 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   sqflite_common_ffi: ^2.3.4
   image: ^4.5.3
+  mockito: ^5.6.4
+  build_runner: ^2.15.0
 
 # Transitive pins for current Flutter / Dart SDK (AGP 8, dart:io API changes).
 dependency_overrides:

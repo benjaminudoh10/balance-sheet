@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:balance_sheet/constants/app.dart';
+import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
@@ -82,7 +83,14 @@ class AppController extends GetxController {
         .write(AppConstants.APP_THEME_MODE_KEY, _themeModeToStorage(mode));
   }
 
-  void setUseTrash(bool value) {
+  Future<void> setUseTrash(bool value) async {
+    if (!value && lockTrash.value) {
+      // Disabling Trash with lock enabled: Requires authentication (Biometric or PIN)
+      final SecurityController sc = Get.find();
+      final bool confirmed = await sc.authenticateUser(
+          'Use biometrics or PIN to disable Trash');
+      if (!confirmed) return;
+    }
     useTrash.value = value;
     GetStorage().write(AppConstants.USE_TRASH_KEY, value);
   }
@@ -92,7 +100,14 @@ class AppController extends GetxController {
     GetStorage().write(AppConstants.TRASH_PERIOD_DAYS_KEY, value);
   }
 
-  void setLockTrash(bool value) {
+  Future<void> setLockTrash(bool value) async {
+    if (!value) {
+      // Disabling Trash Lock: Requires authentication (Biometric or PIN)
+      final SecurityController sc = Get.find();
+      final bool confirmed = await sc.authenticateUser(
+          'Use biometrics or PIN to disable Trash lock');
+      if (!confirmed) return;
+    }
     lockTrash.value = value;
     GetStorage().write(AppConstants.LOCK_TRASH_KEY, value);
   }
