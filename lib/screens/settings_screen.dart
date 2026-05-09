@@ -11,7 +11,6 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/screens/debug_clear_data_screen.dart';
 import 'package:balance_sheet/screens/debug_seed_data_screen.dart';
-import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/screens/trash_screen.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
@@ -535,7 +534,7 @@ class SettingsView extends StatelessWidget {
       Get.to(() => Pin());
     } else {
       _securityController.fromSettings.value = true;
-      Get.to(() => LockScreen());
+      Get.toNamed('/lock', arguments: {'reason': 'Enter PIN to disable app lock', 'pin_only': true});
     }
   }
 

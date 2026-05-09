@@ -191,43 +191,71 @@ Future<void> confirmPin(String value) async {
     );
   } else {
     final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
-    if (args != null && args.containsKey('reason')) {
+    final bool pinOnly = args?['pin_only'] ?? false;
+
+    // If it's a re-auth request that ISN'T the PIN removal flow, return early.
+    if (args != null && args.containsKey('reason') && !pinOnly) {
       Get.back(result: true);
       return;
     }
+
     if (fromSettings.value) {
       await PinHash.clearPin(box);
       pinIsSet.value = false;
-        sessionUnlocked.value = false;
-        Get.back();
-        Get.snackbar(
-          "Success",
-          "PIN removed successfully.",
-          backgroundColor: AppColors.GREEN,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-        );
-        fromSettings.value = false;
-      } else {
-        markSessionUnlocked();
-        Get.offAll(Home());
-      }
-    }
-  }
-
-  activateFingerPrint(bool value) {
-    if (!pinIsSet.value && value) {
+      sessionUnlocked.value = false;
+      Get.back();
       Get.snackbar(
-        "Error",
-        "Setup PIN to make use of fingerprint lock",
-        backgroundColor: AppColors.SNACKBAR_RED,
+        "Success",
+        "PIN removed successfully.",
+        backgroundColor: AppColors.GREEN,
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
-      return;
+      fromSettings.value = false;
+    } else {
+      markSessionUnlocked();
+      Get.offAll(Home());
+    }
+  }
+  }
+
+  /// Force re-authentication (PIN only) to confirm a security change.
+  Future<void> activateFingerPrint(bool value) async {
+    if (!value) {
+      // Disabling Fingerprint: Requires Biometric auth.
+      final bool confirmed = await authenticateUser(
+          'Use fingerprint to disable biometric unlock');
+      if (!confirmed) return;
+    } else {
+      if (!pinIsSet.value) {
+        Get.snackbar(
+          "Error",
+          "Setup PIN to make use of fingerprint lock",
+          backgroundColor: AppColors.SNACKBAR_RED,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+        return;
+      }
     }
     setValueInStorage(AppConstants.USE_FINGERPRINT, value);
     fingerprintInUse.value = value;
+  }
+
+  Future<bool> requestPinConfirmation(String reason) async {
+    // If fingerprint is enabled, try that first.
+    if (fingerprintInUse.value) {
+      final bool biometricsConfirmed = await authenticateUser(
+          'Use fingerprint to proceed with PIN removal');
+      if (!biometricsConfirmed) return false;
+    }
+
+    // Always follow up with explicit PIN entry.
+    final dynamic result = await Get.toNamed('/lock', arguments: {
+      'reason': reason,
+      'pin_only': true,
+    });
+    return result == true;
   }
 
   /// Prompts for authentication (Biometric or PIN) and returns true if successful.
@@ -258,7 +286,7 @@ Future<void> confirmPin(String value) async {
     return result == true;
   }
 
-  unlockWithFingerprint() async {
+  unlockWithFingerprint({bool isSettingsFlow = false}) async {
     if (!fingerprintInUse.value) return;
 
     LocalAuthentication localAuth = LocalAuthentication();
@@ -271,30 +299,13 @@ Future<void> confirmPin(String value) async {
           persistAcrossBackgrounding: true,
         );
         if (didAuthenticate) {
-          final Map<String, dynamic>? args =
-              Get.arguments as Map<String, dynamic>?;
-          if (args != null && args.containsKey('reason')) {
+          if (isSettingsFlow) {
             Get.back(result: true);
             return;
           }
-          if (fromSettings.value) {
-            final GetStorage box = GetStorage();
-            await PinHash.clearPin(box);
-            pinIsSet.value = false;
-            sessionUnlocked.value = false;
-            Get.back();
-            Get.snackbar(
-              "Success",
-              "PIN removed successfully.",
-              backgroundColor: AppColors.GREEN,
-              colorText: Colors.white,
-              snackPosition: SnackPosition.TOP,
-            );
-            fromSettings.value = false;
-          } else {
-            markSessionUnlocked();
-            Get.offAll(Home());
-          }
+
+          markSessionUnlocked();
+          Get.offAll(Home());
         } else {
           Get.snackbar(
             "Error",

@@ -55,8 +55,11 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       if (_didRunAutoResumeUnlock) return;
       _didRunAutoResumeUnlock = true;
 
-      if (_securityController.fingerprintInUse.value) {
-        _securityController.unlockWithFingerprint();
+      final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
+      final bool pinOnly = args?['pin_only'] ?? false;
+
+      if (!pinOnly && _securityController.fingerprintInUse.value) {
+        _securityController.unlockWithFingerprint(isSettingsFlow: pinOnly);
       } else {
         _pinFocus.requestFocus();
       }
@@ -185,7 +188,11 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                               child: InkWell(
                                 onTap: () {
                                   AppHaptics.light();
-                                  _securityController.unlockWithFingerprint();
+                                  final Map<String, dynamic>? args =
+                                      Get.arguments as Map<String, dynamic>?;
+                                  final bool pinOnly = args?['pin_only'] ?? false;
+                                  _securityController.unlockWithFingerprint(
+                                      isSettingsFlow: pinOnly);
                                 },
                                 borderRadius: BorderRadius.circular(32),
                                 child: Padding(
