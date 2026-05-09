@@ -4,6 +4,7 @@ import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
+import 'package:sqflite/sqflite.dart' hide Transaction;
 
 Future<int> addTransaction(Transaction transaction) async {
   Map<String, dynamic> data = transaction.toJson();
@@ -147,9 +148,27 @@ Future<int> deleteContact(Contact contact) async {
     where: "id = ?",
     whereArgs: [contact.id],
   );
-
   return res;
 }
+
+Future<int> countTransactionsForContact(int contactId) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> res = await dbClient.rawQuery(
+    "SELECT COUNT(*) as count FROM ${DBConstants.TRANSACTION} WHERE contactId = ?",
+    [contactId],
+  );
+  return Sqflite.firstIntValue(res) ?? 0;
+}
+
+Future<int> countBudgetLinesForContact(int contactId) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> res = await dbClient.rawQuery(
+    "SELECT COUNT(*) as count FROM ${DBConstants.BUDGET_LINE} WHERE contact_id = ?",
+    [contactId],
+  );
+  return Sqflite.firstIntValue(res) ?? 0;
+}
+
 
 Future<int> updateContact(Contact contact) async {
   if (contact.id <= 0) {

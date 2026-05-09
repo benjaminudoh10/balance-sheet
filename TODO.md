@@ -11,3 +11,12 @@
 - [x] Sent a local notification when a budget is completed as a result of a transaction entry
 - [x] Make the calendar show the view with selected end date when switching from date entry mode to date selection mode.
 - [x] Use the same widget for the single calendar date selection
+- [ ] Delete entries to the trash. Make it configurable (settings section).
+  - Enable or disable trash mode.
+    - if item in trash when disabling, either remove all trash items or keep it until it expires.
+  - Restore items from trash
+  - Set trash storage period (30 days)
+  - Ability to lock trash using fingerprint.
+- [ ] Mark multiple transactions to delete.
+- [ ] Search transactions in All transactions view by description (fuzzy logic?)
+- [x] Confirm dialog shown if deleting a contact that has transactions linked.

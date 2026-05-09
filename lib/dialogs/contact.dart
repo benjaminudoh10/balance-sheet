@@ -25,6 +25,123 @@ Future<void> showEditContactSheet(BuildContext context, Contact contact) async {
   );
 }
 
+/// Confirmation dialog for contact deletion.
+Future<void> showDeleteContactConfirmation(
+    BuildContext context, Contact contact) async {
+  AppHaptics.light();
+  final AppPalette p = AppPalette.of(context);
+  final ContactController contactController = Get.find();
+  final bool hasLinked = await contactController.hasLinkedItems(contact.id);
+
+  if (!context.mounted) return;
+
+  await showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    barrierColor: p.overlay,
+    builder: (BuildContext ctx) => Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      decoration: BoxDecoration(
+        color: p.surfaceElevated,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: p.border),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: p.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: p.coral.withValues(alpha: 0.12),
+            ),
+            child: Icon(
+              Icons.delete_outline_rounded,
+              color: p.coral,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Delete contact?',
+            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                  color: p.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            hasLinked
+                ? 'This contact is linked to existing transactions or budgets. Deleting it will remove the link, but the transactions will remain.'
+                : 'Are you sure you want to delete "${contact.name}"?',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: p.textSecondary,
+                  height: 1.4,
+                ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    AppHaptics.light();
+                    Get.back();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: p.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: p.textPrimary),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {
+                    AppHaptics.medium();
+                    Get.back();
+                    contactController.deleteContact(contact);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: p.coral,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _EditContactSheet extends StatefulWidget {
   const _EditContactSheet({required this.contact});
 

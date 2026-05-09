@@ -223,8 +223,8 @@ class _ContactViewState extends State<ContactView> {
                                           SlidableAction(
                                             onPressed:
                                                 AppHaptics.wrapSlidable((_) {
-                                              _contactController
-                                                  .deleteContact(contact);
+                                              showDeleteContactConfirmation(
+                                                  context, contact);
                                             }),
                                             backgroundColor: p.coral,
                                             foregroundColor: Colors.white,

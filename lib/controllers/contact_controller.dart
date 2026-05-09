@@ -132,6 +132,12 @@ class ContactController extends GetxController {
     }
   }
 
+  Future<bool> hasLinkedItems(int contactId) async {
+    final int txCount = await db.countTransactionsForContact(contactId);
+    final int budgetCount = await db.countBudgetLinesForContact(contactId);
+    return txCount > 0 || budgetCount > 0;
+  }
+
   deleteContact(Contact contact) async {
     await db.deleteContact(contact);
     contacts.value = contacts
