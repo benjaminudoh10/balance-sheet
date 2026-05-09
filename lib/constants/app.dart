@@ -50,4 +50,12 @@ class AppConstants {
 
   /// Max width for centered body when using the navigation rail (`home.dart`).
   static const double adaptiveContentMaxWidth = 1040;
+
+  /// Trash settings
+  static const USE_TRASH_KEY = "use_trash";
+  static const TRASH_PERIOD_DAYS_KEY = "trash_period_days";
+  static const LOCK_TRASH_KEY = "lock_trash";
+
+  /// Trash screen: slidable action peek.
+  static const SLIDABLE_PEEK_TRASH = 'slidable_peek_trash';
 }

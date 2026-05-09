@@ -45,6 +45,7 @@ class AppDb {
             contactId INTEGER,
             entryCurrency TEXT NOT NULL DEFAULT 'lcy',
             entryAmount INTEGER NOT NULL DEFAULT 0,
+            deletedAt INTEGER,
             FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
           )""");
         await db.execute("""
@@ -58,6 +59,12 @@ class AppDb {
         await db.execute(_sqlCreateInvestmentLots);
         await db.execute(_sqlCreateInvestmentPrices);
         await db.execute(_sqlCreateInvestmentOtherAssets);
+      },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+              "ALTER TABLE ${DBConstants.TRANSACTION} ADD COLUMN deletedAt INTEGER");
+        }
       },
     );
     return taskDb;

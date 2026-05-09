@@ -85,13 +85,19 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
     return Obx(() {
       final AppPalette p = AppPalette.of(context);
       final bool turningOffPin = _securityController.fromSettings.value;
+      final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
+      final String? authReason = args?['reason'];
 
-      final String appBarTitle = turningOffPin ? 'Turn off PIN' : 'Unlock';
-      final String headline =
-          turningOffPin ? 'Remove access PIN' : 'Welcome back';
-      final String subtitle = turningOffPin
-          ? 'Enter your current PIN to turn off app lock. You can set a PIN again anytime in Settings.'
-          : 'Enter your 4-digit PIN to open Balanced.';
+      final String appBarTitle = authReason != null
+          ? 'Authenticate'
+          : (turningOffPin ? 'Turn off PIN' : 'Unlock');
+      final String headline = authReason != null
+          ? 'Secure Area'
+          : (turningOffPin ? 'Remove access PIN' : 'Welcome back');
+      final String subtitle = authReason ??
+          (turningOffPin
+              ? 'Enter your current PIN to turn off app lock. You can set a PIN again anytime in Settings.'
+              : 'Enter your 4-digit PIN to open Balanced.');
 
       final IconData heroIcon =
           turningOffPin ? Icons.lock_open_rounded : Icons.lock_rounded;

@@ -13,6 +13,7 @@ import 'package:balance_sheet/screens/debug_clear_data_screen.dart';
 import 'package:balance_sheet/screens/debug_seed_data_screen.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
+import 'package:balance_sheet/screens/trash_screen.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/backup_import_progress_dialog.dart';
@@ -104,6 +105,8 @@ class SettingsView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 24),
+                          _settingsTrashSection(context, textTheme, p),
+                          const SizedBox(height: 24),
                           _settingsDataSection(context, textTheme, p),
                         ] else ...<Widget>[
                           _settingsThemeSection(context, textTheme, p),
@@ -113,6 +116,8 @@ class SettingsView extends StatelessWidget {
                           _settingsCurrenciesSection(context, textTheme, p),
                           const SizedBox(height: 20),
                           _settingsSecuritySection(context, textTheme, p),
+                          const SizedBox(height: 20),
+                          _settingsTrashSection(context, textTheme, p),
                           const SizedBox(height: 20),
                           _settingsDataSection(context, textTheme, p),
                         ],
@@ -338,6 +343,131 @@ class SettingsView extends StatelessWidget {
               onSwitch: (bool v) => _securityController.activateFingerPrint(v),
             )),
       ],
+    );
+  }
+
+  Widget _settingsTrashSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'TRASH',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _BackupActionRow(
+          label: 'View Trash',
+          subtitle: 'Restore or permanently delete removed transactions',
+          icon: Icons.delete_outline_rounded,
+          onTap: () async {
+            if (_appController.lockTrash.value) {
+              final bool ok = await _securityController
+                  .authenticateUser('Unlock Trash to view deleted items');
+              if (!ok) return;
+            }
+            Get.to(() => TrashView());
+          },
+        ),
+        const SizedBox(height: 10),
+        Obx(() => _SecuritySwitchRow(
+              title: 'Use Trash',
+              subtitle: 'Move transactions to trash instead of deleting them',
+              icon: Icons.auto_delete_outlined,
+              switchValue: _appController.useTrash.value,
+              switchDisabled: false,
+              onSwitch: (bool v) => _appController.setUseTrash(v),
+            )),
+        const SizedBox(height: 10),
+        Obx(() {
+          if (!_appController.useTrash.value) return const SizedBox.shrink();
+          return Column(
+            children: [
+              _SecuritySwitchRow(
+                title: 'Lock Trash',
+                subtitle: _securityController.pinIsSet.value
+                    ? 'Require PIN / fingerprint to view the Trash'
+                    : 'Requires App Lock to be enabled',
+                icon: Icons.lock_outline_rounded,
+                switchValue: _appController.lockTrash.value,
+                switchDisabled: !_securityController.pinIsSet.value,
+                onSwitch: (bool v) => _appController.setLockTrash(v),
+              ),
+              const SizedBox(height: 10),
+              _trashPeriodSelector(context, textTheme, p),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _trashPeriodSelector(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: p.surface,
+        border: Border.all(color: p.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: p.mint.withValues(alpha: 0.12),
+              border: Border.all(
+                color: p.mint.withValues(alpha: 0.22),
+              ),
+            ),
+            child: Icon(Icons.timer_outlined, color: p.mint, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Retention period',
+                  style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                ),
+                Text(
+                  'Automatically delete items after',
+                  style: textTheme.bodySmall!.copyWith(
+                    color: p.textSecondary.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DropdownButton<int>(
+            value: _appController.trashPeriodDays.value,
+            dropdownColor: p.surfaceElevated,
+            underline: const SizedBox(),
+            items: [7, 14, 30, 60, 90].map((int days) {
+              return DropdownMenuItem<int>(
+                value: days,
+                child: Text(
+                  '$days days',
+                  style: textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                ),
+              );
+            }).toList(),
+            onChanged: (int? v) {
+              if (v != null) {
+                AppHaptics.selection();
+                _appController.setTrashPeriodDays(v);
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 

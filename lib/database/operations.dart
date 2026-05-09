@@ -22,9 +22,65 @@ Future<int> deleteTransaction(Transaction transaction) async {
     where: "id = ?",
     whereArgs: [transaction.id],
   );
-
   return res;
 }
+
+Future<int> moveTransactionToTrash(int transactionId) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.update(
+    DBConstants.TRANSACTION,
+    {'deletedAt': DateTime.now().millisecondsSinceEpoch},
+    where: "id = ?",
+    whereArgs: [transactionId],
+  );
+}
+
+Future<int> restoreTransactionFromTrash(int transactionId) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.update(
+    DBConstants.TRANSACTION,
+    {'deletedAt': null},
+    where: "id = ?",
+    whereArgs: [transactionId],
+  );
+}
+
+Future<List<Transaction>> getTrashedTransactions() async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> maps = await dbClient.query(
+    DBConstants.TRANSACTION,
+    where: "deletedAt IS NOT NULL",
+    orderBy: "deletedAt DESC",
+  );
+  return maps.map((m) => Transaction.fromJson(m)).toList();
+}
+
+Future<int> permanentlyDeleteTransaction(int transactionId) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.delete(
+    DBConstants.TRANSACTION,
+    where: "id = ?",
+    whereArgs: [transactionId],
+  );
+}
+
+Future<int> cleanupTrash(int thresholdMs) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.delete(
+    DBConstants.TRANSACTION,
+    where: "deletedAt IS NOT NULL AND deletedAt < ?",
+    whereArgs: [thresholdMs],
+  );
+}
+
+Future<int> emptyTrash() async {
+  final dbClient = await AppDb().db;
+  return await dbClient.delete(
+    DBConstants.TRANSACTION,
+    where: "deletedAt IS NOT NULL",
+  );
+}
+
 
 Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
@@ -52,7 +108,7 @@ Future<List<Transaction>> getAllTransactions(
 }) async {
   var dbClient = await AppDb().db;
   String query =
-      "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime ";
+      "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime AND deletedAt IS NULL ";
   if (category != null && category != "Category") {
     query = "$query AND category = '$category' ";
   }
@@ -77,9 +133,9 @@ Future<List<Transaction>> getAllTransactions(
 Future<int> getBalances() async {
   var dbClient = await AppDb().db;
   final totalExpenses = await dbClient.rawQuery(
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure'");
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND deletedAt IS NULL");
   final totalIncome = await dbClient.rawQuery(
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income'");
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND deletedAt IS NULL");
   int income = (totalIncome[0]['total'] as int?) ?? 0;
   int expenses = (totalExpenses[0]['total'] as int?) ?? 0;
   return income - expenses;
@@ -93,9 +149,9 @@ Future<Map<String, int>> getTodayBalances() async {
       .millisecondsSinceEpoch;
   var dbClient = await AppDb().db;
   final totalExpenses = await dbClient.rawQuery(
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end");
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end AND deletedAt IS NULL");
   final totalIncome = await dbClient.rawQuery(
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end");
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end AND deletedAt IS NULL");
   return {
     'expenses': (totalExpenses[0]['total'] as int?) ?? 0,
     'income': (totalIncome[0]['total'] as int?) ?? 0,
@@ -106,9 +162,9 @@ Future<Map<String, int>> getExpenseForTimePeriod(int start, int end,
     {String? category, int? contactId}) async {
   var dbClient = await AppDb().db;
   String expenseQuery =
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end ";
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end AND deletedAt IS NULL ";
   String incomeQuery =
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end ";
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end AND deletedAt IS NULL ";
   if (category != null && category != "Category") {
     expenseQuery = "$expenseQuery AND category = '$category' ";
     incomeQuery = "$incomeQuery AND category = '$category' ";

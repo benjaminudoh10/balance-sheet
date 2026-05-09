@@ -171,29 +171,33 @@ class SecurityController extends GetxController {
 
     return true;
   }
-
-  Future<void> confirmPin(String value) async {
-    final GetStorage box = GetStorage();
-    if (!PinHash.verify(box, value)) {
-      /* this is a hack. find a better solution by understanding why reset does not work */
-      if (fromSettings.value) {
-        Get.back();
-        Get.to(LockScreen(), transition: Transition.noTransition);
-      } else {
-        Get.offAll(LockScreen(), transition: Transition.noTransition);
-      }
-      /* end of hack */
-      Get.snackbar(
-        "Error",
-        "Invalid PIN provided. Try again.",
-        backgroundColor: AppColors.SNACKBAR_RED,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-      );
+Future<void> confirmPin(String value) async {
+  final GetStorage box = GetStorage();
+  if (!PinHash.verify(box, value)) {
+    /* this is a hack. find a better solution by understanding why reset does not work */
+    if (fromSettings.value) {
+      Get.back();
+      Get.to(LockScreen(), transition: Transition.noTransition);
     } else {
-      if (fromSettings.value) {
-        await PinHash.clearPin(box);
-        pinIsSet.value = false;
+      Get.offAll(LockScreen(), transition: Transition.noTransition);
+    }
+    /* end of hack */
+    Get.snackbar(
+      "Error",
+      "Invalid PIN provided. Try again.",
+      backgroundColor: AppColors.SNACKBAR_RED,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+    );
+  } else {
+    final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
+    if (args != null && args.containsKey('reason')) {
+      Get.back(result: true);
+      return;
+    }
+    if (fromSettings.value) {
+      await PinHash.clearPin(box);
+      pinIsSet.value = false;
         sessionUnlocked.value = false;
         Get.back();
         Get.snackbar(
@@ -226,6 +230,34 @@ class SecurityController extends GetxController {
     fingerprintInUse.value = value;
   }
 
+  /// Prompts for authentication (Biometric or PIN) and returns true if successful.
+  /// Used for protecting sensitive views like Trash.
+  Future<bool> authenticateUser(String reason) async {
+    if (!pinIsSet.value) return true;
+
+    // Try fingerprint first if enabled
+    if (fingerprintInUse.value) {
+      final LocalAuthentication localAuth = LocalAuthentication();
+      final bool canCheckBiometrics = await localAuth.canCheckBiometrics;
+      if (canCheckBiometrics) {
+        try {
+          final bool didAuthenticate = await localAuth.authenticate(
+            localizedReason: reason,
+            biometricOnly: true,
+            persistAcrossBackgrounding: true,
+          );
+          if (didAuthenticate) return true;
+        } catch (e) {
+          debugPrint('Biometric auth failed: $e');
+        }
+      }
+    }
+
+    // Fallback or explicit PIN request
+    final dynamic result = await Get.toNamed('/lock', arguments: {'reason': reason});
+    return result == true;
+  }
+
   unlockWithFingerprint() async {
     if (!fingerprintInUse.value) return;
 
@@ -239,6 +271,12 @@ class SecurityController extends GetxController {
           persistAcrossBackgrounding: true,
         );
         if (didAuthenticate) {
+          final Map<String, dynamic>? args =
+              Get.arguments as Map<String, dynamic>?;
+          if (args != null && args.containsKey('reason')) {
+            Get.back(result: true);
+            return;
+          }
           if (fromSettings.value) {
             final GetStorage box = GetStorage();
             await PinHash.clearPin(box);

@@ -126,6 +126,7 @@ Future<void> clearSlidablePeekCompletionRecords(GetStorage box) async {
   await box.remove(AppConstants.SLIDABLE_PEEK_CONTACTS);
   await box.remove(AppConstants.SLIDABLE_PEEK_INVESTMENTS);
   await box.remove(AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER);
+  await box.remove(AppConstants.SLIDABLE_PEEK_TRASH);
 }
 
 /// Clears slidable peeks plus the home balance / net worth pager coach.

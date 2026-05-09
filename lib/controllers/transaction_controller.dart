@@ -1,4 +1,5 @@
 import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/controllers/budget_controller.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
@@ -29,6 +30,7 @@ class TransactionController extends GetxController {
   RxInt todaysIncome = 0.obs;
 
   var transactions = <Transaction>[].obs;
+  var trashedTransactions = <Transaction>[].obs;
   final Rxn<Contact> contact = Rxn<Contact>();
 
   /// When the income/expense sheet saves, this becomes [Transaction.date].
@@ -130,7 +132,17 @@ class TransactionController extends GetxController {
   }
 
   deleteTransaction(Transaction transaction) async {
-    var res = await db.deleteTransaction(transaction);
+    final AppController app = Get.find();
+    int res;
+    bool movedToTrash = false;
+
+    if (app.useTrash.value) {
+      res = await db.moveTransactionToTrash(transaction.id);
+      movedToTrash = true;
+    } else {
+      res = await db.deleteTransaction(transaction);
+    }
+
     Get.back();
     if (res == 1) {
       // remove txn from UI
@@ -146,20 +158,69 @@ class TransactionController extends GetxController {
 
       Get.snackbar(
         "Successful",
-        "Transaction deleted successfully",
+        movedToTrash
+            ? "Transaction moved to trash"
+            : "Transaction deleted successfully",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: AppColors.GREEN,
       );
     } else {
       Get.snackbar(
-        "Not deleted",
-        "This transaction has already been deleted. Close modal and reopen to get rid of it.",
+        "Error",
+        "Could not delete transaction. It may have already been removed.",
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         backgroundColor: AppColors.SNACKBAR_RED,
       );
     }
+  }
+
+  Future<void> restoreTransaction(Transaction transaction) async {
+    final int res = await db.restoreTransactionFromTrash(transaction.id);
+    if (res == 1) {
+      trashedTransactions.value =
+          trashedTransactions.where((t) => t.id != transaction.id).toList();
+      await loadHomeScreenData();
+      Get.snackbar(
+        "Restored",
+        "Transaction restored successfully",
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.GREEN,
+      );
+    }
+  }
+
+  Future<void> loadTrashedTransactions() async {
+    trashedTransactions.value = await db.getTrashedTransactions();
+  }
+
+  Future<void> permanentlyDeleteTransaction(Transaction transaction) async {
+    final int res = await db.permanentlyDeleteTransaction(transaction.id);
+    if (res == 1) {
+      trashedTransactions.value =
+          trashedTransactions.where((t) => t.id != transaction.id).toList();
+      Get.snackbar(
+        "Deleted",
+        "Transaction permanently deleted",
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.GREEN,
+      );
+    }
+  }
+
+  Future<void> emptyTrash() async {
+    await db.emptyTrash();
+    trashedTransactions.clear();
+    Get.snackbar(
+      "Trash Emptied",
+      "All items in trash have been permanently removed.",
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+    );
   }
 
   getTransactions(int startMillisecond, int endMillisecond) async {

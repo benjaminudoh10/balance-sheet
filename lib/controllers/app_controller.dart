@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:balance_sheet/constants/app.dart';
+import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,11 @@ class AppController extends GetxController {
 
   /// User preference: light, dark, or follow OS.
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+
+  /// Trash settings
+  final RxBool useTrash = false.obs;
+  final RxInt trashPeriodDays = 30.obs;
+  final RxBool lockTrash = false.obs;
 
   /// Populated asynchronously in [onInit] from [PackageInfo.fromPlatform];
   /// reads `version` from `pubspec.yaml` at build time so UI never drifts
@@ -36,7 +42,22 @@ class AppController extends GetxController {
     }
     final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
     themeMode.value = _themeModeFromStorage(modeRaw);
+
+    useTrash.value = box.read<bool>(AppConstants.USE_TRASH_KEY) ?? true;
+    trashPeriodDays.value =
+        box.read<int>(AppConstants.TRASH_PERIOD_DAYS_KEY) ?? 30;
+    lockTrash.value = box.read<bool>(AppConstants.LOCK_TRASH_KEY) ?? false;
+
     unawaited(_loadAppVersion());
+    unawaited(_cleanupTrash());
+  }
+
+  Future<void> _cleanupTrash() async {
+    if (!useTrash.value) return;
+    final int thresholdMs = DateTime.now()
+        .subtract(Duration(days: trashPeriodDays.value))
+        .millisecondsSinceEpoch;
+    await db.cleanupTrash(thresholdMs);
   }
 
   Future<void> _loadAppVersion() async {
@@ -61,6 +82,21 @@ class AppController extends GetxController {
         .write(AppConstants.APP_THEME_MODE_KEY, _themeModeToStorage(mode));
   }
 
+  void setUseTrash(bool value) {
+    useTrash.value = value;
+    GetStorage().write(AppConstants.USE_TRASH_KEY, value);
+  }
+
+  void setTrashPeriodDays(int value) {
+    trashPeriodDays.value = value;
+    GetStorage().write(AppConstants.TRASH_PERIOD_DAYS_KEY, value);
+  }
+
+  void setLockTrash(bool value) {
+    lockTrash.value = value;
+    GetStorage().write(AppConstants.LOCK_TRASH_KEY, value);
+  }
+
   /// Reloads font and theme from [GetStorage] (e.g. after backup import).
   void syncFromStorage() {
     final GetStorage box = GetStorage();
@@ -70,6 +106,11 @@ class AppController extends GetxController {
     }
     final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
     themeMode.value = _themeModeFromStorage(modeRaw);
+
+    useTrash.value = box.read<bool>(AppConstants.USE_TRASH_KEY) ?? true;
+    trashPeriodDays.value =
+        box.read<int>(AppConstants.TRASH_PERIOD_DAYS_KEY) ?? 30;
+    lockTrash.value = box.read<bool>(AppConstants.LOCK_TRASH_KEY) ?? false;
   }
 
   static ThemeMode _themeModeFromStorage(String? raw) {

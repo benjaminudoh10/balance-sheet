@@ -186,6 +186,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             darkTheme: buildDarkAppTheme(app.fontId.value),
             themeMode: app.themeMode.value,
             home: Splash(),
+            getPages: [
+              GetPage(name: '/lock', page: () => LockScreen()),
+            ],
             debugShowCheckedModeBanner: false,
             builder: (BuildContext context, Widget? child) {
               return AnnotatedRegion<SystemUiOverlayStyle>(

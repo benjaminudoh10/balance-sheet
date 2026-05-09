@@ -11,6 +11,7 @@ class Transaction {
     required this.contactId,
     this.entryIsFcy = false,
     this.entryAmountMinor = 0,
+    this.deletedAt,
   });
 
   @override
@@ -34,6 +35,10 @@ class Transaction {
   /// Minor units in the **entry** currency (LCY or FCY) for display on line items.
   final int entryAmountMinor;
 
+  /// Timestamp in milliseconds when the transaction was moved to trash.
+  /// Null if the transaction is active.
+  final DateTime? deletedAt;
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,
@@ -45,6 +50,7 @@ class Transaction {
       "contactId": contactId,
       "entryCurrency": entryIsFcy ? "fcy" : "lcy",
       "entryAmount": entryAmountMinor,
+      "deletedAt": deletedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -59,6 +65,9 @@ class Transaction {
     final String? ec = data['entryCurrency'] as String?;
     final bool isFcy = ec == 'fcy';
     final int rawEntry = data['entryAmount'] as int? ?? 0;
+
+    final int? rawDeletedAt = data['deletedAt'] as int?;
+
     return Transaction(
       id: data['id'] as int? ?? 0,
       amount: amount,
@@ -71,6 +80,9 @@ class Transaction {
       contactId: contactId,
       entryIsFcy: isFcy,
       entryAmountMinor: isFcy ? rawEntry : amount,
+      deletedAt: rawDeletedAt != null
+          ? DateTime.fromMillisecondsSinceEpoch(rawDeletedAt)
+          : null,
     );
   }
 }
