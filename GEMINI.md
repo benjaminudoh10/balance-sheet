@@ -58,7 +58,8 @@ Welcome to the **Balanced** project (internal package name: `balance_sheet`). Th
 ### Commands
 - **Install Dependencies:** `flutter pub get`
 - **Run App:** `flutter run`
-- **Run Tests:** `flutter test`
+- **Run Tests:** `flutter test --concurrency=1`
+- **Analyze Code:** `dart analyze`
 - **Generate Assets:**
   ```bash
   python3 tool/render_launcher_icon.py
