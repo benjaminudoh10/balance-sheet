@@ -17,6 +17,6 @@
   - [x] Restore items from trash
   - [x] Set trash storage period (30 days)
   - [x] Ability to lock trash using fingerprint.
-- [ ] Mark multiple transactions to delete.
+- [x] Mark multiple transactions to delete.
 - [ ] Search transactions in All transactions view by description (fuzzy logic?)
 - [x] Confirm dialog shown if deleting a contact that has transactions linked.

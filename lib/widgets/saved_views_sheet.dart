@@ -180,6 +180,8 @@ class _SavedViewsSheetBodyState extends State<_SavedViewsSheetBody> {
                       ),
                     )
                   : ListView.separated(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
                       itemCount: _rows.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 4),
