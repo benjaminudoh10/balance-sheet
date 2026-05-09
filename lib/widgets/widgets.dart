@@ -45,6 +45,9 @@ Widget singleTransactionContainer(
   BuildContext context,
   Transaction transaction, {
   bool applySlidablePeek = false,
+  bool isSelected = false,
+  VoidCallback? onTap,
+  VoidCallback? onLongPress,
 }) {
   final TextTheme textTheme = Theme.of(context).textTheme;
   final AppPalette p = AppPalette.of(context);
@@ -54,142 +57,155 @@ Widget singleTransactionContainer(
 
   return Padding(
     padding: const EdgeInsets.only(top: 2.0),
-    child: Slidable(
-      key: ValueKey<int>(transaction.id),
-      groupTag: 'transaction_rows',
-      closeOnScroll: true,
-      // LTR: swipe right (reading direction) reveals start pane — Edit.
-      // Note: [DismissiblePane] is for removing the row from the tree after a full
-      // swipe (e.g. delete list items). Using it with persistent rows triggers
-      // "dismissed Slidable is still part of the tree". Edit opens via the action.
-      startActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        extentRatio: 0.28,
-        children: [
-          SlidableAction(
-            onPressed:
-                AppHaptics.wrapSlidable((_) => _openEditModalFor(transaction)),
-            backgroundColor: p.mint,
-            foregroundColor: Colors.black87,
-            icon: Icons.edit_rounded,
-            label: 'Edit',
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ],
+    child: Container(
+      decoration: BoxDecoration(
+        color: isSelected ? p.mint.withValues(alpha: 0.2) : p.surface,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(
+          color: isSelected ? p.mint : p.border,
+          width: isSelected ? 2.0 : 1.0,
+        ),
       ),
-      // Swipe left reveals end pane — Delete.
-      endActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        extentRatio: 0.28,
-        children: [
-          SlidableAction(
-            onPressed:
-                AppHaptics.wrapSlidable((_) => showDeleteModal(transaction)),
-            backgroundColor: p.coral,
-            foregroundColor: Colors.white,
-            icon: Icons.delete_outline_rounded,
-            label: 'Delete',
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ],
-      ),
-      child: SlidablePeekHint(
-        storageKey: AppConstants.SLIDABLE_PEEK_TRANSACTIONS,
-        enabled: applySlidablePeek,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12.0),
-            onTap: AppHaptics.wrap(() => _openEditModalFor(transaction)),
-            child: Container(
-              decoration: BoxDecoration(
-                color: p.surface,
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(color: p.border),
+      child: Slidable(
+        key: ValueKey<int>(transaction.id),
+        groupTag: 'transaction_rows',
+        closeOnScroll: true,
+        enabled: !isSelected,
+        startActionPane: isSelected
+            ? null
+            : ActionPane(
+                motion: const DrawerMotion(),
+                extentRatio: 0.28,
+                children: [
+                  SlidableAction(
+                    onPressed: AppHaptics.wrapSlidable(
+                        (_) => _openEditModalFor(transaction)),
+                    backgroundColor: p.mint,
+                    foregroundColor: Colors.black87,
+                    icon: Icons.edit_rounded,
+                    label: 'Edit',
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ],
               ),
-              clipBehavior: Clip.antiAlias,
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 4,
-                      color: accent,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0, vertical: 12.0),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                                border: Border.all(
-                                    color: accent.withValues(alpha: 0.55)),
-                                color: accent.withValues(alpha: 0.12),
+        endActionPane: isSelected
+            ? null
+            : ActionPane(
+                motion: const DrawerMotion(),
+                extentRatio: 0.28,
+                children: [
+                  SlidableAction(
+                    onPressed: AppHaptics.wrapSlidable(
+                        (_) => showDeleteModal(transaction)),
+                    backgroundColor: p.coral,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Delete',
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ],
+              ),
+        child: SlidablePeekHint(
+          storageKey: AppConstants.SLIDABLE_PEEK_TRANSACTIONS,
+          enabled: applySlidablePeek,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12.0),
+              onTap: onTap,
+              onLongPress: onLongPress,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
+                        color: isSelected ? p.mint : accent,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 12.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(
+                                      color: accent.withValues(alpha: 0.55)),
+                                  color: accent.withValues(alpha: 0.12),
+                                ),
+                                child: isSelected
+                                    ? Icon(Icons.check_rounded,
+                                        color: p.mint, size: 24.0)
+                                    : Icon(
+                                        Categories.iconForKey(
+                                            transaction.category),
+                                        color: accent,
+                                        size: 22.0,
+                                      ),
                               ),
-                              child: Icon(
-                                Categories.iconForKey(transaction.category),
-                                color: accent,
-                                size: 22.0,
-                              ),
-                            ),
-                            const SizedBox(width: 12.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    transaction.description,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style: textTheme.titleSmall!.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: p.textPrimary,
+                              const SizedBox(width: 12.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      transaction.description,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: p.textPrimary,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 6.0),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      if (categoryLabel.isNotEmpty) ...[
-                                        Flexible(
-                                          child: CategoryPillLabel(
-                                            categoryKey: transaction.category,
-                                            label: categoryLabel,
+                                    const SizedBox(height: 6.0),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        if (categoryLabel.isNotEmpty) ...[
+                                          Flexible(
+                                            child: CategoryPillLabel(
+                                              categoryKey: transaction.category,
+                                              label: categoryLabel,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8.0),
+                                        ],
+                                        Text(
+                                          DateFormat.jm()
+                                              .format(transaction.date),
+                                          style: textTheme.bodySmall!.copyWith(
+                                            color: p.textSecondary,
                                           ),
                                         ),
-                                        const SizedBox(width: 8.0),
                                       ],
-                                      Text(
-                                        DateFormat.jm()
-                                            .format(transaction.date),
-                                        style: textTheme.bodySmall!.copyWith(
-                                          color: p.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(
-                              formatTransactionDisplayAmount(transaction),
-                              style: textTheme.titleSmall!.copyWith(
-                                color: p.textPrimary,
-                                fontWeight: FontWeight.w600,
+                              Text(
+                                formatTransactionDisplayAmount(transaction),
+                                style: textTheme.titleSmall!.copyWith(
+                                  color: p.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

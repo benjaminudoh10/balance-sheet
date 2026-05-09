@@ -166,3 +166,106 @@ void showDeleteModal(Transaction transaction) {
     },
   );
 }
+
+void showMultiDeleteModal(VoidCallback onDelete) {
+  final BuildContext context = Get.context!;
+
+  showModalBottomSheet<void>(
+    backgroundColor: Colors.transparent,
+    barrierColor: AppPalette.of(context).overlay,
+    isScrollControlled: true,
+    context: context,
+    builder: (context) {
+      final AppPalette p = AppPalette.of(context);
+      final double inset = MediaQuery.viewInsetsOf(context).bottom;
+      return Padding(
+        padding: EdgeInsets.only(bottom: inset),
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          decoration: BoxDecoration(
+            color: p.surfaceElevated,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: p.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Are you sure you want to delete these transactions?',
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: p.textPrimary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: p.coral,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  onPressed: () {
+                    AppHaptics.medium();
+                    onDelete();
+                    Get.back();
+                  },
+                  child: Text(
+                    'YES',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: p.mint,
+                    backgroundColor: p.surface,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: p.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  onPressed: () {
+                    AppHaptics.light();
+                    Get.back();
+                  },
+                  child: Text(
+                    'NO',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: p.mint,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}

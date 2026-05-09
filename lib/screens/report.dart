@@ -19,8 +19,25 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:balance_sheet/controllers/contact_controller.dart';
+import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
+void _openEditModalFor(Transaction transaction) {
+  showEditModal(
+    transaction,
+    _contactNameForTransactionEdit(transaction),
+  );
+}
+
+String _contactNameForTransactionEdit(Transaction transaction) {
+  final contacts = Get.find<ContactController>().contacts;
+  for (final c in contacts) {
+    if (c.id == transaction.contactId) return c.name;
+  }
+  return '';
+}
 
 const double _horizontalPad = 20.0;
 
@@ -146,49 +163,77 @@ class _ReportViewState extends State<ReportView> {
     return Scaffold(
       backgroundColor: p.background,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        systemOverlayStyle: p.systemUiOverlayStyle,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          color: p.textPrimary,
-          onPressed: () {
-            AppHaptics.light();
-            Get.back();
-          },
-        ),
-        title: Text(
-          'All transactions',
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: p.textPrimary,
-                letterSpacing: -0.4,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Obx(() {
+          final bool isMultiSelect = _reportController.isMultiSelectMode;
+          return AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            systemOverlayStyle: p.systemUiOverlayStyle,
+            leading: IconButton(
+              icon: Icon(
+                isMultiSelect ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
+                size: isMultiSelect ? 24 : 20,
               ),
-        ),
-        centerTitle: false,
-        actions: <Widget>[
-          IconButton(
-            tooltip: 'Export PDF',
-            icon: Icon(Icons.picture_as_pdf_outlined, color: p.textPrimary),
-            onPressed: _exportPdf,
-          ),
-          IconButton(
-            tooltip: 'Saved views',
-            icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
-            onPressed: () {
-              AppHaptics.light();
-              showSavedViewsSheet(
-                context,
-                palette: p,
-                featureKey: SavedViewsStorage.featureReport,
-                surfaceTitle: 'All transactions',
-                capturePayload: () => _reportController.captureSavedViewState(),
-                applyPayload: _reportController.applySavedViewState,
-              );
-            },
-          ),
-        ],
+              color: p.textPrimary,
+              onPressed: () {
+                AppHaptics.light();
+                if (isMultiSelect) {
+                  _reportController.clearSelection();
+                } else {
+                  Get.back();
+                }
+              },
+            ),
+            title: Text(
+              isMultiSelect
+                  ? '${_reportController.selectedTransactionIds.length} selected'
+                  : 'All transactions',
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: p.textPrimary,
+                    letterSpacing: -0.4,
+                  ),
+            ),
+            centerTitle: false,
+            actions: isMultiSelect
+                ? <Widget>[
+                    IconButton(
+                      tooltip: 'Delete selected',
+                      icon: Icon(Icons.delete_outline_rounded, color: p.coral),
+                      onPressed: () {
+                        AppHaptics.heavy();
+                        showMultiDeleteModal(_reportController.deleteSelectedTransactions);
+                      },
+                    ),
+                  ]
+                : <Widget>[
+                    IconButton(
+                      tooltip: 'Export PDF',
+                      icon: Icon(Icons.picture_as_pdf_outlined,
+                          color: p.textPrimary),
+                      onPressed: _exportPdf,
+                    ),
+                    IconButton(
+                      tooltip: 'Saved views',
+                      icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+                      onPressed: () {
+                        AppHaptics.light();
+                        showSavedViewsSheet(
+                          context,
+                          palette: p,
+                          featureKey: SavedViewsStorage.featureReport,
+                          surfaceTitle: 'All transactions',
+                          capturePayload: () =>
+                              _reportController.captureSavedViewState(),
+                          applyPayload: _reportController.applySavedViewState,
+                        );
+                      },
+                    ),
+                  ],
+          );
+        }),
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -354,14 +399,31 @@ List<Widget> _buildGroupedTransactionSlivers(
         if (peek) {
           applyPeekToNextTransaction = false;
         }
+        final Transaction t = dayTx[i];
         out.add(
           Padding(
             padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
-            child: singleTransactionContainer(
-              context,
-              dayTx[i],
-              applySlidablePeek: peek,
-            ),
+            child: Obx(() {
+              final bool isSelected = c.selectedTransactionIds.contains(t.id);
+              return singleTransactionContainer(
+                context,
+                t,
+                applySlidablePeek: peek,
+                isSelected: isSelected,
+                onTap: () {
+                  if (c.isMultiSelectMode) {
+                    AppHaptics.selection();
+                    c.toggleTransactionSelection(t.id);
+                  } else {
+                    _openEditModalFor(t);
+                  }
+                },
+                onLongPress: () {
+                  AppHaptics.heavy();
+                  c.toggleTransactionSelection(t.id);
+                },
+              );
+            }),
           ),
         );
       }
@@ -376,6 +438,9 @@ List<Widget> _buildGroupedTransactionSlivers(
           applyPeekToNextTransaction = false;
         }
 
+        final Transaction t0 = dayTx[i0];
+        final Transaction? t1 = i1 != null ? dayTx[i1] : null;
+
         out.add(
           Padding(
             padding: EdgeInsets.only(bottom: row == rows - 1 ? 18 : 10),
@@ -383,20 +448,54 @@ List<Widget> _buildGroupedTransactionSlivers(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
-                  child: singleTransactionContainer(
-                    context,
-                    dayTx[i0],
-                    applySlidablePeek: peekLeft,
-                  ),
+                  child: Obx(() {
+                    final bool isSelected =
+                        c.selectedTransactionIds.contains(t0.id);
+                    return singleTransactionContainer(
+                      context,
+                      t0,
+                      applySlidablePeek: peekLeft,
+                      isSelected: isSelected,
+                      onTap: () {
+                        if (c.isMultiSelectMode) {
+                          AppHaptics.selection();
+                          c.toggleTransactionSelection(t0.id);
+                        } else {
+                          _openEditModalFor(t0);
+                        }
+                      },
+                      onLongPress: () {
+                        AppHaptics.heavy();
+                        c.toggleTransactionSelection(t0.id);
+                      },
+                    );
+                  }),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: i1 != null
-                      ? singleTransactionContainer(
-                          context,
-                          dayTx[i1],
-                          applySlidablePeek: false,
-                        )
+                  child: t1 != null
+                      ? Obx(() {
+                          final bool isSelected =
+                              c.selectedTransactionIds.contains(t1.id);
+                          return singleTransactionContainer(
+                            context,
+                            t1,
+                            applySlidablePeek: false,
+                            isSelected: isSelected,
+                            onTap: () {
+                              if (c.isMultiSelectMode) {
+                                AppHaptics.selection();
+                                c.toggleTransactionSelection(t1.id);
+                              } else {
+                                _openEditModalFor(t1);
+                              }
+                            },
+                            onLongPress: () {
+                              AppHaptics.heavy();
+                              c.toggleTransactionSelection(t1.id);
+                            },
+                          );
+                        })
                       : const SizedBox.shrink(),
                 ),
               ],

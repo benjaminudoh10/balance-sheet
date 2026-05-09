@@ -1,4 +1,6 @@
 import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/constants/colors.dart';
+import 'package:balance_sheet/controllers/app_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
@@ -46,6 +48,45 @@ class ReportController extends GetxController {
 
   /// Avoids duplicate DB work when [applySavedViewState] sets category/contact together.
   bool _suppressFilterReload = false;
+
+  RxSet<int> selectedTransactionIds = <int>{}.obs;
+
+  bool get isMultiSelectMode => selectedTransactionIds.isNotEmpty;
+
+  void toggleTransactionSelection(int transactionId) {
+    if (selectedTransactionIds.contains(transactionId)) {
+      selectedTransactionIds.remove(transactionId);
+    } else {
+      selectedTransactionIds.add(transactionId);
+    }
+  }
+
+  void clearSelection() {
+    selectedTransactionIds.clear();
+  }
+
+  Future<void> deleteSelectedTransactions() async {
+    final bool useTrash = Get.find<AppController>().useTrash.value;
+    for (final int id in selectedTransactionIds) {
+      if (useTrash) {
+        await db.moveTransactionToTrash(id);
+      } else {
+        await db.permanentlyDeleteTransaction(id);
+      }
+    }
+    final int count = selectedTransactionIds.length;
+    clearSelection();
+    await getTransactions();
+    await getTransactionTotal();
+
+    Get.snackbar(
+      "Successful",
+      '$count ${count == 1 ? 'transaction' : 'transactions'} ${useTrash ? 'moved to trash' : 'deleted successfully'}',
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+    );
+  }
 
   /// Monotonic token so paginated fetches that started before a filter change
   /// don't leak stale rows into the list after a reset.

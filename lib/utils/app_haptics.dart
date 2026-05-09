@@ -9,6 +9,8 @@ abstract final class AppHaptics {
 
   static void medium() => HapticFeedback.mediumImpact();
 
+  static void heavy() => HapticFeedback.heavyImpact();
+
   static VoidCallback? wrap(VoidCallback? callback) {
     if (callback == null) return null;
     return () {
