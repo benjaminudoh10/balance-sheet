@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
-import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
 import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
@@ -102,19 +101,11 @@ Widget _homeTransactionListSliver({
         applySlidablePeek: index == 0,
         onTap: AppHaptics.wrap(() => showEditModal(
               transaction,
-              _contactNameForTransaction(transaction),
+              getContactNameForTransaction(transaction),
             )),
       );
     },
   );
-}
-
-String _contactNameForTransaction(Transaction transaction) {
-  final contacts = Get.find<ContactController>().contacts;
-  for (final c in contacts) {
-    if (c.id == transaction.contactId) return c.name;
-  }
-  return '';
 }
 
 /// Extra [PageView] height so the net-worth strip (header + dual totals + rows) does not clip

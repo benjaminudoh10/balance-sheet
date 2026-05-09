@@ -19,24 +19,16 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
+import 'package:balance_sheet/utils.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 void _openEditModalFor(Transaction transaction) {
   showEditModal(
     transaction,
-    _contactNameForTransactionEdit(transaction),
+    getContactNameForTransaction(transaction),
   );
-}
-
-String _contactNameForTransactionEdit(Transaction transaction) {
-  final contacts = Get.find<ContactController>().contacts;
-  for (final c in contacts) {
-    if (c.id == transaction.contactId) return c.name;
-  }
-  return '';
 }
 
 const double _horizontalPad = 20.0;

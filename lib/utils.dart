@@ -1,8 +1,18 @@
+import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
+String getContactNameForTransaction(Transaction transaction) {
+  if (transaction.contactId <= 0) return '';
+  final contacts = Get.find<ContactController>().contacts;
+  for (final c in contacts) {
+    if (c.id == transaction.contactId) return c.name;
+  }
+  return '';
+}
 
 /// Parses a plain amount string (e.g. `1,234.56`) into **minor units** (cents). Returns null if invalid.
 int? parseMoneyStringToMinor(String raw) {

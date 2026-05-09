@@ -72,5 +72,7 @@ Welcome to the **Balanced** project (internal package name: `balance_sheet`). Th
 
 - **Surgical Edits:** When modifying database logic, ensure changes are reflected in both `lib/database/db.dart` (for schema) and `lib/database/operations.dart`.
 - **Testing:** Every bug fix or feature addition must include a corresponding test case in `test/`. Mirror the directory structure of `lib/` in the `test/` folder.
+- Run the tests using flutter test --concurrency=1.
+- Ensure the code is DRY compliant.
 - **Privacy:** Do not log or print sensitive user data. The app is designed for local-only storage.
 - **UI Consistency:** Before creating new widgets, check `lib/widgets/widgets.dart` for existing patterns to maintain the "Midnight" aesthetic.

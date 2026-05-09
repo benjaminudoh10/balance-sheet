@@ -3,7 +3,6 @@ import 'dart:ui' show ImageFilter;
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
-import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
@@ -13,16 +12,7 @@ import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
-String _contactNameForTransactionEdit(Transaction transaction) {
-  final contacts = Get.find<ContactController>().contacts;
-  for (final c in contacts) {
-    if (c.id == transaction.contactId) return c.name;
-  }
-  return '';
-}
 
 String _categoryLabelForTransaction(Transaction transaction) {
   final matches = Categories.CATEGORIES
@@ -37,7 +27,7 @@ String _categoryLabelForTransaction(Transaction transaction) {
 void _openEditModalFor(Transaction transaction) {
   showEditModal(
     transaction,
-    _contactNameForTransactionEdit(transaction),
+    getContactNameForTransaction(transaction),
   );
 }
 
