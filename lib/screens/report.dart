@@ -411,6 +411,7 @@ List<Widget> _buildGroupedTransactionSlivers(
                     AppHaptics.selection();
                     c.toggleTransactionSelection(t.id);
                   } else {
+                    AppHaptics.light();
                     _openEditModalFor(t);
                   }
                 },
