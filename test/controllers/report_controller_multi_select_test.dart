@@ -25,7 +25,7 @@ void main() {
 
     test('selects and deselects transactions', () async {
       final rc = Get.put(ReportController());
-      
+
       // Add transactions
       for (int i = 0; i < 3; i++) {
         await db_ops.addTransaction(Transaction(
@@ -57,7 +57,7 @@ void main() {
 
     test('deletes selected transactions', () async {
       final rc = Get.put(ReportController());
-      
+
       // Add transactions
       for (int i = 0; i < 3; i++) {
         await db_ops.addTransaction(Transaction(
@@ -74,7 +74,7 @@ void main() {
       // Ensure report controller covers the current day
       rc.type.value = ReportType.today;
       rc.timeFrames = rc.getTimeFrame();
-      
+
       await rc.getTransactions();
       expect(rc.transactions.length, 3);
       // This line is failing?

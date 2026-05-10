@@ -81,7 +81,6 @@ Future<int> emptyTrash() async {
   );
 }
 
-
 Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   int res = await dbClient.update(
@@ -224,7 +223,6 @@ Future<int> countBudgetLinesForContact(int contactId) async {
   );
   return Sqflite.firstIntValue(res) ?? 0;
 }
-
 
 Future<int> updateContact(Contact contact) async {
   if (contact.id <= 0) {

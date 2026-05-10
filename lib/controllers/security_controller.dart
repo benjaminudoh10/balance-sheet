@@ -171,60 +171,61 @@ class SecurityController extends GetxController {
 
     return true;
   }
-Future<void> confirmPin(String value) async {
-  final GetStorage box = GetStorage();
-  if (!PinHash.verify(box, value)) {
-    /* this is a hack. find a better solution by understanding why reset does not work */
-    if (fromSettings.value) {
-      Get.back();
-      Get.to(LockScreen(), transition: Transition.noTransition);
-    } else {
-      Get.offAll(LockScreen(), transition: Transition.noTransition);
-    }
-    /* end of hack */
-    Get.snackbar(
-      "Error",
-      "Invalid PIN provided. Try again.",
-      backgroundColor: AppColors.SNACKBAR_RED,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.TOP,
-    );
-  } else {
-    final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
-    final bool pinOnly = args?['pin_only'] ?? false;
 
-    // If it's a re-auth request that ISN'T the PIN removal flow, return early.
-    if (args != null && args.containsKey('reason') && !pinOnly) {
-      Get.back(result: true);
-      return;
-    }
-
-    if (fromSettings.value) {
-      await PinHash.clearPin(box);
-      pinIsSet.value = false;
-      sessionUnlocked.value = false;
-      Get.back();
+  Future<void> confirmPin(String value) async {
+    final GetStorage box = GetStorage();
+    if (!PinHash.verify(box, value)) {
+      /* this is a hack. find a better solution by understanding why reset does not work */
+      if (fromSettings.value) {
+        Get.back();
+        Get.to(LockScreen(), transition: Transition.noTransition);
+      } else {
+        Get.offAll(LockScreen(), transition: Transition.noTransition);
+      }
+      /* end of hack */
       Get.snackbar(
-        "Success",
-        "PIN removed successfully.",
-        backgroundColor: AppColors.GREEN,
+        "Error",
+        "Invalid PIN provided. Try again.",
+        backgroundColor: AppColors.SNACKBAR_RED,
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
-      fromSettings.value = false;
     } else {
-      markSessionUnlocked();
-      Get.offAll(Home());
+      final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
+      final bool pinOnly = args?['pin_only'] ?? false;
+
+      // If it's a re-auth request that ISN'T the PIN removal flow, return early.
+      if (args != null && args.containsKey('reason') && !pinOnly) {
+        Get.back(result: true);
+        return;
+      }
+
+      if (fromSettings.value) {
+        await PinHash.clearPin(box);
+        pinIsSet.value = false;
+        sessionUnlocked.value = false;
+        Get.back();
+        Get.snackbar(
+          "Success",
+          "PIN removed successfully.",
+          backgroundColor: AppColors.GREEN,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+        fromSettings.value = false;
+      } else {
+        markSessionUnlocked();
+        Get.offAll(Home());
+      }
     }
-  }
   }
 
   /// Force re-authentication (PIN only) to confirm a security change.
   Future<void> activateFingerPrint(bool value) async {
     if (!value) {
       // Disabling Fingerprint: Requires Biometric auth.
-      final bool confirmed = await authenticateUser(
-          'Use fingerprint to disable biometric unlock');
+      final bool confirmed =
+          await authenticateUser('Use fingerprint to disable biometric unlock');
       if (!confirmed) return;
     } else {
       if (!pinIsSet.value) {
@@ -245,8 +246,8 @@ Future<void> confirmPin(String value) async {
   Future<bool> requestPinConfirmation(String reason) async {
     // If fingerprint is enabled, try that first.
     if (fingerprintInUse.value) {
-      final bool biometricsConfirmed = await authenticateUser(
-          'Use fingerprint to proceed with PIN removal');
+      final bool biometricsConfirmed =
+          await authenticateUser('Use fingerprint to proceed with PIN removal');
       if (!biometricsConfirmed) return false;
     }
 
@@ -282,7 +283,8 @@ Future<void> confirmPin(String value) async {
     }
 
     // Fallback or explicit PIN request
-    final dynamic result = await Get.toNamed('/lock', arguments: {'reason': reason});
+    final dynamic result =
+        await Get.toNamed('/lock', arguments: {'reason': reason});
     return result == true;
   }
 

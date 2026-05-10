@@ -166,7 +166,9 @@ class _ReportViewState extends State<ReportView> {
             systemOverlayStyle: p.systemUiOverlayStyle,
             leading: IconButton(
               icon: Icon(
-                isMultiSelect ? Icons.close_rounded : Icons.arrow_back_ios_new_rounded,
+                isMultiSelect
+                    ? Icons.close_rounded
+                    : Icons.arrow_back_ios_new_rounded,
                 size: isMultiSelect ? 24 : 20,
               ),
               color: p.textPrimary,
@@ -196,7 +198,8 @@ class _ReportViewState extends State<ReportView> {
                       icon: Icon(Icons.delete_outline_rounded, color: p.coral),
                       onPressed: () {
                         AppHaptics.heavy();
-                        showMultiDeleteModal(_reportController.deleteSelectedTransactions);
+                        showMultiDeleteModal(
+                            _reportController.deleteSelectedTransactions);
                       },
                     ),
                   ]
@@ -209,7 +212,8 @@ class _ReportViewState extends State<ReportView> {
                     ),
                     IconButton(
                       tooltip: 'Saved views',
-                      icon: Icon(Icons.bookmarks_outlined, color: p.textPrimary),
+                      icon:
+                          Icon(Icons.bookmarks_outlined, color: p.textPrimary),
                       onPressed: () {
                         AppHaptics.light();
                         showSavedViewsSheet(

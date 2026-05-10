@@ -190,7 +190,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                                   AppHaptics.light();
                                   final Map<String, dynamic>? args =
                                       Get.arguments as Map<String, dynamic>?;
-                                  final bool pinOnly = args?['pin_only'] ?? false;
+                                  final bool pinOnly =
+                                      args?['pin_only'] ?? false;
                                   _securityController.unlockWithFingerprint(
                                       isSettingsFlow: pinOnly);
                                 },

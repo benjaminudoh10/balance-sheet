@@ -45,7 +45,8 @@ class _TrashViewState extends State<TrashView> {
       AlertDialog(
         backgroundColor: p.surfaceElevated,
         title: Text('Empty Trash?',
-            style: TextStyle(color: p.textPrimary, fontWeight: FontWeight.bold)),
+            style:
+                TextStyle(color: p.textPrimary, fontWeight: FontWeight.bold)),
         content: Text(
           'All items in the trash will be permanently deleted. This action cannot be undone.',
           style: TextStyle(color: p.textSecondary),
@@ -176,7 +177,8 @@ class _TrashViewState extends State<TrashView> {
                         SlidableAction(
                           onPressed: (_) {
                             AppHaptics.medium();
-                            _transactionController.permanentlyDeleteTransaction(t);
+                            _transactionController
+                                .permanentlyDeleteTransaction(t);
                           },
                           backgroundColor: p.coral,
                           foregroundColor: Colors.white,
@@ -221,8 +223,10 @@ class _TrashViewState extends State<TrashView> {
                             children: [
                               const SizedBox(height: 4),
                               Text(
-                                DateFormat('MMM dd, yyyy • HH:mm').format(t.date),
-                                style: tt.bodySmall!.copyWith(color: p.textSecondary),
+                                DateFormat('MMM dd, yyyy • HH:mm')
+                                    .format(t.date),
+                                style: tt.bodySmall!
+                                    .copyWith(color: p.textSecondary),
                               ),
                               if (t.deletedAt != null) ...[
                                 const SizedBox(height: 2),
@@ -236,7 +240,9 @@ class _TrashViewState extends State<TrashView> {
                                   return Text(
                                     'Deleted: ${DateFormat('MMM dd').format(t.deletedAt!)} • ${remaining > 0 ? '$remaining days left' : 'Expiring soon'}',
                                     style: tt.labelSmall!.copyWith(
-                                        color: remaining < 3 ? p.coral : p.textSecondary),
+                                        color: remaining < 3
+                                            ? p.coral
+                                            : p.textSecondary),
                                   );
                                 }),
                               ],

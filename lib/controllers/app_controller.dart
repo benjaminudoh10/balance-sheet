@@ -87,8 +87,8 @@ class AppController extends GetxController {
     if (!value && lockTrash.value) {
       // Disabling Trash with lock enabled: Requires authentication (Biometric or PIN)
       final SecurityController sc = Get.find();
-      final bool confirmed = await sc.authenticateUser(
-          'Use biometrics or PIN to disable Trash');
+      final bool confirmed =
+          await sc.authenticateUser('Use biometrics or PIN to disable Trash');
       if (!confirmed) return;
     }
     useTrash.value = value;
@@ -104,8 +104,8 @@ class AppController extends GetxController {
     if (!value) {
       // Disabling Trash Lock: Requires authentication (Biometric or PIN)
       final SecurityController sc = Get.find();
-      final bool confirmed = await sc.authenticateUser(
-          'Use biometrics or PIN to disable Trash lock');
+      final bool confirmed = await sc
+          .authenticateUser('Use biometrics or PIN to disable Trash lock');
       if (!confirmed) return;
     }
     lockTrash.value = value;

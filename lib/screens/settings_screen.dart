@@ -534,7 +534,10 @@ class SettingsView extends StatelessWidget {
       Get.to(() => Pin());
     } else {
       _securityController.fromSettings.value = true;
-      Get.toNamed('/lock', arguments: {'reason': 'Enter PIN to disable app lock', 'pin_only': true});
+      Get.toNamed('/lock', arguments: {
+        'reason': 'Enter PIN to disable app lock',
+        'pin_only': true
+      });
     }
   }
 
