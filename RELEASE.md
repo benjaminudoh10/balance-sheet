@@ -128,6 +128,30 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.3
+
+Transactions
+- Implement multi-select mode for transactions, allowing batch operations.
+- Implement configurable transaction trash to manage deleted entries.
+- Add haptic feedback when a transaction item is clicked on the report view.
+
+Budget
+- Copy budget items to the next month for easier monthly planning.
+
+Security
+- Harden security disabling flows, requiring lock checks when the trash lock is disabled.
+
+Contact Management
+- Show a warning before deleting a contact that is associated with transactions or budgets.
+
+Maintenance
+- Ensure tests run with single concurrency to prevent database locks.
+- Format all files for better code quality.
+- Add AGENTS.md and GEMINI.md for AI-assistant context.
+- Various refactors for dry-compliance, improved modals, and internal service hardening.
+
+---
+
 ### v1.0.2
 
 Investments
