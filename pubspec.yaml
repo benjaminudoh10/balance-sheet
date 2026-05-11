@@ -32,14 +32,11 @@ dependencies:
   get: ^4.7.2
   modal_bottom_sheet: ^3.0.0
   sqflite: ^2.4.2
-  path_provider: ^2.1.5
   intl: any
   google_fonts: ^8.0.2
   # csv: ^5.0.0
   # permission_handler: ^8.1.2
   pinput: ^6.0.2
-  get_storage: ^2.0.2
-  local_auth: ^3.0.1
   flutter_slidable: ^4.0.3
   file_picker: ^11.0.2
   crypto: ^3.0.7
@@ -47,8 +44,10 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   pdf: ^3.12.0
   printing: ^5.14.3
+  get_storage: ^2.0.2
   package_info_plus: ^9.0.1
   path: ^1.9.1
+  local_auth: ^3.0.1
   # charts_flutter: ^0.10.0
 
 dev_dependencies:
@@ -59,8 +58,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   sqflite_common_ffi: ^2.3.4
   image: ^4.5.3
+  mocktail: ^0.3.0 # Added mocktail for mocking
   mockito: ^5.6.4
   build_runner: ^2.15.0
+  path_provider: ^2.1.5
 
 # Transitive pins for current Flutter / Dart SDK (AGP 8, dart:io API changes).
 dependency_overrides:
@@ -74,7 +75,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "lib/assets/logo.png"
-  adaptive_icon_background: "#F5F3FA"
+  adaptive_icon_background: "#F5F5FA"
   adaptive_icon_foreground: "lib/assets/app_icon_foreground.png"
   remove_alpha_ios: true
   background_color_ios: "#F5F3FA"

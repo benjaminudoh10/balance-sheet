@@ -192,6 +192,22 @@ class TransactionController extends GetxController {
     }
   }
 
+  /// Restores multiple transactions from trash.
+  Future<void> bulkRestoreTransactions(List<int> ids) async {
+    for (final id in ids) {
+      await db.restoreTransactionFromTrash(id);
+    }
+    await loadTrashedTransactions(); // Reload the trashed list
+    await loadHomeScreenData(); // Refresh main data
+    Get.snackbar(
+      "Restored",
+      "${ids.length} transaction(s) restored successfully",
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+    );
+  }
+
   Future<void> loadTrashedTransactions() async {
     trashedTransactions.value = await db.getTrashedTransactions();
   }
@@ -209,6 +225,21 @@ class TransactionController extends GetxController {
         backgroundColor: AppColors.GREEN,
       );
     }
+  }
+
+  /// Permanently deletes multiple transactions from trash.
+  Future<void> bulkPermanentlyDeleteTransactions(List<int> ids) async {
+    for (final id in ids) {
+      await db.permanentlyDeleteTransaction(id);
+    }
+    await loadTrashedTransactions(); // Reload the trashed list
+    Get.snackbar(
+      "Deleted",
+      "${ids.length} transaction(s) permanently deleted",
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.GREEN,
+    );
   }
 
   Future<void> emptyTrash() async {
