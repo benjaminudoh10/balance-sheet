@@ -95,9 +95,8 @@ Widget _homeTransactionListSliver({
     itemCount: list.length,
     itemBuilder: (BuildContext context, int index) {
       final transaction = list[index];
-      return singleTransactionContainer(
-        context,
-        transaction,
+      return TransactionRow(
+        transaction: transaction,
         applySlidablePeek: index == 0,
         onTap: AppHaptics.wrap(() => showEditModal(
               transaction,

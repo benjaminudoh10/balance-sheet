@@ -405,245 +405,29 @@ class _TrashViewState extends State<TrashView> {
                   itemCount: trashed.length,
                   itemBuilder: (context, index) {
                     final Transaction t = trashed[index];
-                    final bool applyPeek = index == 0;
-
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Obx(() {
-                        final bool isSelected =
-                            _selectedTransactionIds.contains(t.id);
-
-                        // Pure grayscale aesthetic for trashed items
-                        final Color unselectedAccent =
-                            p.textSecondary.withValues(alpha: 0.3);
-                        final Color selectedAccent =
-                            p.textPrimary.withValues(alpha: 0.7);
-                        final Color accent =
-                            isSelected ? selectedAccent : unselectedAccent;
-
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? p.textSecondary.withValues(alpha: 0.15)
-                                : p.surface,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(
-                              color: isSelected ? selectedAccent : p.border,
-                              width: isSelected ? 2.0 : 1.0,
-                            ),
-                          ),
-                          child: Slidable(
-                            key: ValueKey<int>(t.id),
-                            groupTag: 'trash_rows',
-                            closeOnScroll: true,
-                            enabled: !isSelected && !_isMultiSelectMode.value,
-                            startActionPane: ActionPane(
-                              motion: const DrawerMotion(),
-                              extentRatio: 0.28,
-                              children: [
-                                SlidableAction(
-                                  onPressed: AppHaptics.wrapSlidable((_) {
-                                    _confirmBulkRestore(ids: [t.id]);
-                                  }),
-                                  backgroundColor: p.mint,
-                                  foregroundColor: Colors.black87,
-                                  icon: Icons.restore_rounded,
-                                  label: 'Restore',
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ],
-                            ),
-                            endActionPane: ActionPane(
-                              motion: const DrawerMotion(),
-                              extentRatio: 0.28,
-                              children: [
-                                SlidableAction(
-                                  onPressed: AppHaptics.wrapSlidable((_) {
-                                    _confirmBulkDelete(ids: [t.id]);
-                                  }),
-                                  backgroundColor: p.coral,
-                                  foregroundColor: Colors.white,
-                                  icon: Icons.delete_forever_outlined,
-                                  label: 'Delete',
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ],
-                            ),
-                            child: SlidablePeekHint(
-                              storageKey: AppConstants.SLIDABLE_PEEK_TRASH,
-                              enabled: applyPeek,
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    if (_isMultiSelectMode.value) {
-                                      AppHaptics.selection();
-                                      _toggleSelection(t.id);
-                                    }
-                                  },
-                                  onLongPress: () {
-                                    AppHaptics.heavy();
-                                    if (!_isMultiSelectMode.value) {
-                                      _toggleMultiSelectMode();
-                                    }
-                                    _toggleSelection(t.id);
-                                  },
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: Container(
-                                    clipBehavior: Clip.antiAlias,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.0),
-                                    ),
-                                    child: IntrinsicHeight(
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Container(
-                                            width: 4,
-                                            color:
-                                                t.type == TransactionType.income
-                                                    ? p.mint
-                                                    : p.coral,
-                                          ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 12.0,
-                                                      vertical: 12.0),
-                                              child: Row(
-                                                children: [
-                                                  Container(
-                                                    width: 44,
-                                                    height: 44,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                      border: Border.all(
-                                                          color:
-                                                              accent.withValues(
-                                                                  alpha: 0.4)),
-                                                      color: accent.withValues(
-                                                          alpha: 0.1),
-                                                    ),
-                                                    child: isSelected
-                                                        ? Icon(
-                                                            Icons.check_rounded,
-                                                            color:
-                                                                p.textPrimary,
-                                                            size: 24.0)
-                                                        : Icon(
-                                                            Categories
-                                                                .iconForKey(
-                                                                    t.category),
-                                                            color:
-                                                                p.textSecondary,
-                                                            size: 22.0,
-                                                          ),
-                                                  ),
-                                                  const SizedBox(width: 12.0),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                          t.description,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          maxLines: 1,
-                                                          style: tt.titleSmall!
-                                                              .copyWith(
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: isSelected
-                                                                ? p.textPrimary
-                                                                : p.textSecondary,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 6.0),
-                                                        Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              DateFormat(
-                                                                      'MMM dd, yyyy • HH:mm')
-                                                                  .format(
-                                                                      t.date),
-                                                              style: tt
-                                                                  .bodySmall!
-                                                                  .copyWith(
-                                                                color: p
-                                                                    .textSecondary,
-                                                              ),
-                                                            ),
-                                                            if (t.deletedAt !=
-                                                                null) ...[
-                                                              const SizedBox(
-                                                                  height: 2),
-                                                              Builder(builder:
-                                                                  (context) {
-                                                                final int
-                                                                    daysInTrash =
-                                                                    DateTime.now()
-                                                                        .difference(
-                                                                            t.deletedAt!)
-                                                                        .inDays;
-                                                                final int
-                                                                    remaining =
-                                                                    _appController
-                                                                            .trashPeriodDays
-                                                                            .value -
-                                                                        daysInTrash;
-                                                                return Text(
-                                                                  'Deleted: ${DateFormat('MMM dd').format(t.deletedAt!)} • ${remaining > 0 ? '$remaining days left' : 'Expiring soon'}',
-                                                                  style: tt.labelSmall!.copyWith(
-                                                                      color: remaining <
-                                                                              3
-                                                                          ? p.coral
-                                                                              .withValues(alpha: 0.8)
-                                                                          : p.textSecondary),
-                                                                );
-                                                              }),
-                                                            ],
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    formatTransactionDisplayAmount(
-                                                        t),
-                                                    style:
-                                                        tt.titleSmall!.copyWith(
-                                                      color: isSelected
-                                                          ? p.textPrimary
-                                                          : p.textSecondary,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        return _TrashTransactionRow(
+                          transaction: t,
+                          isSelected: _selectedTransactionIds.contains(t.id),
+                          applyPeek: index == 0,
+                          isMultiSelectMode: _isMultiSelectMode.value,
+                          onTap: () {
+                            if (_isMultiSelectMode.value) {
+                              AppHaptics.selection();
+                              _toggleSelection(t.id);
+                            }
+                          },
+                          onLongPress: () {
+                            AppHaptics.heavy();
+                            if (!_isMultiSelectMode.value) {
+                              _toggleMultiSelectMode();
+                            }
+                            _toggleSelection(t.id);
+                          },
+                          onRestore: () => _confirmBulkRestore(ids: [t.id]),
+                          onDelete: () => _confirmBulkDelete(ids: [t.id]),
                         );
                       }),
                     );
@@ -651,6 +435,209 @@ class _TrashViewState extends State<TrashView> {
                 );
               }),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrashTransactionRow extends StatelessWidget {
+  const _TrashTransactionRow({
+    required this.transaction,
+    required this.isSelected,
+    required this.applyPeek,
+    required this.isMultiSelectMode,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onRestore,
+    required this.onDelete,
+  });
+
+  final Transaction transaction;
+  final bool isSelected;
+  final bool applyPeek;
+  final bool isMultiSelectMode;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final TextTheme tt = Theme.of(context).textTheme;
+    final AppController appController = Get.find();
+
+    // Pure grayscale aesthetic for trashed items
+    final Color unselectedAccent = p.textSecondary.withValues(alpha: 0.3);
+    final Color selectedAccent = p.textPrimary.withValues(alpha: 0.7);
+    final Color accent = isSelected ? selectedAccent : unselectedAccent;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected ? p.textSecondary.withValues(alpha: 0.15) : p.surface,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(
+          color: isSelected ? selectedAccent : p.border,
+          width: isSelected ? 2.0 : 1.0,
+        ),
+      ),
+      child: Slidable(
+        key: ValueKey<int>(transaction.id),
+        groupTag: 'trash_rows',
+        closeOnScroll: true,
+        enabled: !isSelected && !isMultiSelectMode,
+        startActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: 0.28,
+          children: [
+            SlidableAction(
+              onPressed: AppHaptics.wrapSlidable((_) => onRestore()),
+              backgroundColor: p.mint,
+              foregroundColor: Colors.black87,
+              icon: Icons.restore_rounded,
+              label: 'Restore',
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ],
+        ),
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: 0.28,
+          children: [
+            SlidableAction(
+              onPressed: AppHaptics.wrapSlidable((_) => onDelete()),
+              backgroundColor: p.coral,
+              foregroundColor: Colors.white,
+              icon: Icons.delete_forever_outlined,
+              label: 'Delete',
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ],
+        ),
+        child: SlidablePeekHint(
+          storageKey: AppConstants.SLIDABLE_PEEK_TRASH,
+          enabled: applyPeek,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              onLongPress: onLongPress,
+              borderRadius: BorderRadius.circular(12.0),
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
+                        color: transaction.type == TransactionType.income
+                            ? p.mint
+                            : p.coral,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 12.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(
+                                      color: accent.withValues(alpha: 0.4)),
+                                  color: accent.withValues(alpha: 0.1),
+                                ),
+                                child: isSelected
+                                    ? Icon(Icons.check_rounded,
+                                        color: p.textPrimary, size: 24.0)
+                                    : Icon(
+                                        Categories.iconForKey(
+                                            transaction.category),
+                                        color: p.textSecondary,
+                                        size: 22.0,
+                                      ),
+                              ),
+                              const SizedBox(width: 12.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      transaction.description,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: tt.titleSmall!.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? p.textPrimary
+                                            : p.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6.0),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          DateFormat('MMM dd, yyyy • HH:mm')
+                                              .format(transaction.date),
+                                          style: tt.bodySmall!.copyWith(
+                                            color: p.textSecondary,
+                                          ),
+                                        ),
+                                        if (transaction.deletedAt != null) ...[
+                                          const SizedBox(height: 2),
+                                          Builder(builder: (context) {
+                                            final int daysInTrash =
+                                                DateTime.now()
+                                                    .difference(
+                                                        transaction.deletedAt!)
+                                                    .inDays;
+                                            final int remaining = appController
+                                                    .trashPeriodDays.value -
+                                                daysInTrash;
+                                            return Text(
+                                              'Deleted: ${DateFormat('MMM dd').format(transaction.deletedAt!)} • ${remaining > 0 ? '$remaining days left' : 'Expiring soon'}',
+                                              style: tt.labelSmall!.copyWith(
+                                                  color: remaining < 3
+                                                      ? p.coral.withValues(
+                                                          alpha: 0.8)
+                                                      : p.textSecondary),
+                                            );
+                                          }),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                formatTransactionDisplayAmount(transaction),
+                                style: tt.titleSmall!.copyWith(
+                                  color: isSelected
+                                      ? p.textPrimary
+                                      : p.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -413,28 +413,24 @@ List<Widget> _buildGroupedTransactionSlivers(
         out.add(
           Padding(
             padding: EdgeInsets.only(bottom: i == dayTx.length - 1 ? 18 : 10),
-            child: Obx(() {
-              final bool isSelected = c.selectedTransactionIds.contains(t.id);
-              return singleTransactionContainer(
-                context,
-                t,
-                applySlidablePeek: peek,
-                isSelected: isSelected,
-                onTap: () {
-                  if (c.isMultiSelectMode) {
-                    AppHaptics.selection();
+            child: Obx(() => TransactionRow(
+                  transaction: t,
+                  applySlidablePeek: peek,
+                  isSelected: c.selectedTransactionIds.contains(t.id),
+                  onTap: () {
+                    if (c.isMultiSelectMode) {
+                      AppHaptics.selection();
+                      c.toggleTransactionSelection(t.id);
+                    } else {
+                      AppHaptics.light();
+                      _openEditModalFor(t);
+                    }
+                  },
+                  onLongPress: () {
+                    AppHaptics.heavy();
                     c.toggleTransactionSelection(t.id);
-                  } else {
-                    AppHaptics.light();
-                    _openEditModalFor(t);
-                  }
-                },
-                onLongPress: () {
-                  AppHaptics.heavy();
-                  c.toggleTransactionSelection(t.id);
-                },
-              );
-            }),
+                  },
+                )),
           ),
         );
       }
@@ -459,40 +455,32 @@ List<Widget> _buildGroupedTransactionSlivers(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
-                  child: Obx(() {
-                    final bool isSelected =
-                        c.selectedTransactionIds.contains(t0.id);
-                    return singleTransactionContainer(
-                      context,
-                      t0,
-                      applySlidablePeek: peekLeft,
-                      isSelected: isSelected,
-                      onTap: () {
-                        if (c.isMultiSelectMode) {
-                          AppHaptics.selection();
+                  child: Obx(() => TransactionRow(
+                        transaction: t0,
+                        applySlidablePeek: peekLeft,
+                        isSelected: c.selectedTransactionIds.contains(t0.id),
+                        onTap: () {
+                          if (c.isMultiSelectMode) {
+                            AppHaptics.selection();
+                            c.toggleTransactionSelection(t0.id);
+                          } else {
+                            _openEditModalFor(t0);
+                          }
+                        },
+                        onLongPress: () {
+                          AppHaptics.heavy();
                           c.toggleTransactionSelection(t0.id);
-                        } else {
-                          _openEditModalFor(t0);
-                        }
-                      },
-                      onLongPress: () {
-                        AppHaptics.heavy();
-                        c.toggleTransactionSelection(t0.id);
-                      },
-                    );
-                  }),
+                        },
+                      )),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: t1 != null
-                      ? Obx(() {
-                          final bool isSelected =
-                              c.selectedTransactionIds.contains(t1.id);
-                          return singleTransactionContainer(
-                            context,
-                            t1,
+                      ? Obx(() => TransactionRow(
+                            transaction: t1,
                             applySlidablePeek: false,
-                            isSelected: isSelected,
+                            isSelected:
+                                c.selectedTransactionIds.contains(t1.id),
                             onTap: () {
                               if (c.isMultiSelectMode) {
                                 AppHaptics.selection();
@@ -505,8 +493,7 @@ List<Widget> _buildGroupedTransactionSlivers(
                               AppHaptics.heavy();
                               c.toggleTransactionSelection(t1.id);
                             },
-                          );
-                        })
+                          ))
                       : const SizedBox.shrink(),
                 ),
               ],
