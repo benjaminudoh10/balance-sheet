@@ -237,393 +237,422 @@ class _TrashViewState extends State<TrashView> {
     final AppPalette p = AppPalette.of(context);
     final TextTheme tt = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: p.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        systemOverlayStyle: p.systemUiOverlayStyle,
-        leading: Obx(() => _isMultiSelectMode.value
-            ? IconButton(
-                onPressed: () {
-                  AppHaptics.light();
-                  _toggleMultiSelectMode();
-                  _selectedTransactionIds.clear();
-                },
-                icon: Icon(Icons.close_rounded, color: p.textPrimary, size: 24),
-                tooltip: 'Cancel Selection',
-              )
-            : IconButton(
-                onPressed: () {
-                  AppHaptics.light();
-                  Get.back();
-                },
-                icon: Icon(Icons.arrow_back_ios_new_rounded,
-                    color: p.textPrimary, size: 20),
-                tooltip: 'Back',
-              )),
-        title: Obx(() => _isMultiSelectMode.value
-            ? Text(
-                '${_selectedTransactionIds.length} selected',
-                style: tt.headlineSmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.4,
-                ),
-              )
-            : Text(
-                'Trash',
-                style: tt.headlineSmall!.copyWith(
-                  color: p.textPrimary,
-                  letterSpacing: -0.4,
-                ),
-              )),
-        actions: [
-          Obx(() {
-            final List<Transaction> trashed =
-                _transactionController.trashedTransactions;
-            final bool allSelected =
-                _selectedTransactionIds.length == trashed.length &&
-                    trashed.isNotEmpty;
+    return Obx(
+      () => PopScope(
+        canPop: !_isMultiSelectMode.value,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && _isMultiSelectMode.value) {
+            AppHaptics.light();
+            _toggleMultiSelectMode();
+            _selectedTransactionIds.clear();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: p.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            systemOverlayStyle: p.systemUiOverlayStyle,
+            leading: Obx(() => _isMultiSelectMode.value
+                ? IconButton(
+                    onPressed: () {
+                      AppHaptics.light();
+                      _toggleMultiSelectMode();
+                      _selectedTransactionIds.clear();
+                    },
+                    icon: Icon(Icons.close_rounded,
+                        color: p.textPrimary, size: 24),
+                    tooltip: 'Cancel Selection',
+                  )
+                : IconButton(
+                    onPressed: () {
+                      AppHaptics.light();
+                      Get.back();
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new_rounded,
+                        color: p.textPrimary, size: 20),
+                    tooltip: 'Back',
+                  )),
+            title: Obx(() => _isMultiSelectMode.value
+                ? Text(
+                    '${_selectedTransactionIds.length} selected',
+                    style: tt.headlineSmall!.copyWith(
+                      color: p.textPrimary,
+                      letterSpacing: -0.4,
+                    ),
+                  )
+                : Text(
+                    'Trash',
+                    style: tt.headlineSmall!.copyWith(
+                      color: p.textPrimary,
+                      letterSpacing: -0.4,
+                    ),
+                  )),
+            actions: [
+              Obx(() {
+                final List<Transaction> trashed =
+                    _transactionController.trashedTransactions;
+                final bool allSelected =
+                    _selectedTransactionIds.length == trashed.length &&
+                        trashed.isNotEmpty;
 
-            if (_isMultiSelectMode.value) {
-              return Row(
-                children: [
-                  IconButton(
-                    onPressed: () => _selectAllTransactions(trashed),
-                    icon: Icon(
-                      allSelected
-                          ? Icons.check_box_rounded
-                          : Icons.check_box_outline_blank_rounded,
-                      color: p.mint,
-                    ),
-                    tooltip: allSelected ? 'Deselect all' : 'Select all',
-                  ),
-                  if (_selectedTransactionIds.isNotEmpty) ...[
-                    IconButton(
-                      onPressed: () => _confirmBulkRestore(),
-                      icon: Icon(Icons.restore_rounded, color: p.mint),
-                      tooltip: 'Restore Selected',
-                    ),
-                    IconButton(
-                      onPressed: () => _confirmBulkDelete(),
-                      icon: Icon(Icons.delete_forever_outlined, color: p.coral),
-                      tooltip: 'Delete Selected',
-                    ),
-                  ] else if (trashed.isNotEmpty) ...[
-                    // Only show empty trash if no items are selected but multi-select is active
-                    IconButton(
-                      onPressed: _confirmEmptyTrash,
-                      icon: Icon(Icons.delete_sweep_outlined, color: p.coral),
-                      tooltip: 'Empty Trash',
-                    ),
-                  ]
-                ],
-              );
-            } else {
-              // Standard AppBar actions when not in multi-select mode
-              return trashed.isNotEmpty
-                  ? Row(
-                      children: [
-                        IconButton(
-                          onPressed: _confirmRestoreAll,
-                          icon: Icon(Icons.restore_rounded, color: p.mint),
-                          tooltip: 'Restore All',
+                if (_isMultiSelectMode.value) {
+                  return Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _selectAllTransactions(trashed),
+                        icon: Icon(
+                          allSelected
+                              ? Icons.check_box_rounded
+                              : Icons.check_box_outline_blank_rounded,
+                          color: p.mint,
                         ),
+                        tooltip: allSelected ? 'Deselect all' : 'Select all',
+                      ),
+                      if (_selectedTransactionIds.isNotEmpty) ...[
+                        IconButton(
+                          onPressed: () => _confirmBulkRestore(),
+                          icon: Icon(Icons.restore_rounded, color: p.mint),
+                          tooltip: 'Restore Selected',
+                        ),
+                        IconButton(
+                          onPressed: () => _confirmBulkDelete(),
+                          icon: Icon(Icons.delete_forever_outlined,
+                              color: p.coral),
+                          tooltip: 'Delete Selected',
+                        ),
+                      ] else if (trashed.isNotEmpty) ...[
+                        // Only show empty trash if no items are selected but multi-select is active
                         IconButton(
                           onPressed: _confirmEmptyTrash,
                           icon:
                               Icon(Icons.delete_sweep_outlined, color: p.coral),
                           tooltip: 'Empty Trash',
                         ),
-                      ],
-                    )
-                  : const SizedBox.shrink();
-            }
-          }),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: MidnightGridPainter(
-                heightFraction: 1.0,
-                gridLineColor: p.gridLine,
-              ),
-            ),
+                      ]
+                    ],
+                  );
+                } else {
+                  // Standard AppBar actions when not in multi-select mode
+                  return trashed.isNotEmpty
+                      ? Row(
+                          children: [
+                            IconButton(
+                              onPressed: _confirmRestoreAll,
+                              icon: Icon(Icons.restore_rounded, color: p.mint),
+                              tooltip: 'Restore All',
+                            ),
+                            IconButton(
+                              onPressed: _confirmEmptyTrash,
+                              icon: Icon(Icons.delete_sweep_outlined,
+                                  color: p.coral),
+                              tooltip: 'Empty Trash',
+                            ),
+                          ],
+                        )
+                      : const SizedBox.shrink();
+                }
+              }),
+            ],
           ),
-          Obx(() {
-            final List<Transaction> trashed =
-                _transactionController.trashedTransactions;
-            final bool isLoading = _loading.value;
-
-            if (isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (trashed.isEmpty) {
-              return Center(
-                child: EmptyState(
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    size: 64,
-                    color: p.textSecondary.withValues(alpha: 0.2),
-                  ),
-                  primaryText: Text(
-                    'Trash is empty',
-                    style: tt.titleLarge!.copyWith(
-                      color: p.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  secondaryText: Text(
-                    _appController.useTrash.value
-                        ? 'Deleted transactions will appear here.'
-                        : 'Trash is disabled. Deleted transactions will be permanently removed.',
-                    style: tt.bodyMedium!.copyWith(color: p.textSecondary),
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: MidnightGridPainter(
+                    heightFraction: 1.0,
+                    gridLineColor: p.gridLine,
                   ),
                 ),
-              );
-            }
+              ),
+              Obx(() {
+                final List<Transaction> trashed =
+                    _transactionController.trashedTransactions;
+                final bool isLoading = _loading.value;
 
-            return ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-              itemCount: trashed.length,
-              itemBuilder: (context, index) {
-                final Transaction t = trashed[index];
-                final bool applyPeek = index == 0;
+                if (isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Obx(() {
-                    final bool isSelected =
-                        _selectedTransactionIds.contains(t.id);
-
-                    // Pure grayscale aesthetic for trashed items
-                    final Color unselectedAccent =
-                        p.textSecondary.withValues(alpha: 0.3);
-                    final Color selectedAccent =
-                        p.textPrimary.withValues(alpha: 0.7);
-                    final Color accent =
-                        isSelected ? selectedAccent : unselectedAccent;
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? p.textSecondary.withValues(alpha: 0.15)
-                            : p.surface,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                          color: isSelected ? selectedAccent : p.border,
-                          width: isSelected ? 2.0 : 1.0,
+                if (trashed.isEmpty) {
+                  return Center(
+                    child: EmptyState(
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        size: 64,
+                        color: p.textSecondary.withValues(alpha: 0.2),
+                      ),
+                      primaryText: Text(
+                        'Trash is empty',
+                        style: tt.titleLarge!.copyWith(
+                          color: p.textSecondary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: Slidable(
-                        key: ValueKey<int>(t.id),
-                        groupTag: 'trash_rows',
-                        closeOnScroll: true,
-                        enabled: !isSelected && !_isMultiSelectMode.value,
-                        startActionPane: ActionPane(
-                          motion: const DrawerMotion(),
-                          extentRatio: 0.28,
-                          children: [
-                            SlidableAction(
-                              onPressed: AppHaptics.wrapSlidable((_) {
-                                _confirmBulkRestore(ids: [t.id]);
-                              }),
-                              backgroundColor: p.mint,
-                              foregroundColor: Colors.black87,
-                              icon: Icons.restore_rounded,
-                              label: 'Restore',
-                              borderRadius: BorderRadius.circular(12),
+                      secondaryText: Text(
+                        _appController.useTrash.value
+                            ? 'Deleted transactions will appear here.'
+                            : 'Trash is disabled. Deleted transactions will be permanently removed.',
+                        style: tt.bodyMedium!.copyWith(color: p.textSecondary),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  itemCount: trashed.length,
+                  itemBuilder: (context, index) {
+                    final Transaction t = trashed[index];
+                    final bool applyPeek = index == 0;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Obx(() {
+                        final bool isSelected =
+                            _selectedTransactionIds.contains(t.id);
+
+                        // Pure grayscale aesthetic for trashed items
+                        final Color unselectedAccent =
+                            p.textSecondary.withValues(alpha: 0.3);
+                        final Color selectedAccent =
+                            p.textPrimary.withValues(alpha: 0.7);
+                        final Color accent =
+                            isSelected ? selectedAccent : unselectedAccent;
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? p.textSecondary.withValues(alpha: 0.15)
+                                : p.surface,
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(
+                              color: isSelected ? selectedAccent : p.border,
+                              width: isSelected ? 2.0 : 1.0,
                             ),
-                          ],
-                        ),
-                        endActionPane: ActionPane(
-                          motion: const DrawerMotion(),
-                          extentRatio: 0.28,
-                          children: [
-                            SlidableAction(
-                              onPressed: AppHaptics.wrapSlidable((_) {
-                                _confirmBulkDelete(ids: [t.id]);
-                              }),
-                              backgroundColor: p.coral,
-                              foregroundColor: Colors.white,
-                              icon: Icons.delete_forever_outlined,
-                              label: 'Delete',
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ],
-                        ),
-                        child: SlidablePeekHint(
-                          storageKey: AppConstants.SLIDABLE_PEEK_TRASH,
-                          enabled: applyPeek,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                if (_isMultiSelectMode.value) {
-                                  AppHaptics.selection();
-                                  _toggleSelection(t.id);
-                                }
-                              },
-                              onLongPress: () {
-                                AppHaptics.heavy();
-                                if (!_isMultiSelectMode.value) {
-                                  _toggleMultiSelectMode();
-                                }
-                                _toggleSelection(t.id);
-                              },
-                              borderRadius: BorderRadius.circular(12.0),
-                              child: Container(
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Slidable(
+                            key: ValueKey<int>(t.id),
+                            groupTag: 'trash_rows',
+                            closeOnScroll: true,
+                            enabled: !isSelected && !_isMultiSelectMode.value,
+                            startActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              extentRatio: 0.28,
+                              children: [
+                                SlidableAction(
+                                  onPressed: AppHaptics.wrapSlidable((_) {
+                                    _confirmBulkRestore(ids: [t.id]);
+                                  }),
+                                  backgroundColor: p.mint,
+                                  foregroundColor: Colors.black87,
+                                  icon: Icons.restore_rounded,
+                                  label: 'Restore',
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        width: 4,
-                                        color: t.type == TransactionType.income
-                                            ? p.mint
-                                            : p.coral,
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12.0, vertical: 12.0),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 44,
-                                                height: 44,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0),
-                                                  border: Border.all(
+                              ],
+                            ),
+                            endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              extentRatio: 0.28,
+                              children: [
+                                SlidableAction(
+                                  onPressed: AppHaptics.wrapSlidable((_) {
+                                    _confirmBulkDelete(ids: [t.id]);
+                                  }),
+                                  backgroundColor: p.coral,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.delete_forever_outlined,
+                                  label: 'Delete',
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ],
+                            ),
+                            child: SlidablePeekHint(
+                              storageKey: AppConstants.SLIDABLE_PEEK_TRASH,
+                              enabled: applyPeek,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    if (_isMultiSelectMode.value) {
+                                      AppHaptics.selection();
+                                      _toggleSelection(t.id);
+                                    }
+                                  },
+                                  onLongPress: () {
+                                    AppHaptics.heavy();
+                                    if (!_isMultiSelectMode.value) {
+                                      _toggleMultiSelectMode();
+                                    }
+                                    _toggleSelection(t.id);
+                                  },
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Container(
+                                    clipBehavior: Clip.antiAlias,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                    child: IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Container(
+                                            width: 4,
+                                            color:
+                                                t.type == TransactionType.income
+                                                    ? p.mint
+                                                    : p.coral,
+                                          ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12.0,
+                                                      vertical: 12.0),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 44,
+                                                    height: 44,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                      border: Border.all(
+                                                          color:
+                                                              accent.withValues(
+                                                                  alpha: 0.4)),
                                                       color: accent.withValues(
-                                                          alpha: 0.4)),
-                                                  color: accent.withValues(
-                                                      alpha: 0.1),
-                                                ),
-                                                child: isSelected
-                                                    ? Icon(Icons.check_rounded,
-                                                        color: p.textPrimary,
-                                                        size: 24.0)
-                                                    : Icon(
-                                                        Categories.iconForKey(
-                                                            t.category),
-                                                        color: p.textSecondary,
-                                                        size: 22.0,
-                                                      ),
-                                              ),
-                                              const SizedBox(width: 12.0),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      t.description,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 1,
-                                                      style: tt.titleSmall!
-                                                          .copyWith(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: isSelected
-                                                            ? p.textPrimary
-                                                            : p.textSecondary,
-                                                      ),
+                                                          alpha: 0.1),
                                                     ),
-                                                    const SizedBox(height: 6.0),
-                                                    Column(
+                                                    child: isSelected
+                                                        ? Icon(
+                                                            Icons.check_rounded,
+                                                            color:
+                                                                p.textPrimary,
+                                                            size: 24.0)
+                                                        : Icon(
+                                                            Categories
+                                                                .iconForKey(
+                                                                    t.category),
+                                                            color:
+                                                                p.textSecondary,
+                                                            size: 22.0,
+                                                          ),
+                                                  ),
+                                                  const SizedBox(width: 12.0),
+                                                  Expanded(
+                                                    child: Column(
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
                                                               .start,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
                                                       children: [
                                                         Text(
-                                                          DateFormat(
-                                                                  'MMM dd, yyyy • HH:mm')
-                                                              .format(t.date),
-                                                          style: tt.bodySmall!
+                                                          t.description,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines: 1,
+                                                          style: tt.titleSmall!
                                                               .copyWith(
-                                                            color:
-                                                                p.textSecondary,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: isSelected
+                                                                ? p.textPrimary
+                                                                : p.textSecondary,
                                                           ),
                                                         ),
-                                                        if (t.deletedAt !=
-                                                            null) ...[
-                                                          const SizedBox(
-                                                              height: 2),
-                                                          Builder(builder:
-                                                              (context) {
-                                                            final int
-                                                                daysInTrash =
-                                                                DateTime.now()
-                                                                    .difference(
-                                                                        t.deletedAt!)
-                                                                    .inDays;
-                                                            final int
-                                                                remaining =
-                                                                _appController
-                                                                        .trashPeriodDays
-                                                                        .value -
-                                                                    daysInTrash;
-                                                            return Text(
-                                                              'Deleted: ${DateFormat('MMM dd').format(t.deletedAt!)} • ${remaining > 0 ? '$remaining days left' : 'Expiring soon'}',
-                                                              style: tt.labelSmall!.copyWith(
-                                                                  color: remaining <
-                                                                          3
-                                                                      ? p.coral.withValues(
-                                                                          alpha:
-                                                                              0.8)
-                                                                      : p.textSecondary),
-                                                            );
-                                                          }),
-                                                        ],
+                                                        const SizedBox(
+                                                            height: 6.0),
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              DateFormat(
+                                                                      'MMM dd, yyyy • HH:mm')
+                                                                  .format(
+                                                                      t.date),
+                                                              style: tt
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                color: p
+                                                                    .textSecondary,
+                                                              ),
+                                                            ),
+                                                            if (t.deletedAt !=
+                                                                null) ...[
+                                                              const SizedBox(
+                                                                  height: 2),
+                                                              Builder(builder:
+                                                                  (context) {
+                                                                final int
+                                                                    daysInTrash =
+                                                                    DateTime.now()
+                                                                        .difference(
+                                                                            t.deletedAt!)
+                                                                        .inDays;
+                                                                final int
+                                                                    remaining =
+                                                                    _appController
+                                                                            .trashPeriodDays
+                                                                            .value -
+                                                                        daysInTrash;
+                                                                return Text(
+                                                                  'Deleted: ${DateFormat('MMM dd').format(t.deletedAt!)} • ${remaining > 0 ? '$remaining days left' : 'Expiring soon'}',
+                                                                  style: tt.labelSmall!.copyWith(
+                                                                      color: remaining <
+                                                                              3
+                                                                          ? p.coral
+                                                                              .withValues(alpha: 0.8)
+                                                                          : p.textSecondary),
+                                                                );
+                                                              }),
+                                                            ],
+                                                          ],
+                                                        ),
                                                       ],
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                  Text(
+                                                    formatTransactionDisplayAmount(
+                                                        t),
+                                                    style:
+                                                        tt.titleSmall!.copyWith(
+                                                      color: isSelected
+                                                          ? p.textPrimary
+                                                          : p.textSecondary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              Text(
-                                                formatTransactionDisplayAmount(
-                                                    t),
-                                                style: tt.titleSmall!.copyWith(
-                                                  color: isSelected
-                                                      ? p.textPrimary
-                                                      : p.textSecondary,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     );
-                  }),
+                  },
                 );
-              },
-            );
-          }),
-        ],
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }

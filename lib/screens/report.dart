@@ -152,206 +152,220 @@ class _ReportViewState extends State<ReportView> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
-    return Scaffold(
-      backgroundColor: p.background,
-      extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Obx(() {
-          final bool isMultiSelect = _reportController.isMultiSelectMode;
-          return AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            systemOverlayStyle: p.systemUiOverlayStyle,
-            leading: IconButton(
-              icon: Icon(
-                isMultiSelect
-                    ? Icons.close_rounded
-                    : Icons.arrow_back_ios_new_rounded,
-                size: isMultiSelect ? 24 : 20,
-              ),
-              color: p.textPrimary,
-              onPressed: () {
-                AppHaptics.light();
-                if (isMultiSelect) {
-                  _reportController.clearSelection();
-                } else {
-                  Get.back();
-                }
-              },
-            ),
-            title: Text(
-              isMultiSelect
-                  ? '${_reportController.selectedTransactionIds.length} selected'
-                  : 'All transactions',
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    color: p.textPrimary,
-                    letterSpacing: -0.4,
+    return Obx(
+      () => PopScope(
+        canPop: !_reportController.isMultiSelectMode,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && _reportController.isMultiSelectMode) {
+            AppHaptics.light();
+            _reportController.clearSelection();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: p.background,
+          extendBodyBehindAppBar: true,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: Obx(() {
+              final bool isMultiSelect = _reportController.isMultiSelectMode;
+              return AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                systemOverlayStyle: p.systemUiOverlayStyle,
+                leading: IconButton(
+                  icon: Icon(
+                    isMultiSelect
+                        ? Icons.close_rounded
+                        : Icons.arrow_back_ios_new_rounded,
+                    size: isMultiSelect ? 24 : 20,
                   ),
-            ),
-            centerTitle: false,
-            actions: isMultiSelect
-                ? <Widget>[
-                    IconButton(
-                      tooltip: 'Delete selected',
-                      icon: Icon(Icons.delete_outline_rounded, color: p.coral),
-                      onPressed: () {
-                        AppHaptics.heavy();
-                        showMultiDeleteModal(
-                            _reportController.deleteSelectedTransactions);
-                      },
-                    ),
-                  ]
-                : <Widget>[
-                    IconButton(
-                      tooltip: 'Export PDF',
-                      icon: Icon(Icons.picture_as_pdf_outlined,
-                          color: p.textPrimary),
-                      onPressed: _exportPdf,
-                    ),
-                    IconButton(
-                      tooltip: 'Saved views',
-                      icon:
-                          Icon(Icons.bookmarks_outlined, color: p.textPrimary),
-                      onPressed: () {
-                        AppHaptics.light();
-                        showSavedViewsSheet(
-                          context,
-                          palette: p,
-                          featureKey: SavedViewsStorage.featureReport,
-                          surfaceTitle: 'All transactions',
-                          capturePayload: () =>
-                              _reportController.captureSavedViewState(),
-                          applyPayload: _reportController.applySavedViewState,
-                        );
-                      },
-                    ),
-                  ],
-          );
-        }),
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: MidnightGridPainter(
-                  heightFraction: 1.0, gridLineColor: p.gridLine),
-            ),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final double contentWidth = constraints.maxWidth;
-                return Obx(() {
-                  final bool isLoadingInitial =
-                      _reportController.isLoadingInitial.value;
-                  final bool isLoadingMore =
-                      _reportController.isLoadingMore.value;
-                  final bool hasMore = _reportController.hasMore.value;
-                  final bool isEmpty = _reportController.transactions.isEmpty;
-                  final List<Widget> rows = isEmpty
-                      ? const <Widget>[]
-                      : _buildGroupedTransactionSlivers(
-                          context,
-                          _reportController,
-                          contentWidth,
-                        );
-                  return CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(
-                            _horizontalPad, 8, _horizontalPad, 0),
-                        sliver: SliverToBoxAdapter(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _ReportPeriodSummaryCard(
-                                  controller: _reportController),
-                              const SizedBox(height: 14),
-                              _ReportFiltersSection(
-                                  controller: _reportController),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ),
+                  color: p.textPrimary,
+                  onPressed: () {
+                    AppHaptics.light();
+                    if (isMultiSelect) {
+                      _reportController.clearSelection();
+                    } else {
+                      Get.back();
+                    }
+                  },
+                ),
+                title: Text(
+                  isMultiSelect
+                      ? '${_reportController.selectedTransactionIds.length} selected'
+                      : 'All transactions',
+                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                        color: p.textPrimary,
+                        letterSpacing: -0.4,
                       ),
-                      if (isEmpty && isLoadingInitial)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _InitialLoadingState(palette: p),
-                        )
-                      else if (isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: EmptyState(
-                            icon: Icon(
-                              Icons.receipt_long_outlined,
-                              size: 48,
-                              color: p.mint.withValues(alpha: 0.7),
-                            ),
-                            primaryText: Text(
-                              'No transactions in this period',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: p.textPrimary,
-                                  ),
-                            ),
-                            secondaryText: Text(
-                              _hasActiveFilters(_reportController)
-                                  ? 'Try clearing filters or choosing another date range'
-                                  : 'Change the period above or add entries from Home',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium!
-                                  .copyWith(
-                                    color: p.textSecondary,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      else ...<Widget>[
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                              _horizontalPad, 0, _horizontalPad, 0),
-                          // Builder delegate virtualises the element tree so
-                          // multi-page scrolls don't inflate thousands of
-                          // slidable rows up front.
-                          sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (BuildContext _, int i) => rows[i],
-                              childCount: rows.length,
-                            ),
-                          ),
+                ),
+                centerTitle: false,
+                actions: isMultiSelect
+                    ? <Widget>[
+                        IconButton(
+                          tooltip: 'Delete selected',
+                          icon: Icon(Icons.delete_outline_rounded,
+                              color: p.coral),
+                          onPressed: () {
+                            AppHaptics.heavy();
+                            showMultiDeleteModal(
+                                _reportController.deleteSelectedTransactions);
+                          },
                         ),
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                              _horizontalPad, 4, _horizontalPad, 28),
-                          sliver: SliverToBoxAdapter(
-                            child: _PaginationFooter(
+                      ]
+                    : <Widget>[
+                        IconButton(
+                          tooltip: 'Export PDF',
+                          icon: Icon(Icons.picture_as_pdf_outlined,
+                              color: p.textPrimary),
+                          onPressed: _exportPdf,
+                        ),
+                        IconButton(
+                          tooltip: 'Saved views',
+                          icon: Icon(Icons.bookmarks_outlined,
+                              color: p.textPrimary),
+                          onPressed: () {
+                            AppHaptics.light();
+                            showSavedViewsSheet(
+                              context,
                               palette: p,
-                              isLoadingMore: isLoadingMore,
-                              hasMore: hasMore,
-                              totalLoaded:
-                                  _reportController.transactions.length,
-                            ),
-                          ),
+                              featureKey: SavedViewsStorage.featureReport,
+                              surfaceTitle: 'All transactions',
+                              capturePayload: () =>
+                                  _reportController.captureSavedViewState(),
+                              applyPayload:
+                                  _reportController.applySavedViewState,
+                            );
+                          },
                         ),
                       ],
-                    ],
-                  );
-                });
-              },
-            ),
+              );
+            }),
           ),
-        ],
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: MidnightGridPainter(
+                      heightFraction: 1.0, gridLineColor: p.gridLine),
+                ),
+              ),
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final double contentWidth = constraints.maxWidth;
+                    return Obx(() {
+                      final bool isLoadingInitial =
+                          _reportController.isLoadingInitial.value;
+                      final bool isLoadingMore =
+                          _reportController.isLoadingMore.value;
+                      final bool hasMore = _reportController.hasMore.value;
+                      final bool isEmpty =
+                          _reportController.transactions.isEmpty;
+                      final List<Widget> rows = isEmpty
+                          ? const <Widget>[]
+                          : _buildGroupedTransactionSlivers(
+                              context,
+                              _reportController,
+                              contentWidth,
+                            );
+                      return CustomScrollView(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(
+                                _horizontalPad, 8, _horizontalPad, 0),
+                            sliver: SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _ReportPeriodSummaryCard(
+                                      controller: _reportController),
+                                  const SizedBox(height: 14),
+                                  _ReportFiltersSection(
+                                      controller: _reportController),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (isEmpty && isLoadingInitial)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: _InitialLoadingState(palette: p),
+                            )
+                          else if (isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: EmptyState(
+                                icon: Icon(
+                                  Icons.receipt_long_outlined,
+                                  size: 48,
+                                  color: p.mint.withValues(alpha: 0.7),
+                                ),
+                                primaryText: Text(
+                                  'No transactions in this period',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: p.textPrimary,
+                                      ),
+                                ),
+                                secondaryText: Text(
+                                  _hasActiveFilters(_reportController)
+                                      ? 'Try clearing filters or choosing another date range'
+                                      : 'Change the period above or add entries from Home',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(
+                                        color: p.textSecondary,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          else ...<Widget>[
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  _horizontalPad, 0, _horizontalPad, 0),
+                              // Builder delegate virtualises the element tree so
+                              // multi-page scrolls don't inflate thousands of
+                              // slidable rows up front.
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (BuildContext _, int i) => rows[i],
+                                  childCount: rows.length,
+                                ),
+                              ),
+                            ),
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  _horizontalPad, 4, _horizontalPad, 28),
+                              sliver: SliverToBoxAdapter(
+                                child: _PaginationFooter(
+                                  palette: p,
+                                  isLoadingMore: isLoadingMore,
+                                  hasMore: hasMore,
+                                  totalLoaded:
+                                      _reportController.transactions.length,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
