@@ -379,6 +379,39 @@ void main() {
   });
 
   group('budget', () {
+    test('copyBudgetLinesToMonth copies lines to target month', () async {
+      final BudgetMonth m1 = await db_ops.ensureBudgetMonth(2026, 5);
+      final int cid = await db_ops.addContact(Contact(name: 'Store'));
+      await db_ops.insertBudgetLine(
+        budgetMonthId: m1.id,
+        description: 'Groceries',
+        plannedAmount: 50000,
+        contactId: cid,
+        categoryKey: 'food',
+      );
+      await db_ops.insertBudgetLine(
+        budgetMonthId: m1.id,
+        description: 'Rent',
+        plannedAmount: 100000,
+        contactId: 0,
+        categoryKey: 'rent',
+      );
+
+      await db_ops.copyBudgetLinesToMonth(m1.id, 2026, 6);
+
+      final BudgetMonth m2 = await db_ops.ensureBudgetMonth(2026, 6);
+      final List<BudgetLine> lines = await db_ops.getBudgetLinesForMonth(m2.id);
+      expect(lines.length, 2);
+      expect(lines[0].description, 'Groceries');
+      expect(lines[0].plannedAmount, 50000);
+      expect(lines[0].contactId, cid);
+      expect(lines[0].categoryKey, 'food');
+      expect(lines[1].description, 'Rent');
+      expect(lines[1].plannedAmount, 100000);
+      expect(lines[1].contactId, 0);
+      expect(lines[1].categoryKey, 'rent');
+    });
+
     test('ensureBudgetMonth getOrCreate and budget lines CRUD', () async {
       final BudgetMonth m = await db_ops.ensureBudgetMonth(2026, 4);
       expect(m.year, 2026);

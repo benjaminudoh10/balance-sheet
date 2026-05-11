@@ -158,6 +158,38 @@ class _BudgetScreenState extends State<BudgetScreen> {
         centerTitle: false,
         actions: <Widget>[
           IconButton(
+            tooltip: 'Copy to next month',
+            icon: Icon(Icons.copy_all_outlined, color: p.textPrimary),
+            onPressed: () async {
+              AppHaptics.light();
+              final DateTime current = _budget.focusMonth.value;
+              final DateTime next = DateTime(current.year, current.month + 1);
+              final bool? confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Copy to Next Month'),
+                  content: Text(
+                      'Copy all budget items to ${DateFormat('MMMM yyyy').format(next)}?'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Copy')),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                final int? sourceId = _budget.activeBudgetMonth.value?.id;
+                if (sourceId != null) {
+                  await _budget.copyToNextMonth(
+                      sourceId, next.year, next.month);
+                }
+              }
+            },
+          ),
+          IconButton(
             tooltip: 'Export PDF',
             icon: Icon(Icons.picture_as_pdf_outlined, color: p.textPrimary),
             onPressed: _exportPdf,

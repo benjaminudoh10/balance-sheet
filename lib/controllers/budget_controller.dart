@@ -92,4 +92,11 @@ class BudgetController extends GetxController {
     await db.deleteBudgetLine(lineId);
     await reloadFocusMonth();
   }
+
+  Future<void> copyToNextMonth(
+      int sourceBudgetMonthId, int targetYear, int targetMonth) async {
+    await db.copyBudgetLinesToMonth(
+        sourceBudgetMonthId, targetYear, targetMonth);
+    await reloadFocusMonth();
+  }
 }

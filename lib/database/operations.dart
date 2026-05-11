@@ -504,3 +504,27 @@ Future<List<Map<String, dynamic>>> queryAllBudgetLineRows() async {
   final dbClient = await AppDb().db;
   return dbClient.query(DBConstants.BUDGET_LINE, orderBy: 'id ASC');
 }
+
+Future<void> copyBudgetLinesToMonth(
+    int sourceBudgetMonthId, int targetYear, int targetMonth) async {
+  final dbClient = await AppDb().db;
+  final BudgetMonth targetMonthObj =
+      await ensureBudgetMonth(targetYear, targetMonth);
+  final List<BudgetLine> sourceLines =
+      await getBudgetLinesForMonth(sourceBudgetMonthId);
+
+  await dbClient.transaction((txn) async {
+    for (final BudgetLine line in sourceLines) {
+      await txn.insert(DBConstants.BUDGET_LINE, <String, Object?>{
+        'budget_month_id': targetMonthObj.id,
+        'description': line.description,
+        'planned_amount': line.plannedAmount,
+        'contact_id': line.contactId <= 0 ? null : line.contactId,
+        'category': line.categoryKey,
+        'sort_order': line.sortOrder,
+        'entryCurrency': line.planEntryIsFcy ? 'fcy' : 'lcy',
+        'entryAmount': line.planEntryAmountMinor,
+      });
+    }
+  });
+}
