@@ -1160,182 +1160,45 @@ class _PlanStocksScreenState extends State<PlanStocksScreen>
                     itemBuilder: (BuildContext context, int i) {
                       final InvestmentHolding h = _inv.holdings[i];
                       final HoldingRowData? row = _inv.rowByHoldingId[h.id];
-                      return Slidable(
-                        key: ValueKey<String>('holding_${h.id}'),
-                        endActionPane: ActionPane(
-                          motion: const DrawerMotion(),
-                          children: <Widget>[
-                            SlidableAction(
-                              onPressed: (_) async {
-                                AppHaptics.light();
-                                final bool? ok = await Get.dialog<bool>(
-                                  AlertDialog(
-                                    title: const Text('Remove holding?'),
-                                    content: Text(
-                                        'Delete ${h.ticker} and all its history?'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          AppHaptics.light();
-                                          Get.back(result: false);
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          AppHaptics.medium();
-                                          Get.back(result: true);
-                                        },
-                                        child: Text('Delete',
-                                            style: TextStyle(color: p.coral)),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (ok == true) {
-                                  await inv.deleteInvestmentHolding(h.id);
-                                  await _reload();
-                                }
-                              },
-                              backgroundColor: p.coral.withValues(alpha: 0.25),
-                              foregroundColor: p.coral,
-                              icon: Icons.delete_outline_rounded,
-                              label: 'Delete',
-                            ),
-                          ],
-                        ),
-                        child: SlidablePeekHint(
-                          storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS,
-                          enabled: i == 0,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                AppHaptics.light();
-                                _showHoldingDetailSheet(context, p, h);
-                              },
-                              child: Ink(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: p.surface.withValues(alpha: 0.85),
-                                  border: Border.all(
-                                      color: p.border.withValues(alpha: 0.6)),
+                      return _HoldingRow(
+                        index: i,
+                        holding: h,
+                        rowData: row,
+                        onTap: () {
+                          AppHaptics.light();
+                          _showHoldingDetailSheet(context, p, h);
+                        },
+                        onDelete: () async {
+                          AppHaptics.light();
+                          final bool? ok = await Get.dialog<bool>(
+                            AlertDialog(
+                              title: const Text('Remove holding?'),
+                              content: Text(
+                                  'Delete ${h.ticker} and all its history?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    AppHaptics.light();
+                                    Get.back(result: false);
+                                  },
+                                  child: const Text('Cancel'),
                                 ),
-                                child: Row(
-                                  children: <Widget>[
-                                    CircleAvatar(
-                                      backgroundColor: p.surfaceElevated,
-                                      child: Text(
-                                        h.ticker.length <= 4
-                                            ? h.ticker
-                                            : h.ticker.substring(0, 4),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall!
-                                            .copyWith(
-                                              color: _kInvestAccent,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Text(
-                                            h.ticker,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleSmall!
-                                                .copyWith(
-                                                  color: p.textPrimary,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                          Text(
-                                            h.displayName.isEmpty
-                                                ? '—'
-                                                : h.displayName,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall!
-                                                .copyWith(
-                                                    color: p.textSecondary),
-                                          ),
-                                          if (row != null)
-                                            Text(
-                                              _fmtQty(row.quantity),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelSmall!
-                                                  .copyWith(
-                                                      color: p.textSecondary),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        DualCurrencyTotal(
-                                          lcyMinor: row?.valueMinor ?? 0,
-                                          textAlign: TextAlign.end,
-                                          compactSecondary: true,
-                                          primaryStyle: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall!
-                                              .copyWith(
-                                                color: p.textPrimary,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                          secondaryStyle: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall!
-                                              .copyWith(
-                                                color: p.textSecondary,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                        if (row != null &&
-                                            row.deltaMinor != null &&
-                                            row.deltaPct != null)
-                                          Text(
-                                            'P/L ${row.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(row.deltaMinor!.abs())} '
-                                            '(${row.deltaPct! >= 0 ? '+' : ''}${row.deltaPct!.toStringAsFixed(2)}% vs cost)',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall!
-                                                .copyWith(
-                                                  color: row.deltaMinor! >= 0
-                                                      ? p.mint
-                                                      : p.coral,
-                                                ),
-                                          )
-                                        else
-                                          Text(
-                                            '—',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall!
-                                                .copyWith(
-                                                    color: p.textSecondary),
-                                          ),
-                                      ],
-                                    ),
-                                  ],
+                                TextButton(
+                                  onPressed: () {
+                                    AppHaptics.medium();
+                                    Get.back(result: true);
+                                  },
+                                  child: Text('Delete',
+                                      style: TextStyle(color: p.coral)),
                                 ),
-                              ),
+                              ],
                             ),
-                          ),
-                        ),
+                          );
+                          if (ok == true) {
+                            await inv.deleteInvestmentHolding(h.id);
+                            await _reload();
+                          }
+                        },
                       );
                     },
                   ),
@@ -1404,139 +1267,42 @@ class _PlanStocksScreenState extends State<PlanStocksScreen>
                     itemCount: _inv.otherInvestments.length,
                     itemBuilder: (BuildContext context, int i) {
                       final OtherInvestment o = _inv.otherInvestments[i];
-                      return Slidable(
-                        key: ValueKey<String>('other_invest_${o.id}'),
-                        endActionPane: ActionPane(
-                          motion: const DrawerMotion(),
-                          children: <Widget>[
-                            SlidableAction(
-                              onPressed: (_) async {
-                                AppHaptics.light();
-                                final bool? ok = await Get.dialog<bool>(
-                                  AlertDialog(
-                                    title: const Text('Remove item?'),
-                                    content: Text('Delete “${o.label}”?'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          AppHaptics.light();
-                                          Get.back(result: false);
-                                        },
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          AppHaptics.medium();
-                                          Get.back(result: true);
-                                        },
-                                        child: Text('Delete',
-                                            style: TextStyle(color: p.coral)),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (ok == true) {
-                                  await _inv.deleteOtherInvestment(o.id);
-                                }
-                              },
-                              backgroundColor: p.coral.withValues(alpha: 0.25),
-                              foregroundColor: p.coral,
-                              icon: Icons.delete_outline_rounded,
-                              label: 'Delete',
-                            ),
-                          ],
-                        ),
-                        child: SlidablePeekHint(
-                          storageKey:
-                              AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
-                          enabled: i == 0,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                AppHaptics.light();
-                                _showOtherInvestmentSheet(context, p, o);
-                              },
-                              child: Ink(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 14),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: p.surface.withValues(alpha: 0.85),
-                                  border: Border.all(
-                                      color: p.border.withValues(alpha: 0.6)),
+                      return _OtherInvestmentRow(
+                        index: i,
+                        investment: o,
+                        onTap: () {
+                          AppHaptics.light();
+                          _showOtherInvestmentSheet(context, p, o);
+                        },
+                        onDelete: () async {
+                          AppHaptics.light();
+                          final bool? ok = await Get.dialog<bool>(
+                            AlertDialog(
+                              title: const Text('Remove item?'),
+                              content: Text('Delete “${o.label}”?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    AppHaptics.light();
+                                    Get.back(result: false);
+                                  },
+                                  child: const Text('Cancel'),
                                 ),
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(Icons.account_balance_wallet_outlined,
-                                        color: _kInvestAccent, size: 26),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Text(
-                                            o.label.isEmpty ? '—' : o.label,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleSmall!
-                                                .copyWith(
-                                                  color: p.textPrimary,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                          Obx(() {
-                                            final CurrencyController c =
-                                                Get.find<CurrencyController>();
-                                            if (o.entryIsFcy) {
-                                              return Text(
-                                                '${formatMinorUnits(o.entryMinor, c.fcyCode.value)} • ${formatAmount(o.valueLcyMinor)}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall!
-                                                    .copyWith(
-                                                        color: p.textSecondary),
-                                              );
-                                            }
-                                            return Text(
-                                              formatAmount(o.valueLcyMinor),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall!
-                                                  .copyWith(
-                                                      color: p.textSecondary),
-                                            );
-                                          }),
-                                        ],
-                                      ),
-                                    ),
-                                    DualCurrencyTotal(
-                                      lcyMinor: o.valueLcyMinor,
-                                      textAlign: TextAlign.end,
-                                      compactSecondary: true,
-                                      primaryStyle: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall!
-                                          .copyWith(
-                                            color: p.textPrimary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                      secondaryStyle: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall!
-                                          .copyWith(
-                                            color: p.textSecondary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                  ],
+                                TextButton(
+                                  onPressed: () {
+                                    AppHaptics.medium();
+                                    Get.back(result: true);
+                                  },
+                                  child: Text('Delete',
+                                      style: TextStyle(color: p.coral)),
                                 ),
-                              ),
+                              ],
                             ),
-                          ),
-                        ),
+                          );
+                          if (ok == true) {
+                            await _inv.deleteOtherInvestment(o.id);
+                          }
+                        },
                       );
                     },
                   ),
@@ -1812,6 +1578,272 @@ class _PortfolioSummary extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+class _HoldingRow extends StatelessWidget {
+  const _HoldingRow({
+    required this.index,
+    required this.holding,
+    required this.rowData,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final int index;
+  final InvestmentHolding holding;
+  final HoldingRowData? rowData;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  String _fmtQty(double q) {
+    if ((q - q.roundToDouble()).abs() < 1e-9) {
+      return '${q.toInt()} shares';
+    }
+    return '${q.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '')} shares';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+
+    return Slidable(
+      key: ValueKey<String>('holding_${holding.id}'),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: <Widget>[
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            backgroundColor: p.coral.withValues(alpha: 0.25),
+            foregroundColor: p.coral,
+            icon: Icons.delete_outline_rounded,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: SlidablePeekHint(
+        storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS,
+        enabled: index == 0,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: p.surface.withValues(alpha: 0.85),
+                border: Border.all(color: p.border.withValues(alpha: 0.6)),
+              ),
+              child: Row(
+                children: <Widget>[
+                  CircleAvatar(
+                    backgroundColor: p.surfaceElevated,
+                    child: Text(
+                      holding.ticker.length <= 4
+                          ? holding.ticker
+                          : holding.ticker.substring(0, 4),
+                      style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                            color: _kInvestAccent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          holding.ticker,
+                          style:
+                              Theme.of(context).textTheme.titleSmall!.copyWith(
+                                    color: p.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                        Text(
+                          holding.displayName.isEmpty
+                              ? '—'
+                              : holding.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall!
+                              .copyWith(color: p.textSecondary),
+                        ),
+                        if (rowData != null)
+                          Text(
+                            _fmtQty(rowData!.quantity),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(color: p.textSecondary),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      DualCurrencyTotal(
+                        lcyMinor: rowData?.valueMinor ?? 0,
+                        textAlign: TextAlign.end,
+                        compactSecondary: true,
+                        primaryStyle:
+                            Theme.of(context).textTheme.titleSmall!.copyWith(
+                                  color: p.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                        secondaryStyle:
+                            Theme.of(context).textTheme.labelSmall!.copyWith(
+                                  color: p.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                      ),
+                      if (rowData != null &&
+                          rowData!.deltaMinor != null &&
+                          rowData!.deltaPct != null)
+                        Text(
+                          'P/L ${rowData!.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(rowData!.deltaMinor!.abs())} '
+                          '(${rowData!.deltaPct! >= 0 ? '+' : ''}${rowData!.deltaPct!.toStringAsFixed(2)}% vs cost)',
+                          style:
+                              Theme.of(context).textTheme.labelSmall!.copyWith(
+                                    color: rowData!.deltaMinor! >= 0
+                                        ? p.mint
+                                        : p.coral,
+                                  ),
+                        )
+                      else
+                        Text(
+                          '—',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall!
+                              .copyWith(color: p.textSecondary),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OtherInvestmentRow extends StatelessWidget {
+  const _OtherInvestmentRow({
+    required this.index,
+    required this.investment,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  final int index;
+  final OtherInvestment investment;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+
+    return Slidable(
+      key: ValueKey<String>('other_invest_${investment.id}'),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: <Widget>[
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            backgroundColor: p.coral.withValues(alpha: 0.25),
+            foregroundColor: p.coral,
+            icon: Icons.delete_outline_rounded,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: SlidablePeekHint(
+        storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
+        enabled: index == 0,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: p.surface.withValues(alpha: 0.85),
+                border: Border.all(color: p.border.withValues(alpha: 0.6)),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.account_balance_wallet_outlined,
+                      color: _kInvestAccent, size: 26),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          investment.label.isEmpty ? '—' : investment.label,
+                          style:
+                              Theme.of(context).textTheme.titleSmall!.copyWith(
+                                    color: p.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                        Obx(() {
+                          final CurrencyController c =
+                              Get.find<CurrencyController>();
+                          if (investment.entryIsFcy) {
+                            return Text(
+                              '${formatMinorUnits(investment.entryMinor, c.fcyCode.value)} • ${formatAmount(investment.valueLcyMinor)}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(color: p.textSecondary),
+                            );
+                          }
+                          return Text(
+                            formatAmount(investment.valueLcyMinor),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(color: p.textSecondary),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                  DualCurrencyTotal(
+                    lcyMinor: investment.valueLcyMinor,
+                    textAlign: TextAlign.end,
+                    compactSecondary: true,
+                    primaryStyle:
+                        Theme.of(context).textTheme.titleSmall!.copyWith(
+                              color: p.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                    secondaryStyle:
+                        Theme.of(context).textTheme.labelSmall!.copyWith(
+                              color: p.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
