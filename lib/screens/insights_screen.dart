@@ -391,14 +391,6 @@ class _CategoryBarsPanel extends StatelessWidget {
                   .titleMedium!
                   .copyWith(color: p.textPrimary),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Same data as the donut, easier to compare amounts',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall!
-                  .copyWith(color: p.textSecondary),
-            ),
             const SizedBox(height: 14),
             for (int i = 0; i < rows.length; i++) ...[
               if (i > 0) const SizedBox(height: 10),

@@ -1,3 +1,4 @@
+import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/app_controller.dart';
@@ -431,8 +432,7 @@ class _TrashViewState extends State<TrashView> {
                               onPressed: AppHaptics.wrapSlidable((_) {
                                 _confirmBulkRestore(ids: [t.id]);
                               }),
-                              backgroundColor:
-                                  p.mint, // Action colors remain functional
+                              backgroundColor: p.mint,
                               foregroundColor: Colors.black87,
                               icon: Icons.restore_rounded,
                               label: 'Restore',
@@ -488,7 +488,9 @@ class _TrashViewState extends State<TrashView> {
                                     children: [
                                       Container(
                                         width: 4,
-                                        color: accent,
+                                        color: t.type == TransactionType.income
+                                            ? p.mint
+                                            : p.coral,
                                       ),
                                       Expanded(
                                         child: Padding(
