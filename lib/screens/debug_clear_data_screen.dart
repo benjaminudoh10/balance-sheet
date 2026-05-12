@@ -5,6 +5,7 @@ import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -362,7 +363,7 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        Get.snackbar(
+        AppSnack.show(
           'Cleared',
           'Removed selected data.',
           snackPosition: SnackPosition.TOP,
@@ -373,7 +374,7 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
     } catch (e, st) {
       debugPrint('$e\n$st');
       if (!mounted) return;
-      Get.snackbar(
+      AppSnack.show(
         'Clear failed',
         '$e',
         snackPosition: SnackPosition.TOP,

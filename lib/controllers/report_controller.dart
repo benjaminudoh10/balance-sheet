@@ -6,6 +6,7 @@ import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/widgets/date_range_picker_sheet.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -79,7 +80,7 @@ class ReportController extends GetxController {
     await getTransactions();
     await getTransactionTotal();
 
-    Get.snackbar(
+    AppSnack.show(
       "Successful",
       '$count ${count == 1 ? 'transaction' : 'transactions'} ${useTrash ? 'moved to trash' : 'deleted successfully'}',
       colorText: Colors.white,

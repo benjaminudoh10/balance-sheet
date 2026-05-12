@@ -20,6 +20,7 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -57,12 +58,12 @@ Widget _floatingModalCard({
   );
 }
 
-/// Avoid calling [Get.snackbar] synchronously right after [Navigator.pop]: the overlay /
+/// Avoid calling [AppSnack.show] synchronously right after [Navigator.pop]: the overlay /
 /// [ScaffoldMessenger] can rebuild while the route subtree is still tearing down, which
 /// triggers framework assertions on inherited widgets.
 void _snackbarAfterRouteSettled(String title, String message) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    Get.snackbar(title, message);
+    AppSnack.show(title, message);
   });
 }
 
@@ -131,12 +132,12 @@ class _OtherInvestmentEditorContentState
   Future<void> _save() async {
     final String lab = _labelCtrl.text.trim();
     if (lab.isEmpty) {
-      Get.snackbar('Label', 'Enter a short name for this investment.');
+      AppSnack.show('Label', 'Enter a short name for this investment.');
       return;
     }
     final int? entryMinor = parseMoneyStringToMinor(_amountCtrl.text);
     if (entryMinor == null || entryMinor <= 0) {
-      Get.snackbar('Amount', 'Enter a value greater than zero.');
+      AppSnack.show('Amount', 'Enter a value greater than zero.');
       return;
     }
     final int lcy =
@@ -369,7 +370,7 @@ class _AddHoldingEditorContentState extends State<_AddHoldingEditorContent> {
   Future<void> _submit() async {
     final String t = _tickerCtrl.text.trim();
     if (t.isEmpty) {
-      Get.snackbar('Ticker', 'Enter a ticker symbol for this holding.');
+      AppSnack.show('Ticker', 'Enter a ticker symbol for this holding.');
       return;
     }
     await widget.onSave(t, _nameCtrl.text.trim());
@@ -497,12 +498,12 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   Future<void> _save() async {
     final double? parsed = double.tryParse(_qtyCtrl.text.replaceAll(',', ''));
     if (parsed == null) {
-      Get.snackbar('Quantity', 'Enter a valid quantity.');
+      AppSnack.show('Quantity', 'Enter a valid quantity.');
       return;
     }
     final double mag = parsed.abs();
     if (mag == 0) {
-      Get.snackbar('Quantity', 'Enter a non-zero quantity.');
+      AppSnack.show('Quantity', 'Enter a non-zero quantity.');
       return;
     }
     final DateTime atMidnight =
@@ -515,12 +516,12 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
       final double maxSell = math.max(0.0, available);
       if (mag > maxSell + 1e-9) {
         if (maxSell <= 1e-9) {
-          Get.snackbar(
+          AppSnack.show(
             'Cannot sell',
             'No shares are available to sell on this date (based on prior lots).',
           );
         } else {
-          Get.snackbar(
+          AppSnack.show(
             'Cannot sell',
             'You have ${_formatShareQtyPlain(maxSell)} shares available on this date; '
                 '${_formatShareQtyPlain(mag)} is too many.',
@@ -533,12 +534,12 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
     final double qty = _isSale ? -mag : mag;
     final int? pxEntryTotal = parseMoneyStringToMinor(_priceCtrl.text);
     if (pxEntryTotal == null) {
-      Get.snackbar(
+      AppSnack.show(
           'Amount required', 'Enter the total amount for this transaction.');
       return;
     }
     if (pxEntryTotal <= 0) {
-      Get.snackbar('Amount', 'Enter a total amount greater than zero.');
+      AppSnack.show('Amount', 'Enter a total amount greater than zero.');
       return;
     }
     // The user types the total transaction amount; the canonical per-share
@@ -546,7 +547,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
     // existing rows from prior app versions) working unchanged.
     final int pxEntryPerShare = (pxEntryTotal / mag).round();
     if (pxEntryPerShare <= 0) {
-      Get.snackbar(
+      AppSnack.show(
         'Amount',
         'Total is too small for this quantity — per-share price rounds to zero.',
       );
@@ -803,7 +804,7 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
   Future<void> _save() async {
     final int? entryMinor = parseMoneyStringToMinor(_priceCtrl.text);
     if (entryMinor == null || entryMinor <= 0) {
-      Get.snackbar('Price', 'Enter a value greater than zero.');
+      AppSnack.show('Price', 'Enter a value greater than zero.');
       return;
     }
     final int lcyMinor =

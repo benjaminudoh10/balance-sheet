@@ -8,6 +8,7 @@ import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
@@ -257,7 +258,7 @@ class _ContactViewState extends State<ContactView> {
                           contactController: _contactController,
                           onAddTap: () {
                             if (contactDataInvalid()) {
-                              Get.snackbar(
+                              AppSnack.show(
                                 'Error',
                                 'Name is required',
                                 colorText: p.textPrimary,

@@ -18,6 +18,7 @@ import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -72,7 +73,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       await PdfExportService.shareBudget(_budget);
     } catch (_) {
       if (!mounted) return;
-      Get.snackbar(
+      AppSnack.show(
           'PDF export failed', 'Could not export the current budget snapshot.');
     }
   }
@@ -162,6 +163,18 @@ class _BudgetScreenState extends State<BudgetScreen> {
             icon: Icon(Icons.copy_all_outlined, color: p.textPrimary),
             onPressed: () async {
               AppHaptics.light();
+
+              if (_budget.lines.isEmpty) {
+                AppSnack.show(
+                  'Empty Budget',
+                  'Add some items to this month first.',
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: p.coral,
+                  colorText: Colors.white,
+                );
+                return;
+              }
+
               final DateTime current = _budget.focusMonth.value;
               final DateTime next = DateTime(current.year, current.month + 1);
               final bool? confirmed = await showDialog<bool>(
@@ -185,6 +198,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 if (sourceId != null) {
                   await _budget.copyToNextMonth(
                       sourceId, next.year, next.month);
+                  AppSnack.show(
+                    'Success',
+                    'Budget copied to ${DateFormat('MMMM yyyy').format(next)}',
+                    snackPosition: SnackPosition.TOP,
+                    backgroundColor: p.mint,
+                    colorText: Colors.white,
+                  );
                 }
               }
             },
@@ -1081,13 +1101,13 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   Future<void> _save() async {
     final String d = _desc.text.trim();
     if (d.isEmpty) {
-      Get.snackbar(
+      AppSnack.show(
           'Missing description', 'Add a short label for this planned item.');
       return;
     }
     final int entryMinor = _minorFromAmountText(_amount.text);
     if (entryMinor <= 0) {
-      Get.snackbar('Amount', 'Enter a planned amount greater than zero.');
+      AppSnack.show('Amount', 'Enter a planned amount greater than zero.');
       return;
     }
     final int plannedLcyMinor = _planEntryIsFcy

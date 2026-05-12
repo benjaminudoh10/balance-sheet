@@ -7,6 +7,7 @@ import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/widgets/date_range_picker_sheet.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
@@ -282,7 +283,7 @@ class IncomeForm extends StatelessWidget {
                           onTap: () async {
                             AppHaptics.light();
                             if (!validInput()) {
-                              Get.snackbar(
+                              AppSnack.show(
                                 'Error',
                                 'All fields are required',
                                 colorText: p.textPrimary,

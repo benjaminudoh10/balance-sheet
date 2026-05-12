@@ -14,6 +14,7 @@ import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -43,7 +44,7 @@ class _InsightsViewState extends State<InsightsView> {
       await PdfExportService.shareInsights(_controller);
     } catch (_) {
       if (!mounted) return;
-      Get.snackbar('PDF export failed',
+      AppSnack.show('PDF export failed',
           'Could not export the current insights snapshot.');
     }
   }

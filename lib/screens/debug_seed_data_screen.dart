@@ -5,6 +5,7 @@ import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:get/get.dart';
 
 /// Debug-only screen that loads a full sample dataset. Not reachable when [kDebugMode] is false.
@@ -143,7 +144,7 @@ class _DebugSeedDataScreenState extends State<DebugSeedDataScreen> {
     try {
       await DebugDataSeedService.apply();
       if (!mounted) return;
-      Get.snackbar(
+      AppSnack.show(
         'Sample data loaded',
         'Ledger, budget, and investments updated.',
         snackPosition: SnackPosition.TOP,
@@ -153,7 +154,7 @@ class _DebugSeedDataScreenState extends State<DebugSeedDataScreen> {
     } catch (e, st) {
       debugPrint('$e\n$st');
       if (!mounted) return;
-      Get.snackbar(
+      AppSnack.show(
         'Seed failed',
         '$e',
         snackPosition: SnackPosition.TOP,

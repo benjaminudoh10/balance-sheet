@@ -6,6 +6,7 @@ import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/pin_field_card.dart';
 import 'package:balance_sheet/widgets/pin_hero_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:get/get.dart';
 
 class Pin extends StatelessWidget {
@@ -95,7 +96,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
   Future<void> _setNewPin(SecurityController c) async {
     final AppPalette p = AppPalette.of(Get.context!);
     if (!_inputIsValid(c)) {
-      Get.snackbar(
+      AppSnack.show(
         'Error',
         'All input is required',
         backgroundColor: p.coral.withValues(alpha: 0.9),
@@ -106,7 +107,7 @@ class _NewPinScreenState extends State<NewPinScreen> {
 
     final bool pinSet = await c.setNewPin();
     if (pinSet) {
-      Get.snackbar(
+      AppSnack.show(
         'Success',
         'PIN has been set successfully',
         backgroundColor: p.mint.withValues(alpha: 0.9),
@@ -269,7 +270,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
   Future<void> _changePin(SecurityController c) async {
     final AppPalette p = AppPalette.of(Get.context!);
     if (!_inputIsValid(c)) {
-      Get.snackbar(
+      AppSnack.show(
         'Error',
         'All input is required',
         backgroundColor: p.coral.withValues(alpha: 0.9),
@@ -280,7 +281,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
 
     final bool pinSet = await c.changePin();
     if (pinSet) {
-      Get.snackbar(
+      AppSnack.show(
         'Success',
         'PIN has been set successfully',
         backgroundColor: p.mint.withValues(alpha: 0.9),

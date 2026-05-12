@@ -2,6 +2,7 @@ import 'package:balance_sheet/constants/colors.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
 import 'package:balance_sheet/models/contact.dart';
 import 'package:flutter/material.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:get/get.dart';
 
 class ContactController extends GetxController {
@@ -26,7 +27,7 @@ class ContactController extends GetxController {
       List<Map<String, dynamic>> exists =
           await db.getContactWithName(contact.name);
       if (exists.isNotEmpty) {
-        Get.snackbar(
+        AppSnack.show(
           "Error",
           "Contact with given name already exist.",
           colorText: Colors.white,
@@ -43,7 +44,7 @@ class ContactController extends GetxController {
     } catch (error) {
       debugPrint('$error');
       addingContact.value = false;
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Error occured while adding contact",
         colorText: Colors.white,
@@ -57,7 +58,7 @@ class ContactController extends GetxController {
     // update data in controller
     contacts.add(contact);
     contacts.sort((a, b) => a.name.compareTo(b.name));
-    Get.snackbar(
+    AppSnack.show(
       "Successful",
       "Contact added successfully",
       colorText: Colors.white,
@@ -69,7 +70,7 @@ class ContactController extends GetxController {
   Future<void> updateContact(Contact updated) async {
     final String trimmed = updated.name.trim();
     if (trimmed.isEmpty) {
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Name is required",
         colorText: Colors.white,
@@ -94,7 +95,7 @@ class ContactController extends GetxController {
         return id != updated.id;
       });
       if (duplicate) {
-        Get.snackbar(
+        AppSnack.show(
           "Error",
           "Contact with given name already exist.",
           colorText: Colors.white,
@@ -113,7 +114,7 @@ class ContactController extends GetxController {
       }
 
       Get.back();
-      Get.snackbar(
+      AppSnack.show(
         "Successful",
         "Contact updated successfully",
         colorText: Colors.white,
@@ -122,7 +123,7 @@ class ContactController extends GetxController {
       );
     } catch (error) {
       debugPrint('$error');
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Error occured while updating contact",
         colorText: Colors.white,
@@ -144,7 +145,7 @@ class ContactController extends GetxController {
         .where((existingContact) => contact.id != existingContact.id)
         .toList();
 
-    Get.snackbar(
+    AppSnack.show(
       "Successful",
       "Contact deleted successfully",
       colorText: Colors.white,

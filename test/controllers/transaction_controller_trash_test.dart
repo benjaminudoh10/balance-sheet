@@ -109,7 +109,7 @@
 //         contactId: 0,
 //       );
 
-//       // We use runAsync for operations that call Get.back() or Get.snackbar
+//       // We use runAsync for operations that call Get.back() or AppSnack.show
 //       // to avoid hanging in testWidgets environment.
 //       await tester.runAsync(() async {
 //         await tc.deleteTransaction(t);

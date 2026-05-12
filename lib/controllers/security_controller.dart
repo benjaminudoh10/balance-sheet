@@ -4,6 +4,7 @@ import 'package:balance_sheet/screens/home.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/pin_lock.dart';
 import 'package:balance_sheet/security/pin_hash.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -105,7 +106,7 @@ class SecurityController extends GetxController {
       Get.back();
       Get.to(Pin(), transition: Transition.noTransition);
       /* end of hack */
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "PINs do not match",
         backgroundColor: AppColors.SNACKBAR_RED,
@@ -137,7 +138,7 @@ class SecurityController extends GetxController {
       Get.back();
       Get.to(Pin(), transition: Transition.noTransition);
       /* end of hack */
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Invalid PIN provided",
         backgroundColor: AppColors.SNACKBAR_RED,
@@ -152,7 +153,7 @@ class SecurityController extends GetxController {
       Get.back();
       Get.to(Pin(), transition: Transition.noTransition);
       /* end of hack */
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "PINs do not match",
         backgroundColor: AppColors.SNACKBAR_RED,
@@ -183,7 +184,7 @@ class SecurityController extends GetxController {
         Get.offAll(LockScreen(), transition: Transition.noTransition);
       }
       /* end of hack */
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Invalid PIN provided. Try again.",
         backgroundColor: AppColors.SNACKBAR_RED,
@@ -205,7 +206,7 @@ class SecurityController extends GetxController {
         pinIsSet.value = false;
         sessionUnlocked.value = false;
         Get.back();
-        Get.snackbar(
+        AppSnack.show(
           "Success",
           "PIN removed successfully.",
           backgroundColor: AppColors.GREEN,
@@ -229,7 +230,7 @@ class SecurityController extends GetxController {
       if (!confirmed) return;
     } else {
       if (!pinIsSet.value) {
-        Get.snackbar(
+        AppSnack.show(
           "Error",
           "Setup PIN to make use of fingerprint lock",
           backgroundColor: AppColors.SNACKBAR_RED,
@@ -309,7 +310,7 @@ class SecurityController extends GetxController {
           markSessionUnlocked();
           Get.offAll(Home());
         } else {
-          Get.snackbar(
+          AppSnack.show(
             "Error",
             "Fingerprint auth failed",
             backgroundColor: AppColors.SNACKBAR_RED,
@@ -318,7 +319,7 @@ class SecurityController extends GetxController {
           );
         }
       } catch (error) {
-        Get.snackbar(
+        AppSnack.show(
           "Error",
           "Fingerprint auth failed",
           backgroundColor: AppColors.SNACKBAR_RED,

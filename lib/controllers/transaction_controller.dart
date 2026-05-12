@@ -9,6 +9,7 @@ import 'package:balance_sheet/services/budget_completion_notifier.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -85,7 +86,7 @@ class TransactionController extends GetxController {
     } catch (error) {
       debugPrint('$error');
       addingTransaction.value = false;
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Error occured while adding transaction",
         colorText: Colors.white,
@@ -122,7 +123,7 @@ class TransactionController extends GetxController {
     await loadHomeScreenData();
     updateControllerDataAfterUpdate(update, previousTransaction);
     Get.back();
-    Get.snackbar(
+    AppSnack.show(
       "Successful",
       "Transaction updated successfully",
       colorText: Colors.white,
@@ -156,7 +157,7 @@ class TransactionController extends GetxController {
         Get.find<BudgetController>().reloadFocusMonth();
       }
 
-      Get.snackbar(
+      AppSnack.show(
         "Successful",
         movedToTrash
             ? "Transaction moved to trash"
@@ -166,7 +167,7 @@ class TransactionController extends GetxController {
         backgroundColor: AppColors.GREEN,
       );
     } else {
-      Get.snackbar(
+      AppSnack.show(
         "Error",
         "Could not delete transaction. It may have already been removed.",
         colorText: Colors.white,
@@ -182,7 +183,7 @@ class TransactionController extends GetxController {
       trashedTransactions.value =
           trashedTransactions.where((t) => t.id != transaction.id).toList();
       await loadHomeScreenData();
-      Get.snackbar(
+      AppSnack.show(
         "Restored",
         "Transaction restored successfully",
         colorText: Colors.white,
@@ -199,7 +200,7 @@ class TransactionController extends GetxController {
     }
     await loadTrashedTransactions(); // Reload the trashed list
     await loadHomeScreenData(); // Refresh main data
-    Get.snackbar(
+    AppSnack.show(
       "Restored",
       "${ids.length} transaction(s) restored successfully",
       colorText: Colors.white,
@@ -217,7 +218,7 @@ class TransactionController extends GetxController {
     if (res == 1) {
       trashedTransactions.value =
           trashedTransactions.where((t) => t.id != transaction.id).toList();
-      Get.snackbar(
+      AppSnack.show(
         "Deleted",
         "Transaction permanently deleted",
         colorText: Colors.white,
@@ -233,7 +234,7 @@ class TransactionController extends GetxController {
       await db.permanentlyDeleteTransaction(id);
     }
     await loadTrashedTransactions(); // Reload the trashed list
-    Get.snackbar(
+    AppSnack.show(
       "Deleted",
       "${ids.length} transaction(s) permanently deleted",
       colorText: Colors.white,
@@ -245,7 +246,7 @@ class TransactionController extends GetxController {
   Future<void> emptyTrash() async {
     await db.emptyTrash();
     trashedTransactions.clear();
-    Get.snackbar(
+    AppSnack.show(
       "Trash Emptied",
       "All items in trash have been permanently removed.",
       colorText: Colors.white,

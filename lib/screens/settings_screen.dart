@@ -21,6 +21,7 @@ import 'package:balance_sheet/widgets/rate_field_with_save_button.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
@@ -550,7 +551,7 @@ class SettingsView extends StatelessWidget {
         final String? path = await BackupService.exportBackup();
         if (!context.mounted) return;
         if (path == null) return;
-        Get.snackbar(
+        AppSnack.show(
           'Backup saved',
           p.basename(path),
           snackPosition: SnackPosition.TOP,
@@ -560,7 +561,7 @@ class SettingsView extends StatelessWidget {
       } catch (e, st) {
         debugPrint('$e\n$st');
         if (!context.mounted) return;
-        Get.snackbar(
+        AppSnack.show(
           'Backup',
           'Could not export: $e',
           snackPosition: SnackPosition.TOP,
@@ -583,7 +584,7 @@ class SettingsView extends StatelessWidget {
       if (result == null || result.files.isEmpty) return;
       final String? path = result.files.single.path;
       if (path == null) {
-        Get.snackbar(
+        AppSnack.show(
           'Import',
           'Could not read the selected file.',
           snackPosition: SnackPosition.TOP,
@@ -678,7 +679,7 @@ class SettingsView extends StatelessWidget {
           onProgress: (BackupImportProgress p) => progressNotifier.value = p,
         );
         closeDialog();
-        Get.snackbar(
+        AppSnack.show(
           'Restored',
           'Backup imported successfully.',
           snackPosition: SnackPosition.TOP,
@@ -687,7 +688,7 @@ class SettingsView extends StatelessWidget {
         );
       } on BackupException catch (e) {
         closeDialog();
-        Get.snackbar(
+        AppSnack.show(
           'Import failed',
           e.message,
           snackPosition: SnackPosition.TOP,
@@ -696,7 +697,7 @@ class SettingsView extends StatelessWidget {
         );
       } catch (e) {
         closeDialog();
-        Get.snackbar(
+        AppSnack.show(
           'Import failed',
           '$e',
           snackPosition: SnackPosition.TOP,
@@ -711,7 +712,7 @@ class SettingsView extends StatelessWidget {
     AppHaptics.medium();
     await clearAllFirstRunUiHints(GetStorage());
     if (!context.mounted) return;
-    Get.snackbar(
+    AppSnack.show(
       'Tips reset',
       'The next time you use Home or a list with swipe actions, hints can show again.',
       snackPosition: SnackPosition.TOP,
@@ -1092,7 +1093,7 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
   void _commitRate() {
     final double? d = CurrencyController.parseRateUserInput(_rate.text);
     if (d == null || d <= 0) {
-      Get.snackbar(
+      AppSnack.show(
         'Invalid rate',
         'Enter a number greater than zero.',
         snackPosition: SnackPosition.TOP,
@@ -1106,7 +1107,7 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
     AppHaptics.medium();
     _rate.text = _formatRate(c.rate.value);
     FocusManager.instance.primaryFocus?.unfocus();
-    Get.snackbar(
+    AppSnack.show(
       'Saved',
       'Exchange rate updated.',
       snackPosition: SnackPosition.TOP,

@@ -18,6 +18,7 @@ import 'package:balance_sheet/widgets/inputs.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
+import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:balance_sheet/utils.dart';
@@ -142,7 +143,7 @@ class _ReportViewState extends State<ReportView> {
       debugPrint('PDF export failed: $error\n$stackTrace');
       closeDialog();
       if (!mounted) return;
-      Get.snackbar(
+      AppSnack.show(
         'PDF export failed',
         'Could not export the current transactions snapshot.',
       );
