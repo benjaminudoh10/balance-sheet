@@ -105,9 +105,20 @@ class SettingsView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 24),
-                          _settingsTrashSection(context, textTheme, p),
-                          const SizedBox(height: 24),
-                          _settingsDataSection(context, textTheme, p),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Expanded(
+                                child: _settingsTrashSection(
+                                    context, textTheme, p),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child:
+                                    _settingsDataSection(context, textTheme, p),
+                              ),
+                            ],
+                          ),
                         ] else ...<Widget>[
                           _settingsThemeSection(context, textTheme, p),
                           const SizedBox(height: 24),
