@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:balance_sheet/backup/cloud_backup_provider.dart';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/backup_constants.dart';
 import 'package:balance_sheet/constants/db.dart';
@@ -61,6 +62,9 @@ const int _kImportProgressChunk = 50;
 /// JSON export/import for SQLite + [GetStorage] (option A backup).
 class BackupService {
   BackupService._();
+
+  /// Optional cloud provider for backups.
+  static CloudBackupProvider? cloudProvider;
 
   static Future<String> exportJsonString() async {
     final Database dbClient = await AppDb().db;

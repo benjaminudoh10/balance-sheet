@@ -48,6 +48,8 @@ dependencies:
   package_info_plus: ^9.0.1
   path: ^1.9.1
   local_auth: ^3.0.1
+  google_sign_in: ^6.2.1
+  googleapis: ^13.0.0
   # charts_flutter: ^0.10.0
 
 dev_dependencies:

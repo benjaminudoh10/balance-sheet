@@ -503,6 +503,8 @@ class SettingsView extends StatelessWidget {
           onTap: () => _exportBackup(context),
         ),
         const SizedBox(height: 8),
+        _CloudBackupSection(textTheme: textTheme, p: p),
+        const SizedBox(height: 8),
         _BackupActionRow(
           label: 'Import backup',
           subtitle:
@@ -1241,5 +1243,77 @@ class _CurrencySettingsBlockState extends State<_CurrencySettingsBlock> {
         ],
       );
     });
+  }
+}
+
+class _CloudBackupSection extends StatefulWidget {
+  final TextTheme textTheme;
+  final AppPalette p;
+
+  const _CloudBackupSection({required this.textTheme, required this.p});
+
+  @override
+  State<_CloudBackupSection> createState() => _CloudBackupSectionState();
+}
+
+class _CloudBackupSectionState extends State<_CloudBackupSection> {
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final auth = await BackupService.cloudProvider?.isAuthenticated() ?? false;
+    if (mounted) setState(() => _isAuthenticated = auth);
+  }
+
+  Future<void> _onBackup() async {
+    final data = await BackupService.exportJsonString();
+    final success = await BackupService.cloudProvider
+        ?.upload('balanced_backup.json', data.codeUnits);
+    if (success == true) {
+      AppSnack.show('Success', 'Backup uploaded to Drive');
+    } else {
+      AppSnack.show('Error', 'Failed to upload backup',
+          backgroundColor: AppColors.SNACKBAR_RED);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isAuthenticated) {
+      return _BackupActionRow(
+        label: 'Connect Google Drive',
+        subtitle: 'Securely sync your backups to your personal Google Drive',
+        icon: Icons.cloud_upload_outlined,
+        onTap: () async {
+          final success = await BackupService.cloudProvider?.authenticate();
+          if (success == true) _checkAuth();
+        },
+      );
+    }
+    return Column(
+      children: [
+        _BackupActionRow(
+          label: 'Back up to Drive',
+          subtitle: 'Sync the latest data to your cloud',
+          icon: Icons.cloud_upload_rounded,
+          onTap: _onBackup,
+        ),
+        const SizedBox(height: 8),
+        _BackupActionRow(
+          label: 'Disconnect Drive',
+          subtitle: 'Stop syncing and clear cloud access',
+          icon: Icons.cloud_off_rounded,
+          onTap: () async {
+            await BackupService.cloudProvider?.signOut();
+            _checkAuth();
+          },
+        ),
+      ],
+    );
   }
 }

@@ -17,10 +17,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:balance_sheet/backup/backup_service.dart';
+import 'package:balance_sheet/backup/google_drive_provider.dart';
+// ... existing imports ...
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+
+  // Register Cloud Backup Provider
+  BackupService.cloudProvider = GoogleDriveProvider();
+// ...
+
   Get.put(CurrencyController());
   Get.put(TransactionController());
   Get.put(SecurityController());
