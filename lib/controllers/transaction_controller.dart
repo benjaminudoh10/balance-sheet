@@ -115,6 +115,7 @@ class TransactionController extends GetxController {
       contactId: transaction.contactId,
       entryIsFcy: transaction.entryIsFcy,
       entryAmountMinor: transaction.entryAmountMinor,
+      tags: previousTransaction.tags,
     );
 
     await db.updateTransaction(update);

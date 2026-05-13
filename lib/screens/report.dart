@@ -4,6 +4,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/report_controller.dart';
+import 'package:balance_sheet/controllers/tag_controller.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/widgets/pdf_export_progress_dialog.dart';
@@ -12,6 +13,7 @@ import 'package:balance_sheet/dialogs/contact.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
+import 'package:balance_sheet/screens/transaction_detail_screen.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
@@ -21,16 +23,8 @@ import 'package:balance_sheet/widgets/widgets.dart';
 import 'package:balance_sheet/utils/app_snack.dart';
 import 'package:flutter/material.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
-import 'package:balance_sheet/utils.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
-void _openEditModalFor(Transaction transaction) {
-  showEditModal(
-    transaction,
-    getContactNameForTransaction(transaction),
-  );
-}
 
 const double _horizontalPad = 20.0;
 
@@ -375,7 +369,8 @@ class _ReportViewState extends State<ReportView> {
 bool _hasActiveFilters(ReportController c) {
   final bool cat = c.category.value != 'Category';
   final bool contact = c.contact.value.id > 0;
-  return cat || contact;
+  final bool tags = c.filterTagIds.isNotEmpty;
+  return cat || contact || tags;
 }
 
 List<Widget> _buildGroupedTransactionSlivers(
@@ -424,7 +419,7 @@ List<Widget> _buildGroupedTransactionSlivers(
                       c.toggleTransactionSelection(t.id);
                     } else {
                       AppHaptics.light();
-                      _openEditModalFor(t);
+                      Get.to(() => TransactionDetailScreen(transaction: t));
                     }
                   },
                   onLongPress: () {
@@ -465,7 +460,8 @@ List<Widget> _buildGroupedTransactionSlivers(
                             AppHaptics.selection();
                             c.toggleTransactionSelection(t0.id);
                           } else {
-                            _openEditModalFor(t0);
+                            Get.to(
+                                () => TransactionDetailScreen(transaction: t0));
                           }
                         },
                         onLongPress: () {
@@ -487,7 +483,8 @@ List<Widget> _buildGroupedTransactionSlivers(
                                 AppHaptics.selection();
                                 c.toggleTransactionSelection(t1.id);
                               } else {
-                                _openEditModalFor(t1);
+                                Get.to(() =>
+                                    TransactionDetailScreen(transaction: t1));
                               }
                             },
                             onLongPress: () {
@@ -595,6 +592,8 @@ class _ReportFiltersSection extends StatelessWidget {
                 ReportCategoryDropdown(controller: controller),
                 const SizedBox(width: 10),
                 _ContactFilterChip(controller: controller),
+                const SizedBox(width: 10),
+                _TagFilterChip(controller: controller),
               ],
             ),
           ),
@@ -628,6 +627,7 @@ class _ClearFiltersPill extends StatelessWidget {
           controller.category.value = 'Category';
           controller.categoryLabel.value = 'Category';
           controller.contact.value = Contact(name: 'Contact');
+          controller.filterTagIds.clear();
         },
         borderRadius: BorderRadius.circular(20),
         child: Container(
@@ -723,6 +723,186 @@ class _ContactFilterChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TagFilterChip extends StatelessWidget {
+  const _TagFilterChip({required this.controller});
+
+  final ReportController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final TagController tc = Get.find();
+    final bool active = controller.filterTagIds.isNotEmpty;
+
+    return Material(
+      color: p.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: () => _showTagFilterSheet(context, controller),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: p.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.local_offer_outlined,
+                size: 18,
+                color: active ? p.mint : p.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Obx(() {
+                String label = 'Tags';
+                if (controller.filterTagIds.length == 1) {
+                  final tag = tc.allTags.firstWhereOrNull(
+                      (t) => t.id == controller.filterTagIds.first);
+                  label = tag?.name ?? '1 tag';
+                } else if (controller.filterTagIds.length > 1) {
+                  label = '${controller.filterTagIds.length} tags';
+                }
+                return Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: active ? p.textPrimary : p.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                );
+              }),
+              if (active) ...[
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: () {
+                    AppHaptics.light();
+                    controller.filterTagIds.clear();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: p.textSecondary.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTagFilterSheet(BuildContext context, ReportController controller) {
+    final AppPalette p = AppPalette.of(context);
+    final TagController tc = Get.find();
+
+    showModalBottomSheet<void>(
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
+      isScrollControlled: true,
+      context: context,
+      builder: (context) {
+        return Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          decoration: BoxDecoration(
+            color: p.surfaceElevated,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: p.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: p.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Filter by Tags',
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: p.textPrimary,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Obx(() {
+                if (tc.allTags.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'No tags found. Add tags to transactions first.',
+                      style: TextStyle(color: p.textSecondary),
+                    ),
+                  );
+                }
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: tc.allTags.map((tag) {
+                    final bool isSelected =
+                        controller.filterTagIds.contains(tag.id);
+                    return FilterChip(
+                      label: Text(tag.name),
+                      selected: isSelected,
+                      onSelected: (val) {
+                        AppHaptics.selection();
+                        if (val) {
+                          controller.filterTagIds.add(tag.id);
+                        } else {
+                          controller.filterTagIds.remove(tag.id);
+                        }
+                      },
+                      selectedColor: p.mint.withValues(alpha: 0.3),
+                      checkmarkColor: p.mint,
+                      labelStyle: TextStyle(
+                        color: isSelected ? p.textPrimary : p.textSecondary,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      backgroundColor: p.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(color: isSelected ? p.mint : p.border),
+                      ),
+                    );
+                  }).toList(),
+                );
+              }),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Get.back(),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: p.mint,
+                    foregroundColor: Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: const Text('Apply'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -64,7 +64,7 @@ Future<void> showEditModal(Transaction transaction, String contactName) async {
   ).whenComplete(transactionController.resetFieldValues);
 }
 
-void showDeleteModal(Transaction transaction) {
+void showDeleteModal(Transaction transaction, {VoidCallback? onDeleted}) {
   final BuildContext context = Get.context!;
   final TransactionController transactionController = Get.find();
 
@@ -123,6 +123,9 @@ void showDeleteModal(Transaction transaction) {
                   onPressed: () {
                     AppHaptics.medium();
                     transactionController.deleteTransaction(transaction);
+                    if (onDeleted != null) {
+                      onDeleted();
+                    }
                   },
                   child: Text(
                     'YES',

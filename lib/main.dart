@@ -8,6 +8,7 @@ import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
 import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/controllers/summary_amounts_privacy_controller.dart';
+import 'package:balance_sheet/controllers/tag_controller.dart';
 import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/splash.dart';
@@ -23,6 +24,7 @@ void main() async {
   await GetStorage.init();
   Get.put(CurrencyController());
   Get.put(TransactionController());
+  Get.put(TagController());
   Get.put(SecurityController());
   Get.put(AppController());
   Get.put(SummaryAmountsPrivacyController());

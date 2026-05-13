@@ -1,4 +1,5 @@
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/tag.dart';
 
 class Transaction {
   Transaction({
@@ -12,6 +13,7 @@ class Transaction {
     this.entryIsFcy = false,
     this.entryAmountMinor = 0,
     this.deletedAt,
+    this.tags = const [],
   });
 
   @override
@@ -39,6 +41,8 @@ class Transaction {
   /// Null if the transaction is active.
   final DateTime? deletedAt;
 
+  final List<Tag> tags;
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,
@@ -51,6 +55,7 @@ class Transaction {
       "entryCurrency": entryIsFcy ? "fcy" : "lcy",
       "entryAmount": entryAmountMinor,
       "deletedAt": deletedAt?.millisecondsSinceEpoch,
+      "tags": tags.map((t) => t.toJson()).toList(),
     };
   }
 
@@ -68,6 +73,11 @@ class Transaction {
 
     final int? rawDeletedAt = data['deletedAt'] as int?;
 
+    final List<dynamic>? rawTags = data['tags'] as List<dynamic>?;
+    final List<Tag> tags = rawTags != null
+        ? rawTags.map((t) => Tag.fromJson(t as Map<String, dynamic>)).toList()
+        : [];
+
     return Transaction(
       id: data['id'] as int? ?? 0,
       amount: amount,
@@ -83,6 +93,7 @@ class Transaction {
       deletedAt: rawDeletedAt != null
           ? DateTime.fromMillisecondsSinceEpoch(rawDeletedAt)
           : null,
+      tags: tags,
     );
   }
 }

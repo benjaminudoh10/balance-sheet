@@ -3,16 +3,47 @@ import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
+import 'package:balance_sheet/models/tag.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
+
+Future<Transaction?> getTransactionById(int id) async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> maps = await dbClient.query(
+    DBConstants.TRANSACTION,
+    where: "id = ?",
+    whereArgs: [id],
+    limit: 1,
+  );
+  if (maps.isEmpty) return null;
+
+  final Map<String, dynamic> mutableMap = Map.from(maps.first);
+  final tagMaps = await dbClient.rawQuery("""
+      SELECT tg.* FROM ${DBConstants.TAG} tg
+      INNER JOIN ${DBConstants.TRANSACTION_TAG} tt ON tg.id = tt.tag_id
+      WHERE tt.transaction_id = ?
+    """, [id]);
+
+  mutableMap['tags'] = tagMaps;
+  return Transaction.fromJson(mutableMap);
+}
 
 Future<int> addTransaction(Transaction transaction) async {
   Map<String, dynamic> data = transaction.toJson();
   data.remove('id');
+  data.remove('tags');
 
   final dbClient = await AppDb().db;
-  int res = await dbClient.insert(DBConstants.TRANSACTION, data);
-  return res;
+  return await dbClient.transaction((txn) async {
+    int transactionId = await txn.insert(DBConstants.TRANSACTION, data);
+    for (final tag in transaction.tags) {
+      await txn.insert(DBConstants.TRANSACTION_TAG, {
+        'transaction_id': transactionId,
+        'tag_id': tag.id,
+      });
+    }
+    return transactionId;
+  });
 }
 
 Future<int> deleteTransaction(Transaction transaction) async {
@@ -83,14 +114,33 @@ Future<int> emptyTrash() async {
 
 Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
-  int res = await dbClient.update(
-    DBConstants.TRANSACTION,
-    transaction.toJson(),
-    where: "id = ?",
-    whereArgs: [transaction.id],
-  );
+  Map<String, dynamic> data = transaction.toJson();
+  data.remove('tags');
 
-  return res;
+  return await dbClient.transaction((txn) async {
+    int res = await txn.update(
+      DBConstants.TRANSACTION,
+      data,
+      where: "id = ?",
+      whereArgs: [transaction.id],
+    );
+
+    // Update tags: simplest is to delete and re-insert
+    await txn.delete(
+      DBConstants.TRANSACTION_TAG,
+      where: "transaction_id = ?",
+      whereArgs: [transaction.id],
+    );
+
+    for (final tag in transaction.tags) {
+      await txn.insert(DBConstants.TRANSACTION_TAG, {
+        'transaction_id': transaction.id,
+        'tag_id': tag.id,
+      });
+    }
+
+    return res;
+  });
 }
 
 /// Fetches transactions in [startTime]..[endTime] ordered newest-first.
@@ -102,31 +152,54 @@ Future<List<Transaction>> getAllTransactions(
   int endTime, {
   String? category,
   int? contactId,
+  List<int>? tagIds,
   int? limit,
   int? offset,
 }) async {
   var dbClient = await AppDb().db;
-  String query =
-      "SELECT * FROM ${DBConstants.TRANSACTION} WHERE date >= $startTime AND date <= $endTime AND deletedAt IS NULL ";
-  if (category != null && category != "Category") {
-    query = "$query AND category = '$category' ";
-  }
-  if (contactId != null && contactId > 0) {
-    query = "$query AND contactId = $contactId ";
+  String query = "SELECT t.* FROM ${DBConstants.TRANSACTION} t ";
+
+  if (tagIds != null && tagIds.isNotEmpty) {
+    query +=
+        "INNER JOIN ${DBConstants.TRANSACTION_TAG} tt ON t.id = tt.transaction_id AND tt.tag_id IN (${tagIds.join(',')}) ";
   }
 
-  query = "$query ORDER BY date DESC, id DESC ";
+  query +=
+      "WHERE t.date >= $startTime AND t.date <= $endTime AND t.deletedAt IS NULL ";
+  if (category != null && category != "Category") {
+    query = "$query AND t.category = '$category' ";
+  }
+  if (contactId != null && contactId > 0) {
+    query = "$query AND t.contactId = $contactId ";
+  }
+
+  query = "$query ORDER BY t.date DESC, t.id DESC ";
   if (limit != null && limit > 0) {
     query = "$query LIMIT $limit ";
     if (offset != null && offset > 0) {
       query = "$query OFFSET $offset ";
     }
   }
-  final transactions = await dbClient.rawQuery(query.trim());
 
-  return transactions
-      .map((transaction) => Transaction.fromJson(transaction))
-      .toList();
+  final transactionMaps = await dbClient.rawQuery(query.trim());
+  final List<Transaction> results = [];
+
+  for (final m in transactionMaps) {
+    final Map<String, dynamic> mutableMap = Map.from(m);
+    final int txId = mutableMap['id'] as int;
+
+    // Fetch tags for this transaction
+    final tagMaps = await dbClient.rawQuery("""
+      SELECT tg.* FROM ${DBConstants.TAG} tg
+      INNER JOIN ${DBConstants.TRANSACTION_TAG} tt ON tg.id = tt.tag_id
+      WHERE tt.transaction_id = ?
+    """, [txId]);
+
+    mutableMap['tags'] = tagMaps;
+    results.add(Transaction.fromJson(mutableMap));
+  }
+
+  return results;
 }
 
 Future<int> getBalances() async {
@@ -157,23 +230,32 @@ Future<Map<String, int>> getTodayBalances() async {
   };
 }
 
-Future<Map<String, int>> getExpenseForTimePeriod(int start, int end,
-    {String? category, int? contactId}) async {
+Future<Map<String, int>> getExpenseForTimePeriod(
+  int start,
+  int end, {
+  String? category,
+  int? contactId,
+  List<int>? tagIds,
+}) async {
   var dbClient = await AppDb().db;
-  String expenseQuery =
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND date >= $start AND date <= $end AND deletedAt IS NULL ";
-  String incomeQuery =
-      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND date >= $start AND date <= $end AND deletedAt IS NULL ";
+
+  String baseWhere = "date >= $start AND date <= $end AND deletedAt IS NULL ";
   if (category != null && category != "Category") {
-    expenseQuery = "$expenseQuery AND category = '$category' ";
-    incomeQuery = "$incomeQuery AND category = '$category' ";
+    baseWhere += "AND category = '$category' ";
   }
   if (contactId != null && contactId > 0) {
-    expenseQuery = "$expenseQuery AND contactId = $contactId ";
-    incomeQuery = "$incomeQuery AND contactId = $contactId ";
+    baseWhere += "AND contactId = $contactId ";
   }
-  final totalExpenses = await dbClient.rawQuery(expenseQuery.trim());
-  final totalIncome = await dbClient.rawQuery(incomeQuery.trim());
+
+  if (tagIds != null && tagIds.isNotEmpty) {
+    baseWhere +=
+        "AND id IN (SELECT transaction_id FROM ${DBConstants.TRANSACTION_TAG} WHERE tag_id IN (${tagIds.join(',')})) ";
+  }
+
+  final totalExpenses = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'expenditure' AND $baseWhere");
+  final totalIncome = await dbClient.rawQuery(
+      "SELECT SUM(amount) as total FROM ${DBConstants.TRANSACTION} WHERE type = 'income' AND $baseWhere");
 
   return {
     'expenses': (totalExpenses[0]['total'] as int?) ?? 0,
@@ -527,4 +609,37 @@ Future<void> copyBudgetLinesToMonth(
       });
     }
   });
+}
+
+// Tag Operations
+
+Future<int> addTag(String name) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.insert(DBConstants.TAG, {'name': name});
+}
+
+Future<List<Tag>> getTags() async {
+  final dbClient = await AppDb().db;
+  final List<Map<String, dynamic>> maps =
+      await dbClient.query(DBConstants.TAG, orderBy: "name ASC");
+  return maps.map((m) => Tag.fromJson(m)).toList();
+}
+
+Future<int> deleteTag(int tagId) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.delete(
+    DBConstants.TAG,
+    where: "id = ?",
+    whereArgs: [tagId],
+  );
+}
+
+Future<int> updateTag(Tag tag) async {
+  final dbClient = await AppDb().db;
+  return await dbClient.update(
+    DBConstants.TAG,
+    tag.toJson(),
+    where: "id = ?",
+    whereArgs: [tag.id],
+  );
 }

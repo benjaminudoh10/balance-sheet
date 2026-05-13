@@ -44,6 +44,7 @@ class ReportController extends GetxController {
   RxString category = 'Category'.obs;
   RxString categoryLabel = 'Category'.obs;
   final Rx<Contact> contact = Contact(name: 'Contact').obs;
+  RxList<int> filterTagIds = <int>[].obs;
 
   List<int> timeFrames = [0, 0];
 
@@ -123,6 +124,13 @@ class ReportController extends GetxController {
     });
 
     contact.listen((_) {
+      if (!_suppressFilterReload) {
+        getTransactions();
+        getTransactionTotal();
+      }
+    });
+
+    filterTagIds.listen((_) {
       if (!_suppressFilterReload) {
         getTransactions();
         getTransactionTotal();
@@ -335,6 +343,7 @@ class ReportController extends GetxController {
       timeFrames[1],
       category: category.value,
       contactId: contact.value.id,
+      tagIds: filterTagIds,
       limit: pageSize,
       offset: 0,
     );
@@ -364,6 +373,7 @@ class ReportController extends GetxController {
       timeFrames[1],
       category: category.value,
       contactId: contact.value.id,
+      tagIds: filterTagIds,
       limit: pageSize,
       offset: transactions.length,
     );
@@ -388,6 +398,7 @@ class ReportController extends GetxController {
       timeFrames[1],
       category: category.value,
       contactId: contact.value.id,
+      tagIds: filterTagIds,
     );
   }
 
@@ -413,6 +424,7 @@ class ReportController extends GetxController {
       timeFrames[1],
       category: category.value,
       contactId: contact.value.id,
+      tagIds: filterTagIds,
     );
     expense.value = transactionData['expenses'] ?? 0;
     income.value = transactionData['income'] ?? 0;

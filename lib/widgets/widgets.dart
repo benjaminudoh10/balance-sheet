@@ -2,16 +2,19 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/database/operations.dart' as db_ops;
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/dialogs/transaction_actions.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/screens/transaction_detail_screen.dart';
 import 'package:balance_sheet/utils.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/category_pill_label.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 String _categoryLabelForTransaction(Transaction transaction) {
@@ -112,7 +115,14 @@ class TransactionRow extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12.0),
-                onTap: onTap,
+                onTap: onTap ??
+                    () async {
+                      AppHaptics.light();
+                      final fullTx =
+                          await db_ops.getTransactionById(transaction.id);
+                      Get.to(() => TransactionDetailScreen(
+                          transaction: fullTx ?? transaction));
+                    },
                 onLongPress: onLongPress,
                 child: Container(
                   clipBehavior: Clip.antiAlias,

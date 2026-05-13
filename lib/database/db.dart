@@ -35,7 +35,7 @@ class AppDb {
       version: DBConstants.DB_VERSION,
       onCreate: (Database db, int version) async {
         await db.execute("""
-          CREATE TABLE ${DBConstants.TRANSACTION}(
+          CREATE TABLE IF NOT EXISTS ${DBConstants.TRANSACTION}(
             id INTEGER PRIMARY KEY,
             description TEXT NOT NULL,
             type TEXT NOT NULL,
@@ -49,7 +49,7 @@ class AppDb {
             FOREIGN KEY(contactId) REFERENCES ${DBConstants.CONTACT}(id)
           )""");
         await db.execute("""
-          CREATE TABLE ${DBConstants.CONTACT}(
+          CREATE TABLE IF NOT EXISTS ${DBConstants.CONTACT}(
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL
           )""");
@@ -59,11 +59,17 @@ class AppDb {
         await db.execute(_sqlCreateInvestmentLots);
         await db.execute(_sqlCreateInvestmentPrices);
         await db.execute(_sqlCreateInvestmentOtherAssets);
+        await db.execute(_sqlCreateTags);
+        await db.execute(_sqlCreateTransactionTags);
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
         if (oldVersion < 2) {
           await db.execute(
               "ALTER TABLE ${DBConstants.TRANSACTION} ADD COLUMN deletedAt INTEGER");
+        }
+        if (oldVersion < 3) {
+          await db.execute(_sqlCreateTags);
+          await db.execute(_sqlCreateTransactionTags);
         }
       },
     );
@@ -71,8 +77,25 @@ class AppDb {
   }
 }
 
+const String _sqlCreateTags = '''
+CREATE TABLE IF NOT EXISTS ${DBConstants.TAG}(
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE
+)
+''';
+
+const String _sqlCreateTransactionTags = '''
+CREATE TABLE IF NOT EXISTS ${DBConstants.TRANSACTION_TAG}(
+  transaction_id INTEGER NOT NULL,
+  tag_id INTEGER NOT NULL,
+  PRIMARY KEY (transaction_id, tag_id),
+  FOREIGN KEY(transaction_id) REFERENCES ${DBConstants.TRANSACTION}(id) ON DELETE CASCADE,
+  FOREIGN KEY(tag_id) REFERENCES ${DBConstants.TAG}(id) ON DELETE CASCADE
+)
+''';
+
 const String _sqlCreateBudgetMonths = '''
-CREATE TABLE ${DBConstants.BUDGET_MONTH}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.BUDGET_MONTH}(
   id INTEGER PRIMARY KEY,
   year INTEGER NOT NULL,
   month INTEGER NOT NULL,
@@ -81,7 +104,7 @@ CREATE TABLE ${DBConstants.BUDGET_MONTH}(
 ''';
 
 const String _sqlCreateBudgetLines = '''
-CREATE TABLE ${DBConstants.BUDGET_LINE}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.BUDGET_LINE}(
   id INTEGER PRIMARY KEY,
   budget_month_id INTEGER NOT NULL,
   description TEXT NOT NULL,
@@ -97,7 +120,7 @@ CREATE TABLE ${DBConstants.BUDGET_LINE}(
 ''';
 
 const String _sqlCreateInvestmentHoldings = '''
-CREATE TABLE ${DBConstants.INVESTMENT_HOLDING}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.INVESTMENT_HOLDING}(
   id INTEGER PRIMARY KEY,
   ticker TEXT NOT NULL,
   display_name TEXT NOT NULL DEFAULT '',
@@ -107,7 +130,7 @@ CREATE TABLE ${DBConstants.INVESTMENT_HOLDING}(
 ''';
 
 const String _sqlCreateInvestmentLots = '''
-CREATE TABLE ${DBConstants.INVESTMENT_LOT}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.INVESTMENT_LOT}(
   id INTEGER PRIMARY KEY,
   holding_id INTEGER NOT NULL,
   occurred_at_ms INTEGER NOT NULL,
@@ -121,7 +144,7 @@ CREATE TABLE ${DBConstants.INVESTMENT_LOT}(
 ''';
 
 const String _sqlCreateInvestmentPrices = '''
-CREATE TABLE ${DBConstants.INVESTMENT_PRICE}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.INVESTMENT_PRICE}(
   id INTEGER PRIMARY KEY,
   holding_id INTEGER NOT NULL,
   as_of_ms INTEGER NOT NULL,
@@ -134,7 +157,7 @@ CREATE TABLE ${DBConstants.INVESTMENT_PRICE}(
 ''';
 
 const String _sqlCreateInvestmentOtherAssets = '''
-CREATE TABLE ${DBConstants.INVESTMENT_OTHER_ASSET}(
+CREATE TABLE IF NOT EXISTS ${DBConstants.INVESTMENT_OTHER_ASSET}(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   label TEXT NOT NULL,
   value_lcy_minor INTEGER NOT NULL DEFAULT 0,
