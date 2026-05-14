@@ -128,6 +128,23 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.4
+
+Backup
+- Include tags and transaction-tag mappings in the backup export/import process.
+- Fix a validation error where transaction-tag mappings would reference missing transactions during import.
+- Ensure that the `deletedAt` timestamp (trash state) is preserved for transactions in the backup.
+- Enable SQLite foreign key constraints and add resilience against orphaned data in backups.
+
+Categories
+- Rename the "Charity" category to "Gift" (label and icon updated) while maintaining backward compatibility with existing transaction data.
+
+Maintenance
+- Migrate deprecated `WillPopScope` to `PopScope` across the application for better compatibility with Android 14+ predictive back gestures.
+- Enforce foreign key constraints at the database level to ensure data integrity when deleting records.
+
+---
+
 ### v1.0.3
 
 Transactions
