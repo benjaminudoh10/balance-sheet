@@ -9,6 +9,7 @@ import 'package:balance_sheet/controllers/contact_controller.dart';
 import 'package:balance_sheet/controllers/report_controller.dart';
 import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/controllers/investment_controller.dart';
+import 'package:balance_sheet/controllers/tag_controller.dart';
 import 'package:balance_sheet/controllers/transaction_controller.dart';
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/database/investment_operations.dart' as inv_db;
@@ -80,6 +81,14 @@ class BackupService {
         await inv_db.queryAllInvestmentPriceRows();
     final List<Map<String, Object?>> investmentOtherAssetRows =
         await inv_db.queryAllOtherInvestmentRows();
+    final List<Map<String, dynamic>> tagRows =
+        await dbClient.query(DBConstants.TAG, orderBy: 'id ASC');
+    final List<Map<String, dynamic>> transactionTagRows =
+        await dbClient.rawQuery('''
+      SELECT tt.* FROM ${DBConstants.TRANSACTION_TAG} tt
+      INNER JOIN ${DBConstants.TRANSACTION} t ON tt.transaction_id = t.id
+      INNER JOIN ${DBConstants.TAG} tg ON tt.tag_id = tg.id
+    ''');
 
     final GetStorage box = GetStorage();
     // Security state (PIN hash/salt, biometric flag, legacy PIN key) is intentionally excluded:
@@ -118,6 +127,8 @@ class BackupService {
       'investmentLots': investmentLotRows,
       'investmentPrices': investmentPriceRows,
       'investmentOtherAssets': investmentOtherAssetRows,
+      'tags': tagRows,
+      'transactionTags': transactionTagRows,
       'preferences': preferences,
       'savedViews': savedViewsRoot,
     };
@@ -309,6 +320,22 @@ class BackupService {
       }
     }
 
+    final List<Map<String, dynamic>> tags = <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> transactionTags = <Map<String, dynamic>>[];
+    final List<dynamic>? tagList = map['tags'] as List<dynamic>?;
+    final List<dynamic>? ttList = map['transactionTags'] as List<dynamic>?;
+    if (tagList != null) {
+      for (final dynamic e in tagList) {
+        tags.add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+      }
+    }
+    if (ttList != null) {
+      for (final dynamic e in ttList) {
+        transactionTags
+            .add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+      }
+    }
+
     final Set<int> investmentHoldingIds =
         investmentHoldings.map((Map<String, dynamic> r) {
       final Object? id = r['id'];
@@ -340,6 +367,51 @@ class BackupService {
       }
     }
 
+    final Set<int> tagIds = tags.map((Map<String, dynamic> r) {
+      final Object? id = r['id'];
+      if (id is int) return id;
+      if (id is num) return id.toInt();
+      return int.tryParse('$id') ?? 0;
+    }).toSet();
+    final Set<int> txnIds =
+        transactions.map((txn_model.Transaction t) => t.id).toSet();
+
+    // Filter out orphaned transaction-tag mappings from the backup payload before validation.
+    // This makes the import resilient to "dirty" backups that might contain mappings
+    // referencing transactions or tags that were deleted (e.g. if foreign keys were off).
+    transactionTags.retainWhere((Map<String, dynamic> row) {
+      final Object? tid = row['transaction_id'];
+      final int t = tid is int
+          ? tid
+          : (tid is num ? tid.toInt() : int.tryParse('$tid') ?? 0);
+      final Object? gid = row['tag_id'];
+      final int g = gid is int
+          ? gid
+          : (gid is num ? gid.toInt() : int.tryParse('$gid') ?? 0);
+      return txnIds.contains(t) && tagIds.contains(g);
+    });
+
+    for (final Map<String, dynamic> row in transactionTags) {
+      final Object? tid = row['transaction_id'];
+      final int t = tid is int
+          ? tid
+          : (tid is num ? tid.toInt() : int.tryParse('$tid') ?? 0);
+      final Object? gid = row['tag_id'];
+      final int g = gid is int
+          ? gid
+          : (gid is num ? gid.toInt() : int.tryParse('$gid') ?? 0);
+      if (t > 0 && !txnIds.contains(t)) {
+        throw BackupException(
+          'Backup is inconsistent: a transaction-tag mapping references a missing transaction (id $t).',
+        );
+      }
+      if (g > 0 && !tagIds.contains(g)) {
+        throw BackupException(
+          'Backup is inconsistent: a transaction-tag mapping references a missing tag (id $g).',
+        );
+      }
+    }
+
     final int totalRows = contacts.length +
         transactions.length +
         budgetMonths.length +
@@ -347,7 +419,9 @@ class BackupService {
         investmentOtherAssets.length +
         investmentHoldings.length +
         investmentLots.length +
-        investmentPrices.length;
+        investmentPrices.length +
+        tags.length +
+        transactionTags.length;
     int inserted = 0;
 
     // Snapshots progress against the global insert total so the dialog's
@@ -367,6 +441,8 @@ class BackupService {
 
     final Database dbClient = await AppDb().db;
     await dbClient.transaction((Transaction sqlTxn) async {
+      await sqlTxn.delete(DBConstants.TRANSACTION_TAG);
+      await sqlTxn.delete(DBConstants.TAG);
       await sqlTxn.delete(DBConstants.INVESTMENT_LOT);
       await sqlTxn.delete(DBConstants.INVESTMENT_PRICE);
       await sqlTxn.delete(DBConstants.INVESTMENT_HOLDING);
@@ -388,6 +464,15 @@ class BackupService {
         await tickProgress('Restoring contacts', force: true);
       }
 
+      for (final Map<String, dynamic> r in tags) {
+        await sqlTxn.insert(DBConstants.TAG, r);
+        inserted++;
+        await tickProgress('Restoring tags');
+      }
+      if (tags.isNotEmpty) {
+        await tickProgress('Restoring tags', force: true);
+      }
+
       for (final txn_model.Transaction t in transactions) {
         final Map<String, dynamic> row = t.toJson();
         await sqlTxn.insert(DBConstants.TRANSACTION, <String, Object?>{
@@ -400,12 +485,22 @@ class BackupService {
           'contactId': t.contactId == 0 ? null : t.contactId,
           'entryCurrency': row['entryCurrency'] ?? 'lcy',
           'entryAmount': row['entryAmount'] ?? row['amount'],
+          'deletedAt': row['deletedAt'],
         });
         inserted++;
         await tickProgress('Restoring transactions');
       }
       if (transactions.isNotEmpty) {
         await tickProgress('Restoring transactions', force: true);
+      }
+
+      for (final Map<String, dynamic> r in transactionTags) {
+        await sqlTxn.insert(DBConstants.TRANSACTION_TAG, r);
+        inserted++;
+        await tickProgress('Restoring tags');
+      }
+      if (transactionTags.isNotEmpty) {
+        await tickProgress('Restoring tags', force: true);
       }
 
       for (final BudgetMonth b in budgetMonths) {
@@ -652,6 +747,11 @@ class BackupService {
     final ContactController contacts = Get.find<ContactController>();
     await contacts.getContacts();
     contacts.resetNewContactDraft();
+
+    emit('Refreshing tags…');
+    if (Get.isRegistered<TagController>()) {
+      await Get.find<TagController>().loadTags();
+    }
 
     if (Get.isRegistered<ReportController>()) {
       emit('Refreshing reports…');

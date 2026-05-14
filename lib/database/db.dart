@@ -33,6 +33,9 @@ class AppDb {
     var taskDb = await openDatabase(
       path,
       version: DBConstants.DB_VERSION,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: (Database db, int version) async {
         await db.execute("""
           CREATE TABLE IF NOT EXISTS ${DBConstants.TRANSACTION}(

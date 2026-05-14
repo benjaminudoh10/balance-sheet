@@ -32,6 +32,9 @@ Future<int> addTransaction(Transaction transaction) async {
   Map<String, dynamic> data = transaction.toJson();
   data.remove('id');
   data.remove('tags');
+  if (data['contactId'] == 0) {
+    data['contactId'] = null;
+  }
 
   final dbClient = await AppDb().db;
   return await dbClient.transaction((txn) async {
@@ -116,6 +119,9 @@ Future<int> updateTransaction(Transaction transaction) async {
   final dbClient = await AppDb().db;
   Map<String, dynamic> data = transaction.toJson();
   data.remove('tags');
+  if (data['contactId'] == 0) {
+    data['contactId'] = null;
+  }
 
   return await dbClient.transaction((txn) async {
     int res = await txn.update(
@@ -642,4 +648,14 @@ Future<int> updateTag(Tag tag) async {
     where: "id = ?",
     whereArgs: [tag.id],
   );
+}
+
+Future<List<Map<String, dynamic>>> queryAllTagRows() async {
+  final dbClient = await AppDb().db;
+  return dbClient.query(DBConstants.TAG, orderBy: 'id ASC');
+}
+
+Future<List<Map<String, dynamic>>> queryAllTransactionTagRows() async {
+  final dbClient = await AppDb().db;
+  return dbClient.query(DBConstants.TRANSACTION_TAG);
 }

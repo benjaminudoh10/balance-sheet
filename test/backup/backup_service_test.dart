@@ -11,6 +11,7 @@ import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
 import 'package:balance_sheet/models/other_investment.dart';
+import 'package:balance_sheet/models/tag.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_storage/get_storage.dart';
@@ -486,6 +487,165 @@ void main() {
       await BackupService.importFromJsonString(validBackupPayload());
       expect(
           SavedViewsStorage.listFor(SavedViewsStorage.featureBudget), isEmpty);
+    });
+  });
+
+  group('BackupService Tags Preservation', () {
+    test('roundtrip preserves tags and transaction-tag mappings', () async {
+      // 1. Setup data: Tags
+      final int tagId1 = await db_ops.addTag('Tag 1');
+      final int tagId2 = await db_ops.addTag('Tag 2');
+      final int tagId3 = await db_ops.addTag('Tag 3'); // Unused tag
+
+      // 2. Setup data: Transactions with tags
+      final Transaction txn1 = Transaction(
+        description: 'Txn 1',
+        type: TransactionType.expenditure,
+        amount: 1000,
+        date: DateTime(2026, 1, 1),
+        category: 'food',
+        contactId: 0,
+        tags: [Tag(id: tagId1, name: 'Tag 1'), Tag(id: tagId2, name: 'Tag 2')],
+      );
+      final int txnId1 = await db_ops.addTransaction(txn1);
+
+      final Transaction txn2 = Transaction(
+        description: 'Txn 2',
+        type: TransactionType.income,
+        amount: 5000,
+        date: DateTime(2026, 1, 2),
+        category: 'salary',
+        contactId: 0,
+        tags: [Tag(id: tagId2, name: 'Tag 2')],
+      );
+      final int txnId2 = await db_ops.addTransaction(txn2);
+
+      // 3. Export
+      final String exported = await BackupService.exportJsonString();
+      expect(exported, contains('Tag 1'));
+      expect(exported, contains('Tag 2'));
+      expect(exported, contains('Tag 3'));
+      expect(exported, contains('"tags"'));
+      expect(exported, contains('"transactionTags"'));
+
+      // 4. Reset Database
+      await resetAppDatabaseFile();
+
+      // Verify DB is empty
+      final List<Tag> initialTags = await db_ops.getTags();
+      expect(initialTags, isEmpty);
+      final List<Transaction> initialTxns = await db_ops.getAllTransactions(
+          0, DateTime.now().millisecondsSinceEpoch);
+      expect(initialTxns, isEmpty);
+
+      // 5. Import
+      await BackupService.importFromJsonString(exported);
+
+      // 6. Verify Tags are restored
+      final List<Tag> restoredTags = await db_ops.getTags();
+      expect(restoredTags.length, 3);
+      expect(restoredTags.any((t) => t.name == 'Tag 1'), isTrue);
+      expect(restoredTags.any((t) => t.name == 'Tag 2'), isTrue);
+      expect(restoredTags.any((t) => t.name == 'Tag 3'), isTrue);
+
+      // 7. Verify Transactions and their tag mappings are restored
+      final List<Transaction> restoredTxns = await db_ops.getAllTransactions(
+        DateTime(2026, 1, 1).millisecondsSinceEpoch,
+        DateTime(2026, 1, 2).millisecondsSinceEpoch,
+      );
+
+      expect(restoredTxns.length, 2);
+
+      final restoredTxn1 =
+          restoredTxns.firstWhere((t) => t.description == 'Txn 1');
+      expect(restoredTxn1.tags.length, 2);
+      expect(restoredTxn1.tags.any((t) => t.name == 'Tag 1'), isTrue);
+      expect(restoredTxn1.tags.any((t) => t.name == 'Tag 2'), isTrue);
+
+      final restoredTxn2 =
+          restoredTxns.firstWhere((t) => t.description == 'Txn 2');
+      expect(restoredTxn2.tags.length, 1);
+      expect(restoredTxn2.tags.any((t) => t.name == 'Tag 2'), isTrue);
+    });
+
+    test('roundtrip preserves deletedAt for trashed transactions', () async {
+      final DateTime now = DateTime.now();
+      final int txnId = await db_ops.addTransaction(Transaction(
+        description: 'Trashed',
+        type: TransactionType.expenditure,
+        amount: 50,
+        date: now,
+        category: 'misc',
+        contactId: 0,
+      ));
+      await db_ops.moveTransactionToTrash(txnId);
+
+      final String exported = await BackupService.exportJsonString();
+      await resetAppDatabaseFile();
+      await BackupService.importFromJsonString(exported);
+
+      final trashed = await db_ops.getTrashedTransactions();
+      expect(trashed.length, 1);
+      expect(trashed.first.description, 'Trashed');
+      expect(trashed.first.deletedAt, isNotNull);
+    });
+
+    test(
+        'importing older backup without tags key still works (tags list stays empty)',
+        () async {
+      final String oldBackup = '''
+{
+  "format": "balanced_backup",
+  "version": 1,
+  "dbSchemaVersion": 3,
+  "contacts": [],
+  "transactions": [],
+  "preferences": {}
+}
+''';
+      await BackupService.importFromJsonString(oldBackup);
+      final List<Tag> tags = await db_ops.getTags();
+      expect(tags, isEmpty);
+    });
+
+    test(
+        'importing "dirty" backup with orphaned tag mappings succeeds (orphans are ignored)',
+        () async {
+      final String dirtyBackup = '''
+{
+  "format": "balanced_backup",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [
+    {
+      "id": 1,
+      "description": "Valid",
+      "type": "income",
+      "amount": 100,
+      "date": 0,
+      "category": "salary",
+      "contactId": 0
+    }
+  ],
+  "tags": [
+    {"id": 1, "name": "ValidTag"}
+  ],
+  "transactionTags": [
+    {"transaction_id": 1, "tag_id": 1},
+    {"transaction_id": 999, "tag_id": 1},
+    {"transaction_id": 1, "tag_id": 999}
+  ],
+  "preferences": {}
+}
+''';
+      // Should not throw BackupException
+      await BackupService.importFromJsonString(dirtyBackup);
+
+      final txns = await db_ops.getAllTransactions(0, 1);
+      expect(txns.length, 1);
+      expect(txns.first.tags.length, 1);
+      expect(txns.first.tags.first.name, 'ValidTag');
     });
   });
 }
