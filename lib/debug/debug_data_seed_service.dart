@@ -217,7 +217,7 @@ Future<void> _insertTransactions(
     if (medium || !sparse) {
       if (r.nextDouble() < 0.75) {
         await exp(
-          description: 'Charity',
+          description: 'Gift',
           category: 'charity',
           amountMinor: _rnd(r, 5000, 45000),
           date: _rndTimeOnDay(r, y, m, _rnd(r, 1, lastDay)),

@@ -30,7 +30,7 @@ class Categories {
       case 'savings':
         return Icons.savings_outlined;
       case 'charity':
-        return Icons.volunteer_activism_outlined;
+        return Icons.card_giftcard_outlined;
       case 'rent':
         return Icons.home_work_outlined;
       case 'utilities':
@@ -205,7 +205,7 @@ class Categories {
     },
     {
       "key": "charity",
-      "label": "Charity",
+      "label": "Gift",
     },
     {
       "key": "rent",
