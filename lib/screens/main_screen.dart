@@ -556,11 +556,13 @@ class _NetWorthStrip extends StatelessWidget {
                 label: 'Investments',
                 minor: stocksMinor,
                 palette: p,
+                useFcyAsPrimary: true,
                 obscureAmount: !showAmt),
             _NetWorthRow(
                 label: 'Other investments',
                 minor: otherInvestmentsMinor,
                 palette: p,
+                useFcyAsPrimary: true,
                 obscureAmount: !showAmt),
           ],
         ),
@@ -575,12 +577,14 @@ class _NetWorthRow extends StatelessWidget {
     required this.minor,
     required this.palette,
     required this.obscureAmount,
+    this.useFcyAsPrimary = false,
   });
 
   final String label;
   final int minor;
   final AppPalette palette;
   final bool obscureAmount;
+  final bool useFcyAsPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -620,26 +624,39 @@ class _NetWorthRow extends StatelessWidget {
                 dualLine: c.showDualTotals,
               );
             }
+
+            final String lcyCode = c.lcyCode.value;
+            final String fcyCode = c.fcyCode.value;
+
             if (!c.showDualTotals) {
+              final int amount =
+                  useFcyAsPrimary ? c.fcyMinorFromLcyMinor(minor) : minor;
+              final String code = useFcyAsPrimary ? fcyCode : lcyCode;
               return Text(
-                formatAmount(minor),
+                formatMinorUnits(amount, code),
                 textAlign: TextAlign.end,
                 style: primaryAmt,
               );
             }
+
             final int fcyMinor = c.fcyMinorFromLcyMinor(minor);
+            final int primaryVal = useFcyAsPrimary ? fcyMinor : minor;
+            final String primaryCode = useFcyAsPrimary ? fcyCode : lcyCode;
+            final int secondaryVal = useFcyAsPrimary ? minor : fcyMinor;
+            final String secondaryCode = useFcyAsPrimary ? lcyCode : fcyCode;
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  formatMinorUnits(minor, c.lcyCode.value),
+                  formatMinorUnits(primaryVal, primaryCode),
                   textAlign: TextAlign.end,
                   style: primaryAmt,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '≈ ${formatMinorUnits(fcyMinor, c.fcyCode.value)}',
+                  '≈ ${formatMinorUnits(secondaryVal, secondaryCode)}',
                   textAlign: TextAlign.end,
                   style: secondaryAmt,
                 ),

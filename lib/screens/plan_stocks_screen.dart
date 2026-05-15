@@ -92,7 +92,7 @@ class _OtherInvestmentEditorContentState
   late final TextEditingController _amountCtrl;
   late final FocusNode _labelFocus;
   late final FocusNode _amountFocus;
-  bool _entryIsFcy = false;
+  bool _entryIsFcy = true;
   final CurrencyController _cur = Get.find<CurrencyController>();
 
   @override
@@ -460,10 +460,13 @@ class _AddInvestmentLotSheet extends StatefulWidget {
 
 class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   late final TextEditingController _qtyCtrl;
-  late final TextEditingController _priceCtrl;
+  late final TextEditingController _totalPriceCtrl;
+  late final TextEditingController _sharePriceCtrl;
   late final FocusNode _qtyFocus;
-  late final FocusNode _priceFocus;
+  late final FocusNode _totalPriceFocus;
+  late final FocusNode _sharePriceFocus;
   bool _entryIsFcy = true;
+  bool _ignoreChanges = false;
 
   /// When true, quantity is stored as negative (sale). Avoids relying on `-` on keyboards where `.` and `-` share one key.
   bool _isSale = false;
@@ -474,11 +477,17 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   void initState() {
     super.initState();
     _qtyFocus = FocusNode();
-    _priceFocus = FocusNode();
-    // Empty so `-` can be typed as the first character (sales). Hint suggests a default.
+    _totalPriceFocus = FocusNode();
+    _sharePriceFocus = FocusNode();
     _qtyCtrl = TextEditingController();
-    _priceCtrl = TextEditingController();
+    _totalPriceCtrl = TextEditingController();
+    _sharePriceCtrl = TextEditingController();
     _purchaseDay = DateTime.now();
+
+    _qtyCtrl.addListener(_onQtyChanged);
+    _totalPriceCtrl.addListener(_onTotalChanged);
+    _sharePriceCtrl.addListener(_onSharePriceChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _qtyFocus.requestFocus();
@@ -489,10 +498,51 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
   @override
   void dispose() {
     _qtyFocus.dispose();
-    _priceFocus.dispose();
+    _totalPriceFocus.dispose();
+    _sharePriceFocus.dispose();
     _qtyCtrl.dispose();
-    _priceCtrl.dispose();
+    _totalPriceCtrl.dispose();
+    _sharePriceCtrl.dispose();
     super.dispose();
+  }
+
+  void _onQtyChanged() {
+    if (_ignoreChanges) return;
+    _recalcSharePrice();
+  }
+
+  void _onTotalChanged() {
+    if (_ignoreChanges) return;
+    _recalcSharePrice();
+  }
+
+  void _onSharePriceChanged() {
+    if (_ignoreChanges) return;
+    _recalcQty();
+  }
+
+  void _recalcSharePrice() {
+    final double? q = double.tryParse(_qtyCtrl.text.replaceAll(',', ''));
+    final double? t = double.tryParse(_totalPriceCtrl.text.replaceAll(',', ''));
+    if (q != null && t != null && q != 0) {
+      _ignoreChanges = true;
+      final double sp = t / q;
+      _sharePriceCtrl.text =
+          sp.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '');
+      _ignoreChanges = false;
+    }
+  }
+
+  void _recalcQty() {
+    final double? sp =
+        double.tryParse(_sharePriceCtrl.text.replaceAll(',', ''));
+    final double? t = double.tryParse(_totalPriceCtrl.text.replaceAll(',', ''));
+    if (sp != null && t != null && sp != 0) {
+      _ignoreChanges = true;
+      final double q = t / sp;
+      _qtyCtrl.text = q.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '');
+      _ignoreChanges = false;
+    }
   }
 
   Future<void> _save() async {
@@ -532,7 +582,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
     }
 
     final double qty = _isSale ? -mag : mag;
-    final int? pxEntryTotal = parseMoneyStringToMinor(_priceCtrl.text);
+    final int? pxEntryTotal = parseMoneyStringToMinor(_totalPriceCtrl.text);
     if (pxEntryTotal == null) {
       AppSnack.show(
           'Amount required', 'Enter the total amount for this transaction.');
@@ -592,7 +642,7 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            'Choose Buy or Sell, then enter quantity and the total amount of the transaction. The per-share price is computed automatically and added to the price history. For sales, use a positive quantity — no minus key needed.',
+            'Enter two of Total Price, Quantity, or Share Price; the third will be calculated automatically. Shares and date are saved to your lot history.',
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
@@ -618,22 +668,6 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
               selectedBackgroundColor: _kInvestAccent,
               selectedForegroundColor: Colors.white,
             ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _qtyCtrl,
-            focusNode: _qtyFocus,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textInputAction: TextInputAction.next,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.deny(RegExp(r'-')),
-              DecimalTextInputFormatter(decimalRange: 8),
-            ],
-            decoration: const InputDecoration(
-              labelText: 'Quantity (fractional ok)',
-              hintText: '0',
-            ),
-            onSubmitted: (_) => _priceFocus.requestFocus(),
           ),
           const SizedBox(height: 12),
           Obx(
@@ -675,23 +709,44 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                           if (toFcy == _entryIsFcy) return;
                           AppHaptics.selection();
                           setState(() {
-                            final int m =
-                                parseMoneyStringToMinor(_priceCtrl.text) ?? 0;
-                            if (m <= 0) {
-                              _entryIsFcy = toFcy;
-                              return;
-                            }
+                            _ignoreChanges = true;
+                            final int totalMinor =
+                                parseMoneyStringToMinor(_totalPriceCtrl.text) ??
+                                    0;
+                            final int shareMinor =
+                                parseMoneyStringToMinor(_sharePriceCtrl.text) ??
+                                    0;
+
                             if (toFcy) {
-                              _priceCtrl.text =
-                                  (_cur.fcyMinorFromLcyMinor(m) / 100)
-                                      .toStringAsFixed(2);
+                              if (totalMinor > 0) {
+                                _totalPriceCtrl.text =
+                                    (_cur.fcyMinorFromLcyMinor(totalMinor) /
+                                            100)
+                                        .toStringAsFixed(2);
+                              }
+                              if (shareMinor > 0) {
+                                _sharePriceCtrl.text =
+                                    (_cur.fcyMinorFromLcyMinor(shareMinor) /
+                                            100)
+                                        .toStringAsFixed(2);
+                              }
                               _entryIsFcy = true;
                             } else {
-                              _priceCtrl.text =
-                                  (_cur.lcyMinorFromFcyMinor(m) / 100)
-                                      .toStringAsFixed(2);
+                              if (totalMinor > 0) {
+                                _totalPriceCtrl.text =
+                                    (_cur.lcyMinorFromFcyMinor(totalMinor) /
+                                            100)
+                                        .toStringAsFixed(2);
+                              }
+                              if (shareMinor > 0) {
+                                _sharePriceCtrl.text =
+                                    (_cur.lcyMinorFromFcyMinor(shareMinor) /
+                                            100)
+                                        .toStringAsFixed(2);
+                              }
                               _entryIsFcy = false;
                             }
+                            _ignoreChanges = false;
                           });
                         },
                         style: SegmentedButton.styleFrom(
@@ -705,11 +760,11 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _priceCtrl,
-                    focusNode: _priceFocus,
+                    controller: _totalPriceCtrl,
+                    focusNode: _totalPriceFocus,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                     inputFormatters: <TextInputFormatter>[
                       DecimalTextInputFormatter()
                     ],
@@ -717,15 +772,52 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
                       hintText: '0.00',
                       hintStyle: TextStyle(color: p.textSecondary),
                     ),
-                    onSubmitted: (_) async {
-                      AppHaptics.light();
-                      await _save();
-                    },
+                    onSubmitted: (_) => _qtyFocus.requestFocus(),
                   ),
                 ],
               );
             },
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _qtyCtrl,
+            focusNode: _qtyFocus,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.next,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.deny(RegExp(r'-')),
+              DecimalTextInputFormatter(decimalRange: 8),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Quantity (fractional ok)',
+              hintText: '0',
+            ),
+            onSubmitted: (_) => _sharePriceFocus.requestFocus(),
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            final String code =
+                _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+            return TextField(
+              controller: _sharePriceCtrl,
+              focusNode: _sharePriceFocus,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.done,
+              inputFormatters: <TextInputFormatter>[
+                DecimalTextInputFormatter()
+              ],
+              decoration: InputDecoration(
+                labelText: 'Price per share ($code)',
+                hintText: '0.00',
+                hintStyle: TextStyle(color: p.textSecondary),
+              ),
+              onSubmitted: (_) async {
+                AppHaptics.light();
+                await _save();
+              },
+            );
+          }),
           const SizedBox(height: 8),
           ListTile(
             title: Text(DateFormat.yMMMd().format(_purchaseDay)),
@@ -1480,7 +1572,7 @@ class _PortfolioSummary extends StatelessWidget {
                                     color: up ? p.mint : p.coral),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${up ? '+' : ''}${pct.toStringAsFixed(2)}% (${up ? '+' : '−'}${formatAmount(d.abs())})',
+                                  '${up ? '+' : ''}${pct.toStringAsFixed(2)}% (${up ? '+' : '−'}${formatMinorUnits(Get.find<CurrencyController>().fcyMinorFromLcyMinor(d.abs()), Get.find<CurrencyController>().fcyCode.value)})',
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelMedium!
@@ -1556,6 +1648,7 @@ class _PortfolioSummary extends StatelessWidget {
               lcyMinor: total,
               textAlign: TextAlign.start,
               obscureAmount: !showAmt,
+              useFcyAsPrimary: true,
               primaryStyle:
                   Theme.of(context).textTheme.headlineMedium!.copyWith(
                         color: p.textPrimary,
@@ -1693,6 +1786,7 @@ class _HoldingRow extends StatelessWidget {
                         lcyMinor: rowData?.valueMinor ?? 0,
                         textAlign: TextAlign.end,
                         compactSecondary: true,
+                        useFcyAsPrimary: true,
                         primaryStyle:
                             Theme.of(context).textTheme.titleSmall!.copyWith(
                                   color: p.textPrimary,
@@ -1707,16 +1801,24 @@ class _HoldingRow extends StatelessWidget {
                       if (rowData != null &&
                           rowData!.deltaMinor != null &&
                           rowData!.deltaPct != null)
-                        Text(
-                          'P/L ${rowData!.deltaMinor! >= 0 ? '+' : '−'}${formatAmount(rowData!.deltaMinor!.abs())} '
-                          '(${rowData!.deltaPct! >= 0 ? '+' : ''}${rowData!.deltaPct!.toStringAsFixed(2)}% vs cost)',
-                          style:
-                              Theme.of(context).textTheme.labelSmall!.copyWith(
-                                    color: rowData!.deltaMinor! >= 0
-                                        ? p.mint
-                                        : p.coral,
-                                  ),
-                        )
+                        Obx(() {
+                          final CurrencyController c =
+                              Get.find<CurrencyController>();
+                          final int absFcy = c
+                              .fcyMinorFromLcyMinor(rowData!.deltaMinor!.abs());
+                          return Text(
+                            'P/L ${rowData!.deltaMinor! >= 0 ? '+' : '−'}${formatMinorUnits(absFcy, c.fcyCode.value)} '
+                            '(${rowData!.deltaPct! >= 0 ? '+' : ''}${rowData!.deltaPct!.toStringAsFixed(2)}% vs cost)',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
+                                  color: rowData!.deltaMinor! >= 0
+                                      ? p.mint
+                                      : p.coral,
+                                ),
+                          );
+                        })
                       else
                         Text(
                           '—',
@@ -1803,9 +1905,11 @@ class _OtherInvestmentRow extends StatelessWidget {
                         Obx(() {
                           final CurrencyController c =
                               Get.find<CurrencyController>();
+                          final int fcy =
+                              c.fcyMinorFromLcyMinor(investment.valueLcyMinor);
                           if (investment.entryIsFcy) {
                             return Text(
-                              '${formatMinorUnits(investment.entryMinor, c.fcyCode.value)} • ${formatAmount(investment.valueLcyMinor)}',
+                              '${formatMinorUnits(investment.entryMinor, c.fcyCode.value)} • ${formatMinorUnits(investment.valueLcyMinor, c.lcyCode.value)}',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall!
@@ -1813,7 +1917,7 @@ class _OtherInvestmentRow extends StatelessWidget {
                             );
                           }
                           return Text(
-                            formatAmount(investment.valueLcyMinor),
+                            formatMinorUnits(fcy, c.fcyCode.value),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall!
@@ -1827,6 +1931,7 @@ class _OtherInvestmentRow extends StatelessWidget {
                     lcyMinor: investment.valueLcyMinor,
                     textAlign: TextAlign.end,
                     compactSecondary: true,
+                    useFcyAsPrimary: true,
                     primaryStyle:
                         Theme.of(context).textTheme.titleSmall!.copyWith(
                               color: p.textPrimary,
@@ -1915,6 +2020,7 @@ class _OtherInvestmentsSummary extends StatelessWidget {
               lcyMinor: total,
               textAlign: TextAlign.start,
               obscureAmount: !showAmt,
+              useFcyAsPrimary: true,
               primaryStyle:
                   Theme.of(context).textTheme.headlineMedium!.copyWith(
                         color: p.textPrimary,
@@ -2097,15 +2203,29 @@ class _HoldingDetailBody extends StatefulWidget {
   State<_HoldingDetailBody> createState() => _HoldingDetailBodyState();
 }
 
-class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
+class _HoldingDetailBodyState extends State<_HoldingDetailBody>
+    with SingleTickerProviderStateMixin {
   List<InvestmentLotEntry> _lots = <InvestmentLotEntry>[];
   List<InvestmentPricePoint> _prices = <InvestmentPricePoint>[];
   bool _loading = true;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
     _load();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -2126,7 +2246,7 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
   @override
   Widget build(BuildContext context) {
     final AppPalette p = widget.palette;
-    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.80;
+    final double maxSheetHeight = MediaQuery.sizeOf(context).height * 0.85;
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxSheetHeight),
       child: DraggableScrollableSheet(
@@ -2137,177 +2257,245 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody> {
         maxChildSize: 1.0,
         snapAnimationDuration: const Duration(milliseconds: 220),
         builder: (BuildContext context, ScrollController scrollController) {
-          return ListView(
+          return CustomScrollView(
             controller: scrollController,
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-            children: <Widget>[
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                      color: p.border, borderRadius: BorderRadius.circular(2)),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                              color: p.border,
+                              borderRadius: BorderRadius.circular(2)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.holding.ticker,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(
+                                color: p.textPrimary,
+                                fontWeight: FontWeight.w800),
+                      ),
+                      if (widget.holding.displayName.isNotEmpty)
+                        Text(widget.holding.displayName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(color: p.textSecondary)),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                AppHaptics.light();
+                                _addLot(context);
+                              },
+                              icon: const Icon(Icons.add_chart_rounded),
+                              label: const Text('Add shares'),
+                              style: OutlinedButton.styleFrom(
+                                  foregroundColor: _kInvestAccent),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () {
+                                AppHaptics.light();
+                                _addPrice(context);
+                              },
+                              icon: const Icon(Icons.price_change_outlined),
+                              label: const Text('Log price'),
+                              style: FilledButton.styleFrom(
+                                  backgroundColor: _kInvestAccent,
+                                  foregroundColor: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                widget.holding.ticker,
-                style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    color: p.textPrimary, fontWeight: FontWeight.w800),
-              ),
-              if (widget.holding.displayName.isNotEmpty)
-                Text(widget.holding.displayName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium!
-                        .copyWith(color: p.textSecondary)),
-              const SizedBox(height: 20),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        AppHaptics.light();
-                        _addLot(context);
-                      },
-                      icon: const Icon(Icons.add_chart_rounded),
-                      label: const Text('Add shares'),
-                      style: OutlinedButton.styleFrom(
-                          foregroundColor: _kInvestAccent),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        AppHaptics.light();
-                        _addPrice(context);
-                      },
-                      icon: const Icon(Icons.price_change_outlined),
-                      label: const Text('Log price'),
-                      style: FilledButton.styleFrom(
-                          backgroundColor: _kInvestAccent,
-                          foregroundColor: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Text('Share lots (purchase price)',
-                  style: Theme.of(context)
+              SliverAppBar(
+                pinned: true,
+                primary: false,
+                automaticallyImplyLeading: false,
+                backgroundColor: p.background,
+                surfaceTintColor: Colors.transparent,
+                toolbarHeight: 0,
+                bottom: TabBar(
+                  controller: _tabController,
+                  dividerColor: Colors.transparent,
+                  indicatorColor: _kInvestAccent,
+                  labelColor: _kInvestAccent,
+                  unselectedLabelColor: p.textSecondary,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  labelStyle: Theme.of(context)
                       .textTheme
                       .titleSmall!
-                      .copyWith(color: p.textPrimary)),
-              const SizedBox(height: 8),
-              if (_loading)
-                const Center(
-                    child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: CircularProgressIndicator()))
-              else if (_lots.isEmpty)
-                Text(
-                    'No lots yet — add shares with the price you paid per share.',
-                    style: TextStyle(color: p.textSecondary))
-              else
-                ..._lots.map((InvestmentLotEntry e) {
-                  return ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatAmount(e.purchasePriceMinorPerShare)}',
-                      style: TextStyle(
-                          color: p.textPrimary, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          DateFormat.yMMMd().format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  e.occurredAtMs)),
-                          style: TextStyle(color: p.textSecondary),
-                        ),
-                        if (e.purchaseEntryIsFcy)
-                          Obx(
-                            () => Text(
-                              '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
-                              style: TextStyle(
-                                  color: p.textSecondary.withValues(alpha: 0.9),
-                                  fontSize: 12),
-                            ),
-                          ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                      onPressed: () async {
-                        AppHaptics.light();
-                        await inv.deleteInvestmentLot(e.id);
-                        await _load();
-                        await widget.onChanged();
-                      },
-                    ),
-                  );
-                }),
-              const SizedBox(height: 20),
-              Text('Market price history (date)',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall!
-                      .copyWith(color: p.textPrimary)),
-              const SizedBox(height: 8),
-              if (!_loading && _prices.isEmpty)
-                Text(
-                  'No market prices — log the current price per share by date to track value and growth.',
-                  style: TextStyle(color: p.textSecondary),
-                )
-              else if (!_loading)
-                ..._prices.map((InvestmentPricePoint e) {
-                  final DateTime day = e.asOfDay > 0
-                      ? localMidnightFromYyyymmdd(e.asOfDay)
-                      : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
-                  return ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      formatAmount(e.priceMinorPerShare),
-                      style: TextStyle(
-                          color: p.textPrimary, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          DateFormat.yMMMd().format(day),
-                          style: TextStyle(color: p.textSecondary),
-                        ),
-                        if (e.entryIsFcy)
-                          Obx(
-                            () => Text(
-                              '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
-                              style: TextStyle(
-                                  color: p.textSecondary.withValues(alpha: 0.9),
-                                  fontSize: 12),
-                            ),
-                          ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
-                      onPressed: () async {
-                        AppHaptics.light();
-                        await inv.deleteInvestmentPricePoint(e.id);
-                        await _load();
-                        await widget.onChanged();
-                      },
-                    ),
-                  );
-                }),
+                      .copyWith(fontWeight: FontWeight.w700),
+                  tabs: const [
+                    Tab(text: 'Share Lots'),
+                    Tab(text: 'Market Prices'),
+                  ],
+                ),
+              ),
+              SliverFillRemaining(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildLotsList(p),
+                    _buildPricesList(p),
+                  ],
+                ),
+              ),
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildLotsList(AppPalette p) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_lots.isEmpty) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          'No lots yet — add shares with the price you paid per share.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: p.textSecondary),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+      itemCount: _lots.length,
+      itemBuilder: (context, i) {
+        final InvestmentLotEntry e = _lots[i];
+        return ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: Obx(() {
+            final CurrencyController c = Get.find<CurrencyController>();
+            final int fcy =
+                c.fcyMinorFromLcyMinor(e.purchasePriceMinorPerShare);
+            return Text(
+              '${e.quantityDelta >= 0 ? '+' : ''}${e.quantityDelta} shares @ ${formatMinorUnits(fcy, c.fcyCode.value)}',
+              style:
+                  TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
+            );
+          }),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                DateFormat.yMMMd().format(
+                    DateTime.fromMillisecondsSinceEpoch(e.occurredAtMs)),
+                style: TextStyle(color: p.textSecondary),
+              ),
+              if (e.purchaseEntryIsFcy)
+                Obx(
+                  () => Text(
+                    '${formatMinorUnits(e.purchasePriceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} per share (entry)',
+                    style: TextStyle(
+                        color: p.textSecondary.withValues(alpha: 0.9),
+                        fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+            onPressed: () async {
+              AppHaptics.light();
+              await inv.deleteInvestmentLot(e.id);
+              await _load();
+              await widget.onChanged();
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPricesList(AppPalette p) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_prices.isEmpty) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          'No market prices — log the current price per share by date to track value and growth.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: p.textSecondary),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+      itemCount: _prices.length,
+      itemBuilder: (context, i) {
+        final InvestmentPricePoint e = _prices[i];
+        final DateTime day = e.asOfDay > 0
+            ? localMidnightFromYyyymmdd(e.asOfDay)
+            : DateTime.fromMillisecondsSinceEpoch(e.asOfMs);
+        return ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: Obx(() {
+            final CurrencyController c = Get.find<CurrencyController>();
+            final int fcy = c.fcyMinorFromLcyMinor(e.priceMinorPerShare);
+            return Text(
+              formatMinorUnits(fcy, c.fcyCode.value),
+              style:
+                  TextStyle(color: p.textPrimary, fontWeight: FontWeight.w600),
+            );
+          }),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                DateFormat.yMMMd().format(day),
+                style: TextStyle(color: p.textSecondary),
+              ),
+              if (e.entryIsFcy)
+                Obx(
+                  () => Text(
+                    '${formatMinorUnits(e.priceEntryMinorPerShare, Get.find<CurrencyController>().fcyCode.value)} (entry)',
+                    style: TextStyle(
+                        color: p.textSecondary.withValues(alpha: 0.9),
+                        fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+          trailing: IconButton(
+            icon: Icon(Icons.close_rounded, color: p.coral, size: 20),
+            onPressed: () async {
+              AppHaptics.light();
+              await inv.deleteInvestmentPricePoint(e.id);
+              await _load();
+              await widget.onChanged();
+            },
+          ),
+        );
+      },
     );
   }
 

@@ -63,6 +63,7 @@ class DualCurrencyTotal extends StatelessWidget {
     this.compactSecondary = false,
     this.showFcyEquivalent = true,
     this.obscureAmount = false,
+    this.useFcyAsPrimary = false,
   });
 
   final int lcyMinor;
@@ -76,6 +77,9 @@ class DualCurrencyTotal extends StatelessWidget {
 
   /// When true, shows masked bullets instead of figures (still respects dual-line layout).
   final bool obscureAmount;
+
+  /// When true, FCY is the primary line and LCY is shown as equivalent.
+  final bool useFcyAsPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -99,26 +103,40 @@ class DualCurrencyTotal extends StatelessWidget {
           dualLine: dual,
         );
       }
+
+      final String lcyCode = c.lcyCode.value;
+      final String fcyCode = c.fcyCode.value;
+
       if (!showFcyEquivalent || !c.showDualTotals) {
+        final int amount =
+            useFcyAsPrimary ? c.fcyMinorFromLcyMinor(lcyMinor) : lcyMinor;
+        final String code = useFcyAsPrimary ? fcyCode : lcyCode;
         return Text(
-          formatMinorUnits(lcyMinor, c.lcyCode.value),
+          formatMinorUnits(amount, code),
           textAlign: textAlign,
           style: primaryStyle,
         );
       }
-      final int fcy = c.fcyMinorFromLcyMinor(lcyMinor);
+
+      final int fcyMinor = c.fcyMinorFromLcyMinor(lcyMinor);
+
+      final int primaryAmt = useFcyAsPrimary ? fcyMinor : lcyMinor;
+      final String primaryCode = useFcyAsPrimary ? fcyCode : lcyCode;
+      final int secondaryAmt = useFcyAsPrimary ? lcyMinor : fcyMinor;
+      final String secondaryCode = useFcyAsPrimary ? lcyCode : fcyCode;
+
       return Column(
         crossAxisAlignment: _crossAxisForTextAlign(textAlign),
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            formatMinorUnits(lcyMinor, c.lcyCode.value),
+            formatMinorUnits(primaryAmt, primaryCode),
             textAlign: textAlign,
             style: primaryStyle,
           ),
           SizedBox(height: compactSecondary ? 2 : 4),
           Text(
-            '≈ ${formatMinorUnits(fcy, c.fcyCode.value)}',
+            '≈ ${formatMinorUnits(secondaryAmt, secondaryCode)}',
             textAlign: textAlign,
             style: sec,
           ),
@@ -136,12 +154,14 @@ class DualCurrencySignedNet extends StatelessWidget {
     required this.primaryStyle,
     this.secondaryStyle,
     this.textAlign = TextAlign.center,
+    this.useFcyAsPrimary = false,
   });
 
   final int netMinor;
   final TextStyle primaryStyle;
   final TextStyle? secondaryStyle;
   final TextAlign textAlign;
+  final bool useFcyAsPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -155,30 +175,31 @@ class DualCurrencySignedNet extends StatelessWidget {
                     .withValues(alpha: 0.72),
                 fontWeight: FontWeight.w500,
               );
+
+      final String lcyCode = c.lcyCode.value;
+      final String fcyCode = c.fcyCode.value;
+
       if (netMinor == 0) {
         if (!c.showDualTotals) {
+          final String code = useFcyAsPrimary ? fcyCode : lcyCode;
           return Text(
-            formatMinorUnits(0, c.lcyCode.value),
+            formatMinorUnits(0, code),
             textAlign: textAlign,
             style: primaryStyle,
           );
         }
         return Column(
-          crossAxisAlignment: textAlign == TextAlign.center
-              ? CrossAxisAlignment.center
-              : textAlign == TextAlign.end
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+          crossAxisAlignment: _crossAxisForTextAlign(textAlign),
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              formatMinorUnits(0, c.lcyCode.value),
+              formatMinorUnits(0, useFcyAsPrimary ? fcyCode : lcyCode),
               textAlign: textAlign,
               style: primaryStyle,
             ),
             const SizedBox(height: 4),
             Text(
-              '≈ ${formatMinorUnits(0, c.fcyCode.value)}',
+              '≈ ${formatMinorUnits(0, useFcyAsPrimary ? lcyCode : fcyCode)}',
               textAlign: textAlign,
               style: sec,
             ),
@@ -189,29 +210,34 @@ class DualCurrencySignedNet extends StatelessWidget {
       final String sign = neg ? '−' : '+';
       final int absLcy = netMinor.abs();
       if (!c.showDualTotals) {
+        final int amount =
+            useFcyAsPrimary ? c.fcyMinorFromLcyMinor(absLcy) : absLcy;
+        final String code = useFcyAsPrimary ? fcyCode : lcyCode;
         return Text(
-          '$sign ${formatMinorUnits(absLcy, c.lcyCode.value)}',
+          '$sign ${formatMinorUnits(amount, code)}',
           textAlign: textAlign,
           style: primaryStyle,
         );
       }
+
       final int absFcy = c.fcyMinorFromLcyMinor(absLcy);
+      final int primaryAmt = useFcyAsPrimary ? absFcy : absLcy;
+      final String primaryCode = useFcyAsPrimary ? fcyCode : lcyCode;
+      final int secondaryAmt = useFcyAsPrimary ? absLcy : absFcy;
+      final String secondaryCode = useFcyAsPrimary ? lcyCode : fcyCode;
+
       return Column(
-        crossAxisAlignment: textAlign == TextAlign.center
-            ? CrossAxisAlignment.center
-            : textAlign == TextAlign.end
-                ? CrossAxisAlignment.end
-                : CrossAxisAlignment.start,
+        crossAxisAlignment: _crossAxisForTextAlign(textAlign),
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '$sign ${formatMinorUnits(absLcy, c.lcyCode.value)}',
+            '$sign ${formatMinorUnits(primaryAmt, primaryCode)}',
             textAlign: textAlign,
             style: primaryStyle,
           ),
           const SizedBox(height: 4),
           Text(
-            '≈ $sign ${formatMinorUnits(absFcy, c.fcyCode.value)}',
+            '≈ $sign ${formatMinorUnits(secondaryAmt, secondaryCode)}',
             textAlign: textAlign,
             style: sec,
           ),

@@ -61,7 +61,7 @@ Future<List<InvestmentHolding>> listInvestmentHoldings() async {
   final Database dbClient = await AppDb().db;
   final List<Map<String, Object?>> rows = await dbClient.query(
     DBConstants.INVESTMENT_HOLDING,
-    orderBy: 'sort_order ASC, id ASC',
+    orderBy: 'ticker ASC',
   );
   return rows.map(InvestmentHolding.fromMap).toList();
 }
@@ -139,7 +139,7 @@ Future<List<InvestmentLotEntry>> listLotsForHolding(int holdingId) async {
     DBConstants.INVESTMENT_LOT,
     where: 'holding_id = ?',
     whereArgs: <Object>[holdingId],
-    orderBy: 'occurred_at_ms ASC, id ASC',
+    orderBy: 'occurred_at_ms DESC, id DESC',
   );
   return rows.map(InvestmentLotEntry.fromMap).toList();
 }
@@ -206,7 +206,7 @@ Future<List<InvestmentPricePoint>> listPricePointsForHolding(
     DBConstants.INVESTMENT_PRICE,
     where: 'holding_id = ?',
     whereArgs: <Object>[holdingId],
-    orderBy: 'as_of_day ASC, as_of_ms ASC, id ASC',
+    orderBy: 'as_of_day DESC, as_of_ms DESC, id DESC',
   );
   return rows.map(InvestmentPricePoint.fromMap).toList();
 }
