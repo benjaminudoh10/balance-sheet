@@ -128,6 +128,19 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.5
+
+Investments
+- Sort investment holdings alphabetically by ticker symbol.
+- Sort share lots and market price points in reverse chronological order (newest first) for easier tracking of recent activity.
+- Redesign the holding detail view with a pinned tabbed interface, separating "Share Lots" and "Market Prices" into distinct side-by-side views.
+- Default investment amount displays to the Foreign Currency (FCY) as primary throughout the investment views.
+- Enhanced "Add Share Lot" entry form with an auto-calculating three-field layout. Enter any two of Total Price, Quantity, or Share Price, and the third value is derived automatically.
+
+Maintenance
+- Refactor the investment holding detail modal to use `CustomScrollView` and pinned `SliverAppBar`, ensuring layout stability and preventing overflow errors during dismissal.
+- Add automated database operation tests to enforce and verify sorting logic for investment holdings, lots, and price points.
+
 ### v1.0.4
 
 Backup
