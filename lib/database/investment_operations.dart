@@ -250,8 +250,11 @@ Future<int?> latestPriceMinorForHolding(int holdingId) async {
 Future<({int costBasisMinor, double quantity})> fifoOpenPosition(
     int holdingId) async {
   final List<InvestmentLotEntry> lots = await listLotsForHolding(holdingId);
+  // lots are DESC (newest first). FIFO needs ASC (oldest first).
+  final List<InvestmentLotEntry> chronological = lots.reversed.toList();
+
   final List<_FifoLayer> layers = <_FifoLayer>[];
-  for (final InvestmentLotEntry lot in lots) {
+  for (final InvestmentLotEntry lot in chronological) {
     final double q = lot.quantityDelta;
     final int p = lot.purchasePriceMinorPerShare;
     if (q > 1e-9) {
@@ -408,7 +411,7 @@ Future<({int deltaMinor, double? pct})> portfolioStocksDayChange() async {
   return (deltaMinor: delta, pct: 100.0 * delta / vOpen);
 }
 
-/// [deltaMinor] / [deltaPct] = unrealized gain vs FIFO cost basis from lot purchase prices vs last market price.
+/// [deltaMinor] / [deltaPct] = total gain (realized + unrealized) vs cost basis.
 Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(
     int holdingId) async {
   final int now = DateTime.now().millisecondsSinceEpoch;
@@ -417,19 +420,33 @@ Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(
   final int? mkt =
       await latestMarketPriceMinorOnOrBeforeDay(holdingId, maxDay, now);
   final int value = _positionValueMinor(q, mkt);
-  if (q <= 0 || mkt == null) {
+
+  final List<InvestmentLotEntry> lots = await listLotsForHolding(holdingId);
+  if (lots.isEmpty) {
     return (valueMinor: value, deltaMinor: null, deltaPct: null);
   }
-  final ({int costBasisMinor, double quantity}) fifo =
-      await fifoOpenPosition(holdingId);
-  if (fifo.costBasisMinor <= 0) {
+
+  int totalCostMinor = 0;
+  int totalProceedsMinor = 0;
+  for (final InvestmentLotEntry lot in lots) {
+    final double dq = lot.quantityDelta;
+    final int p = lot.purchasePriceMinorPerShare;
+    if (dq > 0) {
+      totalCostMinor += (dq * p).round();
+    } else {
+      totalProceedsMinor += (-dq * p).round();
+    }
+  }
+
+  if (totalCostMinor <= 0) {
     return (valueMinor: value, deltaMinor: null, deltaPct: null);
   }
-  final int gain = value - fifo.costBasisMinor;
+
+  final int gain = (value + totalProceedsMinor) - totalCostMinor;
   return (
     valueMinor: value,
     deltaMinor: gain,
-    deltaPct: 100.0 * gain / fifo.costBasisMinor,
+    deltaPct: 100.0 * gain / totalCostMinor,
   );
 }
 

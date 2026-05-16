@@ -89,4 +89,58 @@ void main() {
       expect(prices[2].asOfDay, 20260101);
     });
   });
+
+  group('Investment Metrics', () {
+    test('holdingMetrics handles closed positions (Buy 3 @ 200, Sell 3 @ 400)',
+        () async {
+      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'AAPL');
+      final int now = DateTime.now().millisecondsSinceEpoch;
+
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: now - 1000,
+        quantityDelta: 3.0,
+        purchasePriceMinorPerShare: 200,
+      );
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: now - 500,
+        quantityDelta: -3.0,
+        purchasePriceMinorPerShare: 400,
+      );
+
+      final metrics = await inv_ops.holdingMetrics(hid);
+      expect(metrics.deltaMinor, 600);
+      expect(metrics.deltaPct, closeTo(100.0, 0.01));
+    });
+
+    test('fifoOpenPosition correctly sorts lots chronologically', () async {
+      final int hid = await inv_ops.insertInvestmentHolding(ticker: 'FIFO');
+      final int now = DateTime.now().millisecondsSinceEpoch;
+
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: now - 2000,
+        quantityDelta: 10.0,
+        purchasePriceMinorPerShare: 100,
+      );
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: now - 1500,
+        quantityDelta: 10.0,
+        purchasePriceMinorPerShare: 200,
+      );
+      await inv_ops.insertInvestmentLot(
+        holdingId: hid,
+        occurredAtMs: now - 1000,
+        quantityDelta: -10.0,
+        purchasePriceMinorPerShare: 150,
+      );
+
+      final fifo = await inv_ops.fifoOpenPosition(hid);
+      // FIFO: First 10 (at 100) are sold. Remaining 10 are from second lot (at 200).
+      expect(fifo.quantity, 10.0);
+      expect(fifo.costBasisMinor, 2000);
+    });
+  });
 }
