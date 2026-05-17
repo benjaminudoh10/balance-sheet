@@ -560,7 +560,7 @@ void main() {
       // 1. Setup data: Tags
       final int tagId1 = await db_ops.addTag('Tag 1');
       final int tagId2 = await db_ops.addTag('Tag 2');
-      final int tagId3 = await db_ops.addTag('Tag 3'); // Unused tag
+      await db_ops.addTag('Tag 3'); // Unused tag
 
       // 2. Setup data: Transactions with tags
       final Transaction txn1 = Transaction(
@@ -572,7 +572,7 @@ void main() {
         contactId: 0,
         tags: [Tag(id: tagId1, name: 'Tag 1'), Tag(id: tagId2, name: 'Tag 2')],
       );
-      final int txnId1 = await db_ops.addTransaction(txn1);
+      await db_ops.addTransaction(txn1);
 
       final Transaction txn2 = Transaction(
         description: 'Txn 2',
@@ -583,7 +583,7 @@ void main() {
         contactId: 0,
         tags: [Tag(id: tagId2, name: 'Tag 2')],
       );
-      final int txnId2 = await db_ops.addTransaction(txn2);
+      await db_ops.addTransaction(txn2);
 
       // 3. Export
       final String exported = await BackupService.exportJsonString();
