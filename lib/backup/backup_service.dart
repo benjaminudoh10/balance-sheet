@@ -182,7 +182,7 @@ class BackupService {
     final int? v = map['version'] is int
         ? map['version'] as int
         : int.tryParse('${map['version']}');
-    if (v == null || v != BackupConstants.formatVersion) {
+    if (v == null || v > BackupConstants.formatVersion) {
       throw BackupException(
           'This backup version is not supported. Update the app and try again.');
     }
@@ -227,29 +227,8 @@ class BackupService {
     }
 
     final Set<int> contactIds = contacts.map((Contact c) => c.id).toSet();
-    for (final txn_model.Transaction t in transactions) {
-      final int cid = t.contactId;
-      if (cid > 0 && !contactIds.contains(cid)) {
-        throw BackupException(
-          'Backup is inconsistent: a transaction references a missing contact (id $cid).',
-        );
-      }
-    }
-
     final Set<int> budgetMonthIds =
         budgetMonths.map((BudgetMonth b) => b.id).toSet();
-    for (final BudgetLine bl in budgetLines) {
-      if (!budgetMonthIds.contains(bl.budgetMonthId)) {
-        throw BackupException(
-          'Backup is inconsistent: a budget line references a missing budget month (id ${bl.budgetMonthId}).',
-        );
-      }
-      if (bl.contactId > 0 && !contactIds.contains(bl.contactId)) {
-        throw BackupException(
-          'Backup is inconsistent: a budget line references a missing contact (id ${bl.contactId}).',
-        );
-      }
-    }
 
     final List<Map<String, dynamic>> investmentHoldings =
         <Map<String, dynamic>>[];
@@ -344,29 +323,6 @@ class BackupService {
       return int.tryParse('$id') ?? 0;
     }).toSet();
 
-    for (final Map<String, dynamic> row in investmentLots) {
-      final Object? hid = row['holding_id'];
-      final int h = hid is int
-          ? hid
-          : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
-      if (h > 0 && !investmentHoldingIds.contains(h)) {
-        throw BackupException(
-          'Backup is inconsistent: an investment lot references a missing holding (id $h).',
-        );
-      }
-    }
-    for (final Map<String, dynamic> row in investmentPrices) {
-      final Object? hid = row['holding_id'];
-      final int h = hid is int
-          ? hid
-          : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
-      if (h > 0 && !investmentHoldingIds.contains(h)) {
-        throw BackupException(
-          'Backup is inconsistent: an investment price references a missing holding (id $h).',
-        );
-      }
-    }
-
     final Set<int> tagIds = tags.map((Map<String, dynamic> r) {
       final Object? id = r['id'];
       if (id is int) return id;
@@ -376,7 +332,7 @@ class BackupService {
     final Set<int> txnIds =
         transactions.map((txn_model.Transaction t) => t.id).toSet();
 
-    // Filter out orphaned transaction-tag mappings from the backup payload before validation.
+    // Filter out orphaned transaction-tag mappings from the backup payload.
     // This makes the import resilient to "dirty" backups that might contain mappings
     // referencing transactions or tags that were deleted (e.g. if foreign keys were off).
     transactionTags.retainWhere((Map<String, dynamic> row) {
@@ -390,27 +346,6 @@ class BackupService {
           : (gid is num ? gid.toInt() : int.tryParse('$gid') ?? 0);
       return txnIds.contains(t) && tagIds.contains(g);
     });
-
-    for (final Map<String, dynamic> row in transactionTags) {
-      final Object? tid = row['transaction_id'];
-      final int t = tid is int
-          ? tid
-          : (tid is num ? tid.toInt() : int.tryParse('$tid') ?? 0);
-      final Object? gid = row['tag_id'];
-      final int g = gid is int
-          ? gid
-          : (gid is num ? gid.toInt() : int.tryParse('$gid') ?? 0);
-      if (t > 0 && !txnIds.contains(t)) {
-        throw BackupException(
-          'Backup is inconsistent: a transaction-tag mapping references a missing transaction (id $t).',
-        );
-      }
-      if (g > 0 && !tagIds.contains(g)) {
-        throw BackupException(
-          'Backup is inconsistent: a transaction-tag mapping references a missing tag (id $g).',
-        );
-      }
-    }
 
     final int totalRows = contacts.length +
         transactions.length +
@@ -475,6 +410,7 @@ class BackupService {
 
       for (final txn_model.Transaction t in transactions) {
         final Map<String, dynamic> row = t.toJson();
+        final int cid = t.contactId;
         await sqlTxn.insert(DBConstants.TRANSACTION, <String, Object?>{
           'id': row['id'],
           'description': row['description'],
@@ -482,7 +418,7 @@ class BackupService {
           'amount': row['amount'],
           'date': row['date'],
           'category': row['category'],
-          'contactId': t.contactId == 0 ? null : t.contactId,
+          'contactId': (cid <= 0 || !contactIds.contains(cid)) ? null : cid,
           'entryCurrency': row['entryCurrency'] ?? 'lcy',
           'entryAmount': row['entryAmount'] ?? row['amount'],
           'deletedAt': row['deletedAt'],
@@ -513,12 +449,19 @@ class BackupService {
         await tickProgress('Restoring budgets');
       }
       for (final BudgetLine bl in budgetLines) {
+        if (!budgetMonthIds.contains(bl.budgetMonthId)) {
+          // Skip orphaned budget lines that reference a missing month.
+          continue;
+        }
         await sqlTxn.insert(DBConstants.BUDGET_LINE, <String, Object?>{
           'id': bl.id,
           'budget_month_id': bl.budgetMonthId,
           'description': bl.description,
           'planned_amount': bl.plannedAmount,
-          'contact_id': bl.contactId <= 0 ? null : bl.contactId,
+          'contact_id':
+              (bl.contactId <= 0 || !contactIds.contains(bl.contactId))
+                  ? null
+                  : bl.contactId,
           'category': bl.categoryKey,
           'sort_order': bl.sortOrder,
           'entryCurrency': bl.planEntryIsFcy ? 'fcy' : 'lcy',
@@ -586,6 +529,15 @@ class BackupService {
         await tickProgress('Restoring investments');
       }
       for (final Map<String, dynamic> r in investmentLots) {
+        final Object? hid = r['holding_id'];
+        final int h = hid is int
+            ? hid
+            : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
+        if (h <= 0 || !investmentHoldingIds.contains(h)) {
+          // Skip orphaned investment lots that reference a missing holding.
+          continue;
+        }
+
         final int lcyPs = r['purchase_price_minor_per_share'] is int
             ? r['purchase_price_minor_per_share'] as int
             : int.tryParse('${r['purchase_price_minor_per_share']}') ?? 0;
@@ -602,7 +554,7 @@ class BackupService {
         }
         await sqlTxn.insert(DBConstants.INVESTMENT_LOT, <String, Object?>{
           'id': r['id'],
-          'holding_id': r['holding_id'],
+          'holding_id': h,
           'occurred_at_ms': r['occurred_at_ms'],
           'quantity_delta': r['quantity_delta'],
           'purchase_price_minor_per_share': lcyPs,
@@ -614,6 +566,15 @@ class BackupService {
         await tickProgress('Restoring investments');
       }
       for (final Map<String, dynamic> r in investmentPrices) {
+        final Object? hid = r['holding_id'];
+        final int h = hid is int
+            ? hid
+            : (hid is num ? hid.toInt() : int.tryParse('$hid') ?? 0);
+        if (h <= 0 || !investmentHoldingIds.contains(h)) {
+          // Skip orphaned investment prices that reference a missing holding.
+          continue;
+        }
+
         final Object? rawDay = r['as_of_day'];
         int asOfDay = rawDay is int
             ? rawDay
@@ -645,7 +606,7 @@ class BackupService {
         }
         await sqlTxn.insert(DBConstants.INVESTMENT_PRICE, <String, Object?>{
           'id': r['id'],
-          'holding_id': r['holding_id'],
+          'holding_id': h,
           'as_of_ms': asOfMs,
           'as_of_day': asOfDay,
           'price_minor_per_share': lcyPrice,

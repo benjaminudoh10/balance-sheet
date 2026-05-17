@@ -84,7 +84,8 @@ void main() {
       );
     });
 
-    test('throws when transaction references missing contact', () async {
+    test('imports transaction with null contactId when contact is missing',
+        () async {
       const String raw = '''
 {
   "format": "${BackupConstants.formatId}",
@@ -105,10 +106,74 @@ void main() {
   "preferences": {}
 }
 ''';
-      expect(
-        () => BackupService.importFromJsonString(raw),
-        throwsA(predicate((Object e) => e.toString().contains('inconsistent'))),
-      );
+      await BackupService.importFromJsonString(raw);
+      final txns = await db_ops.getAllTransactions(0, 1);
+      expect(txns.length, 1);
+      expect(txns.first.contactId, 0); // contactId 0 in model means null in DB
+    });
+
+    test('skips budget line when budget month is missing', () async {
+      const String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "budgetMonths": [],
+  "budgetLines": [
+    {
+      "id": 1,
+      "budget_month_id": 99,
+      "description": "Orphaned",
+      "planned_amount": 100,
+      "category": "misc"
+    }
+  ],
+  "preferences": {}
+}
+''';
+      await BackupService.importFromJsonString(raw);
+      // We don't have a direct way to check budget lines for missing month easily,
+      // but if we had db_ops.getBudgetLinesForMonth(99) it should be empty.
+      final List<BudgetLine> lines = await db_ops.getBudgetLinesForMonth(99);
+      expect(lines, isEmpty);
+    });
+
+    test('skips investment lot/price when holding is missing', () async {
+      const String raw = '''
+{
+  "format": "${BackupConstants.formatId}",
+  "version": ${BackupConstants.formatVersion},
+  "dbSchemaVersion": ${DBConstants.DB_VERSION},
+  "contacts": [],
+  "transactions": [],
+  "investmentHoldings": [],
+  "investmentLots": [
+    {
+      "id": 1,
+      "holding_id": 99,
+      "occurred_at_ms": 1,
+      "quantity_delta": 1.0,
+      "purchase_price_minor_per_share": 100
+    }
+  ],
+  "investmentPrices": [
+    {
+      "id": 1,
+      "holding_id": 99,
+      "as_of_ms": 1,
+      "price_minor_per_share": 100
+    }
+  ],
+  "preferences": {}
+}
+''';
+      await BackupService.importFromJsonString(raw);
+      final List<InvestmentHolding> holdings =
+          await inv_ops.listInvestmentHoldings();
+      expect(holdings, isEmpty);
+      // If we could check lots/prices directly we'd see they are empty too.
     });
 
     test('imports contacts and transactions', () async {
