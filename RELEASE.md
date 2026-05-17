@@ -128,6 +128,21 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.6
+
+Backup
+- Make backup import "foolproof" by handling missing references gracefully. 
+- Transactions with missing contacts are now imported with a null contact ID instead of failing.
+- Orphaned budget lines and investment records (lots/prices) referencing missing parents are skipped while the rest of the import continues.
+- Relax version validation to allow importing older backup files, ensuring long-term backward compatibility.
+
+Investments
+- Fix percentage returns calculation to handle various holding scenarios correctly.
+
+Maintenance
+- Clean up unused variables and redundant code across the project.
+- Disable redundant formatting check in CI workflows.
+
 ### v1.0.5
 
 Investments
