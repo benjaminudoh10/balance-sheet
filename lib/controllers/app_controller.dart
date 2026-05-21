@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 
+import 'package:balance_sheet/backup/auto_backup_service.dart';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
@@ -23,6 +24,10 @@ class AppController extends GetxController {
   final RxBool useTrash = false.obs;
   final RxInt trashPeriodDays = 30.obs;
   final RxBool lockTrash = false.obs;
+
+  /// Automatic daily backup at midnight
+  final RxBool autoBackupEnabled = false.obs;
+  final RxInt autoBackupRetentionDays = 7.obs;
 
   /// Populated asynchronously in [onInit] from [PackageInfo.fromPlatform];
   /// reads `version` from `pubspec.yaml` at build time so UI never drifts
@@ -48,6 +53,10 @@ class AppController extends GetxController {
     trashPeriodDays.value =
         box.read<int>(AppConstants.TRASH_PERIOD_DAYS_KEY) ?? 30;
     lockTrash.value = box.read<bool>(AppConstants.LOCK_TRASH_KEY) ?? false;
+    autoBackupEnabled.value =
+        box.read<bool>(AppConstants.AUTO_BACKUP_ENABLED_KEY) ?? false;
+    autoBackupRetentionDays.value =
+        box.read<int>(AppConstants.AUTO_BACKUP_RETENTION_DAYS_KEY) ?? 7;
 
     unawaited(_loadAppVersion());
     unawaited(_cleanupTrash());
@@ -112,6 +121,21 @@ class AppController extends GetxController {
     GetStorage().write(AppConstants.LOCK_TRASH_KEY, value);
   }
 
+  Future<void> setAutoBackupEnabled(bool value) async {
+    autoBackupEnabled.value = value;
+    GetStorage().write(AppConstants.AUTO_BACKUP_ENABLED_KEY, value);
+    if (value) {
+      await AutoBackupService.scheduleDaily();
+    } else {
+      await AutoBackupService.cancelDaily();
+    }
+  }
+
+  void setAutoBackupRetentionDays(int value) {
+    autoBackupRetentionDays.value = value;
+    GetStorage().write(AppConstants.AUTO_BACKUP_RETENTION_DAYS_KEY, value);
+  }
+
   /// Reloads font and theme from [GetStorage] (e.g. after backup import).
   void syncFromStorage() {
     final GetStorage box = GetStorage();
@@ -126,6 +150,10 @@ class AppController extends GetxController {
     trashPeriodDays.value =
         box.read<int>(AppConstants.TRASH_PERIOD_DAYS_KEY) ?? 30;
     lockTrash.value = box.read<bool>(AppConstants.LOCK_TRASH_KEY) ?? false;
+    autoBackupEnabled.value =
+        box.read<bool>(AppConstants.AUTO_BACKUP_ENABLED_KEY) ?? false;
+    autoBackupRetentionDays.value =
+        box.read<int>(AppConstants.AUTO_BACKUP_RETENTION_DAYS_KEY) ?? 7;
   }
 
   static ThemeMode _themeModeFromStorage(String? raw) {
