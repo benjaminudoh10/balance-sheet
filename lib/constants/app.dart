@@ -56,6 +56,10 @@ class AppConstants {
   static const TRASH_PERIOD_DAYS_KEY = "trash_period_days";
   static const LOCK_TRASH_KEY = "lock_trash";
 
+  /// Automatic backup settings
+  static const AUTO_BACKUP_ENABLED_KEY = "auto_backup_enabled";
+  static const AUTO_BACKUP_RETENTION_DAYS_KEY = "auto_backup_retention_days";
+
   /// Trash screen: slidable action peek.
   static const SLIDABLE_PEEK_TRASH = 'slidable_peek_trash';
 }

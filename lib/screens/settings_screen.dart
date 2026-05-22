@@ -482,6 +482,74 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  Widget _autoBackupRetentionSelector(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: p.surface,
+        border: Border.all(color: p.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: p.mint.withValues(alpha: 0.12),
+              border: Border.all(
+                color: p.mint.withValues(alpha: 0.22),
+              ),
+            ),
+            child:
+                Icon(Icons.history_toggle_off_rounded, color: p.mint, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Backup retention',
+                  style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                ),
+                Text(
+                  'Keep auto-backups for',
+                  style: textTheme.bodySmall!.copyWith(
+                    color: p.textSecondary.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Obx(() => DropdownButton<int>(
+                value: _appController.autoBackupRetentionDays.value,
+                dropdownColor: p.surfaceElevated,
+                underline: const SizedBox(),
+                items: [3, 7, 14, 30].map((int days) {
+                  return DropdownMenuItem<int>(
+                    value: days,
+                    child: Text(
+                      '$days days',
+                      style:
+                          textTheme.bodyMedium!.copyWith(color: p.textPrimary),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (int? v) {
+                  if (v != null) {
+                    AppHaptics.selection();
+                    _appController.setAutoBackupRetentionDays(v);
+                  }
+                },
+              )),
+        ],
+      ),
+    );
+  }
+
   Widget _settingsDataSection(
       BuildContext context, TextTheme textTheme, AppPalette p) {
     return Column(
@@ -494,7 +562,7 @@ class SettingsView extends StatelessWidget {
             color: p.textSecondary.withValues(alpha: 0.9),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         _BackupActionRow(
           label: 'Export backup',
           subtitle:
@@ -510,6 +578,25 @@ class SettingsView extends StatelessWidget {
           icon: Icons.file_download_outlined,
           onTap: () => _importBackup(context),
         ),
+        const SizedBox(height: 8),
+        Obx(() => _SecuritySwitchRow(
+              title: 'Auto-backup',
+              subtitle: 'Automatically create a backup file daily at midnight',
+              icon: Icons.auto_mode_rounded,
+              switchValue: _appController.autoBackupEnabled.value,
+              switchDisabled: false,
+              onSwitch: (bool v) => _appController.setAutoBackupEnabled(v),
+            )),
+        Obx(() {
+          if (!_appController.autoBackupEnabled.value)
+            return const SizedBox.shrink();
+          return Column(
+            children: [
+              const SizedBox(height: 10),
+              _autoBackupRetentionSelector(context, textTheme, p),
+            ],
+          );
+        }),
         const SizedBox(height: 8),
         _BackupActionRow(
           label: 'Reset first-run tips',
