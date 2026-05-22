@@ -40,7 +40,6 @@ void main() async {
 
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: false,
   );
 
   Get.put(CurrencyController());
@@ -222,44 +221,54 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 );
               }
 
-              return Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3E99E6).withValues(alpha: 0.15),
-                      border: const Border(
-                        bottom: BorderSide(
-                          color: Color(0xFF3E99E6),
-                          width: 0.5,
+              final AppPalette palette = AppPalette.of(context);
+              final bool isDark = palette.brightness == Brightness.dark;
+
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: palette.systemUiOverlayStyle,
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? palette.mint.withValues(alpha: 0.15)
+                            : const Color(0xFFB3E5FC).withValues(alpha: 0.8),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: isDark
+                                ? palette.mint.withValues(alpha: 0.4)
+                                : const Color(0xFF0D648F)
+                                    .withValues(alpha: 0.2),
+                            width: 0.5,
+                          ),
                         ),
                       ),
-                    ),
-                    child: SafeArea(
-                      bottom: false,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: const Text(
-                          'TEST APP (DEBUG)',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF3E99E6),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2.0,
-                            decoration: TextDecoration.none,
+                      child: SafeArea(
+                        bottom: false,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            'TEST APP (DEBUG)',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isDark
+                                  ? palette.mint
+                                  : const Color(0xFF0D648F),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 2.0,
+                              decoration: TextDecoration.none,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: AppPalette.of(context).systemUiOverlayStyle,
+                    Expanded(
                       child: screen,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),

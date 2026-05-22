@@ -588,8 +588,9 @@ class SettingsView extends StatelessWidget {
               onSwitch: (bool v) => _appController.setAutoBackupEnabled(v),
             )),
         Obx(() {
-          if (!_appController.autoBackupEnabled.value)
+          if (!_appController.autoBackupEnabled.value) {
             return const SizedBox.shrink();
+          }
           return Column(
             children: [
               const SizedBox(height: 10),
