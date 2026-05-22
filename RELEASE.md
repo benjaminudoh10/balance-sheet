@@ -128,6 +128,25 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.0
+
+Theme Selection
+- Implement dynamic color scheme selection with five distinct options:
+    - **Midnight Mint**: The signature Balanced look.
+    - **Midnight Blue**: The former debug aesthetic, now available for all.
+    - **Midnight Purple, Gold, & Rose**: New vibrant color palettes.
+- Each scheme features a balanced pairing for Income vs. Expense (e.g., Purple/Amber, Rose/Teal) to provide clear visual feedback across the app.
+- Added a new "COLOR SCHEME" section in Settings with live preview cards.
+- Selection is persisted locally and instantly updates the entire UI, including the privacy overlay and debug banner.
+
+Reports
+- Added an "All Time" period filter to the report views for comprehensive transaction history access.
+
+Maintenance
+- Refactored the theme engine to use a dynamic `AppPalette` system, improving consistency across all UI components.
+- Standardized the debug banner to be theme-adaptive and optimized for both light and dark modes.
+- Added unit tests for theme resolution and palette generation to ensure visual stability.
+
 ### v1.0.7
 
 Backup
