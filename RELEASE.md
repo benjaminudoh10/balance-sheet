@@ -128,6 +128,19 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.0.7
+
+Backup
+- Implement automatic daily backup at midnight.
+- Configurable backup retention period (keep backups for 3, 7, 14, or 30 days).
+- Backups are now natively visible in the system:
+    - **iOS**: Accessible via the "Files" app under "On My iPhone > Balanced".
+    - **Android**: Accessible via File Manager under `Android/data/com.benjaminudoh10.balanced/files/backups/`.
+
+Maintenance
+- Add `workmanager` and `path_provider` dependencies for background task management and file system access.
+- Configure iOS background task scheduling and file sharing permissions.
+
 ### v1.0.6
 
 Backup
