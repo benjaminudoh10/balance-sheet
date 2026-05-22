@@ -1,4 +1,5 @@
 import 'package:balance_sheet/theme/app_palette.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -137,8 +138,8 @@ ThemeData _buildAppTheme(String fontId, AppPalette palette) {
 
 /// Dark theme (previous default).
 ThemeData buildDarkAppTheme(String fontId) =>
-    _buildAppTheme(fontId, AppPalette.dark);
+    _buildAppTheme(fontId, kDebugMode ? AppPalette.darkBlue : AppPalette.dark);
 
 /// Light theme.
-ThemeData buildLightAppTheme(String fontId) =>
-    _buildAppTheme(fontId, AppPalette.light);
+ThemeData buildLightAppTheme(String fontId) => _buildAppTheme(
+    fontId, kDebugMode ? AppPalette.lightBlue : AppPalette.light);

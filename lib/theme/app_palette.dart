@@ -84,6 +84,36 @@ class AppPalette extends ThemeExtension<AppPalette> {
     gridLine: Color(0x220D8F72),
   );
 
+  /// Debug-only Blue Dark Palette.
+  static const AppPalette darkBlue = AppPalette(
+    brightness: Brightness.dark,
+    background: Color(0xFF0D1117),
+    surface: Color(0xFF161B22),
+    surfaceElevated: Color(0xFF21262D),
+    border: Color(0xFF30363D),
+    mint: Color(0xFF3E99E6),
+    coral: Color(0xFFFF6B7A),
+    textPrimary: Color(0xFFF0F6FC),
+    textSecondary: Color(0xFF8B949E),
+    overlay: Color(0xCC0D1117),
+    gridLine: Color(0x153E99E6),
+  );
+
+  /// Debug-only Blue Light Palette.
+  static const AppPalette lightBlue = AppPalette(
+    brightness: Brightness.light,
+    background: Color(0xFFF5F3FA),
+    surface: Color(0xFFFFFFFF),
+    surfaceElevated: Color(0xFFEDE9F4),
+    border: Color(0xFFD4CDE0),
+    mint: Color(0xFF0D648F),
+    coral: Color(0xFFD63D4F),
+    textPrimary: Color(0xFF1A1428),
+    textSecondary: Color(0xFF5E5672),
+    overlay: Color(0x99000000),
+    gridLine: Color(0x220D648F),
+  );
+
   LinearGradient get settingsHeroGradient {
     if (brightness == Brightness.dark) {
       return const LinearGradient(

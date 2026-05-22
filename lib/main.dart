@@ -14,6 +14,7 @@ import 'package:balance_sheet/screens/lock_screen.dart';
 import 'package:balance_sheet/screens/splash.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -213,9 +214,52 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ],
             debugShowCheckedModeBanner: false,
             builder: (BuildContext context, Widget? child) {
-              return AnnotatedRegion<SystemUiOverlayStyle>(
-                value: AppPalette.of(context).systemUiOverlayStyle,
-                child: child ?? const SizedBox.shrink(),
+              final Widget screen = child ?? const SizedBox.shrink();
+              if (!kDebugMode) {
+                return AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: AppPalette.of(context).systemUiOverlayStyle,
+                  child: screen,
+                );
+              }
+
+              return Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3E99E6).withValues(alpha: 0.15),
+                      border: const Border(
+                        bottom: BorderSide(
+                          color: Color(0xFF3E99E6),
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: const Text(
+                          'TEST APP (DEBUG)',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF3E99E6),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2.0,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: AppPalette.of(context).systemUiOverlayStyle,
+                      child: screen,
+                    ),
+                  ),
+                ],
               );
             },
           ),
