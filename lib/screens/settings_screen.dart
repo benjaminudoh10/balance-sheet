@@ -90,6 +90,8 @@ class SettingsView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 24),
+                          _settingsSchemeSection(context, textTheme, p),
+                          const SizedBox(height: 24),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
@@ -121,6 +123,8 @@ class SettingsView extends StatelessWidget {
                           ),
                         ] else ...<Widget>[
                           _settingsThemeSection(context, textTheme, p),
+                          const SizedBox(height: 24),
+                          _settingsSchemeSection(context, textTheme, p),
                           const SizedBox(height: 24),
                           _settingsAppearanceSection(context, textTheme, p),
                           const SizedBox(height: 24),
@@ -213,6 +217,50 @@ class SettingsView extends StatelessWidget {
             ],
           );
         }),
+      ],
+    );
+  }
+
+  Widget _settingsSchemeSection(
+      BuildContext context, TextTheme textTheme, AppPalette p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'COLOR SCHEME',
+          style: textTheme.labelMedium!.copyWith(
+            letterSpacing: 1.4,
+            color: p.textSecondary.withValues(alpha: 0.9),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 100,
+          child: Obx(() {
+            final AppThemeScheme current = _appController.themeScheme.value;
+            return ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: AppThemeScheme.values.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final scheme = AppThemeScheme.values[index];
+                final bool selected = current == scheme;
+                // Preview uses dark mode accent for better visibility on surface
+                final schemePalette =
+                    AppPalette.forScheme(scheme, Brightness.dark);
+                return _SchemeOptionCard(
+                  scheme: scheme,
+                  selected: selected,
+                  previewColor: schemePalette.mint,
+                  onTap: () {
+                    AppHaptics.selection();
+                    _appController.setThemeScheme(scheme);
+                  },
+                );
+              },
+            );
+          }),
+        ),
       ],
     );
   }
@@ -1138,6 +1186,80 @@ class _ThemeModeOptionRow extends StatelessWidget {
                 child: Text(
                   label,
                   style: textTheme.titleMedium!.copyWith(color: p.textPrimary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SchemeOptionCard extends StatelessWidget {
+  const _SchemeOptionCard({
+    required this.scheme,
+    required this.selected,
+    required this.previewColor,
+    required this.onTap,
+  });
+
+  final AppThemeScheme scheme;
+  final bool selected;
+  final Color previewColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final AppPalette p = AppPalette.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: 84,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: p.surface,
+            border: Border.all(
+              color: selected ? p.mint.withValues(alpha: 0.45) : p.border,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: previewColor,
+                  border: Border.all(
+                    color: selected ? Colors.white : Colors.transparent,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    if (selected)
+                      BoxShadow(
+                        color: previewColor.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                  ],
+                ),
+                child: selected
+                    ? const Icon(Icons.check, size: 18, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                scheme.label,
+                style: textTheme.labelMedium!.copyWith(
+                  color: selected ? p.textPrimary : p.textSecondary,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ],

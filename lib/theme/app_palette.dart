@@ -1,6 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Supported color schemes for the app.
+enum AppThemeScheme {
+  midnightMint('midnight_mint', 'Mint'),
+  midnightBlue('midnight_blue', 'Blue'),
+  midnightPurple('midnight_purple', 'Purple'),
+  midnightGold('midnight_gold', 'Gold'),
+  midnightRose('midnight_rose', 'Rose');
+
+  const AppThemeScheme(this.id, this.label);
+  final String id;
+  final String label;
+
+  static AppThemeScheme fromId(String? id) {
+    return AppThemeScheme.values.firstWhere(
+      (AppThemeScheme e) => e.id == id,
+      orElse: () => AppThemeScheme.midnightMint,
+    );
+  }
+}
+
 /// Semantic colors for Balanced UI — registered via [ThemeExtension] on light and dark [ThemeData].
 @immutable
 class AppPalette extends ThemeExtension<AppPalette> {
@@ -35,6 +55,76 @@ class AppPalette extends ThemeExtension<AppPalette> {
     final AppPalette? p = Theme.of(context).extension<AppPalette>();
     assert(p != null, 'ThemeData.extensions must include AppPalette');
     return p!;
+  }
+
+  /// Returns the palette for a specific scheme and brightness.
+  static AppPalette forScheme(AppThemeScheme scheme, Brightness brightness) {
+    final bool isDark = brightness == Brightness.dark;
+
+    // Base colors that stay consistent across schemes
+    final Color background =
+        isDark ? const Color(0xFF0D1117) : const Color(0xFFF5F3FA);
+    final Color surface = isDark ? const Color(0xFF161B22) : Colors.white;
+    final Color surfaceElevated =
+        isDark ? const Color(0xFF21262D) : const Color(0xFFEDE9F4);
+    final Color border =
+        isDark ? const Color(0xFF30363D) : const Color(0xFFD4CDE0);
+    final Color textPrimary =
+        isDark ? const Color(0xFFF0F6FC) : const Color(0xFF1A1428);
+    final Color textSecondary =
+        isDark ? const Color(0xFF8B949E) : const Color(0xFF5E5672);
+    final Color overlay =
+        isDark ? const Color(0xCC0D1117) : const Color(0x99000000);
+
+    // Scheme-specific accent colors (Mint = Income/Primary, Coral = Expense/Secondary)
+    Color mint;
+    Color coral;
+    switch (scheme) {
+      case AppThemeScheme.midnightBlue:
+        mint = isDark ? const Color(0xFF3E99E6) : const Color(0xFF0D648F);
+        coral = isDark
+            ? const Color(0xFFFF9F40)
+            : const Color(0xFFD66D00); // Orange
+        break;
+      case AppThemeScheme.midnightPurple:
+        mint = isDark ? const Color(0xFFB388FF) : const Color(0xFF673AB7);
+        coral =
+            isDark ? const Color(0xFFFFD54F) : const Color(0xFFBF8F00); // Amber
+        break;
+      case AppThemeScheme.midnightGold:
+        mint = isDark ? const Color(0xFFFFD700) : const Color(0xFFB8860B);
+        coral = isDark
+            ? const Color(0xFF9FA8DA)
+            : const Color(0xFF3949AB); // Indigo
+        break;
+      case AppThemeScheme.midnightRose:
+        mint = isDark ? const Color(0xFFFF80AB) : const Color(0xFFC2185B);
+        coral =
+            isDark ? const Color(0xFF4DB6AC) : const Color(0xFF00796B); // Teal
+        break;
+      case AppThemeScheme.midnightMint:
+        mint = isDark ? const Color(0xFF3EE6B5) : const Color(0xFF0D8F72);
+        coral = isDark
+            ? const Color(0xFFFF6B7A)
+            : const Color(0xFFD63D4F); // Coral Red
+        break;
+    }
+
+    final Color gridLine = mint.withValues(alpha: isDark ? 0.08 : 0.14);
+
+    return AppPalette(
+      brightness: brightness,
+      background: background,
+      surface: surface,
+      surfaceElevated: surfaceElevated,
+      border: border,
+      mint: mint,
+      coral: coral,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      overlay: overlay,
+      gridLine: gridLine,
+    );
   }
 
   /// Status bar and navigation bar icons that contrast with [background].
@@ -82,36 +172,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
     textSecondary: Color(0xFF5E5672),
     overlay: Color(0x99000000),
     gridLine: Color(0x220D8F72),
-  );
-
-  /// Debug-only Blue Dark Palette.
-  static const AppPalette darkBlue = AppPalette(
-    brightness: Brightness.dark,
-    background: Color(0xFF0D1117),
-    surface: Color(0xFF161B22),
-    surfaceElevated: Color(0xFF21262D),
-    border: Color(0xFF30363D),
-    mint: Color(0xFF3E99E6),
-    coral: Color(0xFFFF6B7A),
-    textPrimary: Color(0xFFF0F6FC),
-    textSecondary: Color(0xFF8B949E),
-    overlay: Color(0xCC0D1117),
-    gridLine: Color(0x153E99E6),
-  );
-
-  /// Debug-only Blue Light Palette.
-  static const AppPalette lightBlue = AppPalette(
-    brightness: Brightness.light,
-    background: Color(0xFFF5F3FA),
-    surface: Color(0xFFFFFFFF),
-    surfaceElevated: Color(0xFFEDE9F4),
-    border: Color(0xFFD4CDE0),
-    mint: Color(0xFF0D648F),
-    coral: Color(0xFFD63D4F),
-    textPrimary: Color(0xFF1A1428),
-    textSecondary: Color(0xFF5E5672),
-    overlay: Color(0x99000000),
-    gridLine: Color(0x220D648F),
   );
 
   LinearGradient get settingsHeroGradient {

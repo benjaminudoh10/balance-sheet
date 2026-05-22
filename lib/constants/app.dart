@@ -10,6 +10,9 @@ class AppConstants {
   /// Values: `system`, `light`, `dark` — see [AppController.themeMode].
   static const APP_THEME_MODE_KEY = "app_theme_mode";
 
+  /// Values: `midnight_mint`, `midnight_blue`, etc. — see [AppThemeScheme].
+  static const APP_COLOR_SCHEME_KEY = "app_color_scheme";
+
   /// ISO 4217 codes (3 letters), e.g. NGN / USD — see [CurrencyController].
   static const CURRENCY_LCY_KEY = "currency_lcy";
   static const CURRENCY_FCY_KEY = "currency_fcy";

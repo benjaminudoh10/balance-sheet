@@ -4,6 +4,7 @@ import 'package:balance_sheet/backup/auto_backup_service.dart';
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/controllers/security_controller.dart';
 import 'package:balance_sheet/database/operations.dart' as db;
+import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/theme/app_theme.dart';
 import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,9 @@ class AppController extends GetxController {
 
   /// User preference: light, dark, or follow OS.
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+
+  /// User preference: which color scheme to use.
+  final Rx<AppThemeScheme> themeScheme = AppThemeScheme.midnightMint.obs;
 
   /// Trash settings
   final RxBool useTrash = false.obs;
@@ -48,6 +52,10 @@ class AppController extends GetxController {
     }
     final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
     themeMode.value = _themeModeFromStorage(modeRaw);
+
+    final String? schemeRaw =
+        box.read<String>(AppConstants.APP_COLOR_SCHEME_KEY);
+    themeScheme.value = AppThemeScheme.fromId(schemeRaw);
 
     useTrash.value = box.read<bool>(AppConstants.USE_TRASH_KEY) ?? true;
     trashPeriodDays.value =
@@ -90,6 +98,11 @@ class AppController extends GetxController {
     themeMode.value = mode;
     GetStorage()
         .write(AppConstants.APP_THEME_MODE_KEY, _themeModeToStorage(mode));
+  }
+
+  void setThemeScheme(AppThemeScheme scheme) {
+    themeScheme.value = scheme;
+    GetStorage().write(AppConstants.APP_COLOR_SCHEME_KEY, scheme.id);
   }
 
   Future<void> setUseTrash(bool value) async {
@@ -145,6 +158,10 @@ class AppController extends GetxController {
     }
     final String? modeRaw = box.read<String>(AppConstants.APP_THEME_MODE_KEY);
     themeMode.value = _themeModeFromStorage(modeRaw);
+
+    final String? schemeRaw =
+        box.read<String>(AppConstants.APP_COLOR_SCHEME_KEY);
+    themeScheme.value = AppThemeScheme.fromId(schemeRaw);
 
     useTrash.value = box.read<bool>(AppConstants.USE_TRASH_KEY) ?? true;
     trashPeriodDays.value =

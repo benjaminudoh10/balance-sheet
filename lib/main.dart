@@ -88,14 +88,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   AppPalette _privacyPalette(AppController app) {
     switch (app.themeMode.value) {
       case ThemeMode.dark:
-        return AppPalette.dark;
+        return AppPalette.forScheme(app.themeScheme.value, Brightness.dark);
       case ThemeMode.light:
-        return AppPalette.light;
+        return AppPalette.forScheme(app.themeScheme.value, Brightness.light);
       case ThemeMode.system:
         return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
                 Brightness.dark
-            ? AppPalette.dark
-            : AppPalette.light;
+            ? AppPalette.forScheme(app.themeScheme.value, Brightness.dark)
+            : AppPalette.forScheme(app.themeScheme.value, Brightness.light);
     }
   }
 
@@ -204,8 +204,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           GetMaterialApp(
             navigatorKey: Get.key,
             title: 'Balanced',
-            theme: buildLightAppTheme(app.fontId.value),
-            darkTheme: buildDarkAppTheme(app.fontId.value),
+            theme: buildLightAppTheme(app.fontId.value, app.themeScheme.value),
+            darkTheme:
+                buildDarkAppTheme(app.fontId.value, app.themeScheme.value),
             themeMode: app.themeMode.value,
             home: Splash(),
             getPages: [
@@ -233,13 +234,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       decoration: BoxDecoration(
                         color: isDark
                             ? palette.mint.withValues(alpha: 0.15)
-                            : const Color(0xFFB3E5FC).withValues(alpha: 0.8),
+                            : Color.lerp(palette.mint, Colors.white, 0.50),
                         border: Border(
                           bottom: BorderSide(
                             color: isDark
                                 ? palette.mint.withValues(alpha: 0.4)
-                                : const Color(0xFF0D648F)
-                                    .withValues(alpha: 0.2),
+                                : palette.mint.withValues(alpha: 0.15),
                             width: 0.5,
                           ),
                         ),
@@ -252,9 +252,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                             'TEST APP (DEBUG)',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: isDark
-                                  ? palette.mint
-                                  : const Color(0xFF0D648F),
+                              color: palette.mint,
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 2.0,
