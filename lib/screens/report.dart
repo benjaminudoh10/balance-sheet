@@ -36,6 +36,7 @@ const List<ReportType> _kPeriodOrder = <ReportType>[
   ReportType.lastMonth,
   ReportType.singleDay,
   ReportType.dateRange,
+  ReportType.allTime,
 ];
 
 String _periodMenuLabel(ReportType t) {
@@ -52,6 +53,8 @@ String _periodMenuLabel(ReportType t) {
       return 'Single day';
     case ReportType.dateRange:
       return 'Date range';
+    case ReportType.allTime:
+      return 'All time';
   }
 }
 

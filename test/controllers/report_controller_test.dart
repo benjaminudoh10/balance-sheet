@@ -214,6 +214,37 @@ void main() {
           await rc.fetchAllTransactionsForCurrentRange();
       expect(all.length, total);
     });
+
+    test(
+        'getTransactions fetches all transactions across different years when allTime is selected',
+        () async {
+      await db_ops.addTransaction(Transaction(
+        description: 'past',
+        type: TransactionType.expenditure,
+        amount: 100,
+        date: DateTime(2021, 1, 1),
+        category: 'misc',
+        contactId: 0,
+      ));
+      await db_ops.addTransaction(Transaction(
+        description: 'future',
+        type: TransactionType.expenditure,
+        amount: 200,
+        date: DateTime(2026, 12, 31),
+        category: 'misc',
+        contactId: 0,
+      ));
+
+      final ReportController rc = ReportController();
+      rc.type.value = ReportType.allTime;
+      rc.timeFrames = rc.getTimeFrame();
+
+      await rc.getTransactions();
+
+      expect(rc.transactions.length, 2);
+      expect(rc.transactions.any((t) => t.description == 'past'), isTrue);
+      expect(rc.transactions.any((t) => t.description == 'future'), isTrue);
+    });
   });
 
   group('ReportController.getTimeFrame', () {
@@ -279,6 +310,13 @@ void main() {
       final DateTime start = DateTime.fromMillisecondsSinceEpoch(tf[0]);
       final DateTime end = DateTime.fromMillisecondsSinceEpoch(tf[1]);
       expect(end.month, start.month);
+    });
+
+    test('allTime returns [0, 0]', () {
+      final ReportController rc = ReportController();
+      rc.type.value = ReportType.allTime;
+      final List<int> tf = rc.getTimeFrame();
+      expect(tf, [0, 0]);
     });
   });
 }

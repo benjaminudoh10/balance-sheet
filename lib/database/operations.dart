@@ -170,8 +170,10 @@ Future<List<Transaction>> getAllTransactions(
         "INNER JOIN ${DBConstants.TRANSACTION_TAG} tt ON t.id = tt.transaction_id AND tt.tag_id IN (${tagIds.join(',')}) ";
   }
 
-  query +=
-      "WHERE t.date >= $startTime AND t.date <= $endTime AND t.deletedAt IS NULL ";
+  query += "WHERE t.deletedAt IS NULL ";
+  if (startTime > 0 || endTime > 0) {
+    query += "AND t.date >= $startTime AND t.date <= $endTime ";
+  }
   if (category != null && category != "Category") {
     query = "$query AND t.category = '$category' ";
   }
@@ -245,7 +247,10 @@ Future<Map<String, int>> getExpenseForTimePeriod(
 }) async {
   var dbClient = await AppDb().db;
 
-  String baseWhere = "date >= $start AND date <= $end AND deletedAt IS NULL ";
+  String baseWhere = "deletedAt IS NULL ";
+  if (start > 0 || end > 0) {
+    baseWhere += "AND date >= $start AND date <= $end ";
+  }
   if (category != null && category != "Category") {
     baseWhere += "AND category = '$category' ";
   }

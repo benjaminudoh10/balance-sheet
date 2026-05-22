@@ -187,6 +187,9 @@ class ReportController extends GetxController {
         label.value =
             '${DateFormat.yMMMMd().format(dateTimeRange.start)} - ${DateFormat.yMMMMd().format(dateTimeRange.end)}';
         break;
+      case ReportType.allTime:
+        label.value = 'All time';
+        break;
     }
   }
 
@@ -325,6 +328,8 @@ class ReportController extends GetxController {
         beginningOfDate.millisecondsSinceEpoch,
         endOfDate.millisecondsSinceEpoch
       ];
+    } else if (type.value == ReportType.allTime) {
+      return [0, 0];
     }
 
     return [0, 0];

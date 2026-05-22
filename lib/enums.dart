@@ -10,4 +10,5 @@ enum ReportType {
   lastMonth,
   singleDay,
   dateRange,
+  allTime,
 }
