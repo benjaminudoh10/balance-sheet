@@ -128,6 +128,14 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.1
+
+Investments
+- Implement custom date picker in investment holdings view for better consistency.
+
+Fixes
+- Fix display label for "all time" report period selection.
+
 ### v1.1.0
 
 Theme Selection
