@@ -319,4 +319,13 @@ void main() {
       expect(tf, [0, 0]);
     });
   });
+
+  group('ReportController.applyPeriodType', () {
+    test('allTime updates label to All time', () async {
+      final ReportController rc = ReportController();
+      await rc.applyPeriodType(ReportType.allTime);
+      expect(rc.label.value, 'All time');
+      expect(rc.type.value, ReportType.allTime);
+    });
+  });
 }

@@ -247,6 +247,8 @@ class ReportController extends GetxController {
       label.value = 'This week';
     } else if (reportType == ReportType.lastMonth) {
       label.value = 'Last month';
+    } else if (reportType == ReportType.allTime) {
+      label.value = 'All time';
     } else if (reportType == ReportType.singleDay) {
       final DateTime? picked = await selectDate();
       if (picked == null) {
