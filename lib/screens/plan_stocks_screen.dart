@@ -16,6 +16,7 @@ import 'package:balance_sheet/utils/app_haptics.dart';
 import 'package:balance_sheet/widgets/adaptive_card_sliver_list.dart';
 import 'package:balance_sheet/widgets/dual_currency_total.dart';
 import 'package:balance_sheet/widgets/inputs.dart';
+import 'package:balance_sheet/widgets/date_range_picker_sheet.dart';
 import 'package:balance_sheet/widgets/midnight_grid_painter.dart';
 import 'package:balance_sheet/widgets/slidable_peek_hint.dart';
 import 'package:balance_sheet/widgets/widgets.dart';
@@ -825,11 +826,11 @@ class _AddInvestmentLotSheetState extends State<_AddInvestmentLotSheet> {
             trailing: const Icon(Icons.event_rounded),
             onTap: () async {
               AppHaptics.light();
-              final DateTime? d = await showDatePicker(
-                context: context,
+              final DateTime? d = await showAppDatePicker(
+                context,
                 initialDate: _purchaseDay,
                 firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
+                lastDate: DateTime.now(),
               );
               if (d == null) return;
               setState(() {
@@ -1029,11 +1030,11 @@ class _LogInvestmentPriceSheetState extends State<_LogInvestmentPriceSheet> {
             trailing: const Icon(Icons.calendar_today_rounded),
             onTap: () async {
               AppHaptics.light();
-              final DateTime? d = await showDatePicker(
-                context: context,
+              final DateTime? d = await showAppDatePicker(
+                context,
                 initialDate: _priceDay,
                 firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
+                lastDate: DateTime.now(),
               );
               if (d == null) return;
               setState(() {

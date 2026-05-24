@@ -71,6 +71,8 @@ Welcome to the **Balanced** project (internal package name: `balance_sheet`). Th
 ## Agent Instructions
 
 - **Surgical Edits:** When modifying database logic, ensure changes are reflected in both `lib/database/db.dart` (for schema) and `lib/database/operations.dart`.
+- **Backward compatibility:** When modifying db schema, ensure changes are backward compatible as users are already using the app.
+- **Code analysis:** Once you're done with the code changes, always run `dart analyze` before running the tests.
 - **Testing:** Every bug fix or feature addition must include a corresponding test case in `test/`. Mirror the directory structure of `lib/` in the `test/` folder.
 - Run the tests using flutter test --concurrency=1.
 - Ensure the code is DRY compliant.
