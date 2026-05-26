@@ -2163,6 +2163,37 @@ class _PortfolioChart extends StatelessWidget {
                       ),
                     ),
                   ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (_) => p.surfaceElevated,
+                      getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                        final CurrencyController currency =
+                            Get.find<CurrencyController>();
+                        return touchedSpots.map((LineBarSpot spot) {
+                          final int index = spot.x.toInt();
+                          if (index < 0 || index >= hist.length) return null;
+                          final int lcyMinor = hist[index].valueMinor;
+                          final int fcyMinor =
+                              currency.fcyMinorFromLcyMinor(lcyMinor);
+                          final String fcyLabel = formatMinorUnits(
+                              fcyMinor, currency.fcyCode.value);
+
+                          final DateTime d =
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  hist[index].ms);
+                          final String dateLabel = DateFormat.yMMMd().format(d);
+
+                          return LineTooltipItem(
+                            '$dateLabel\n$fcyLabel',
+                            Theme.of(context).textTheme.labelSmall!.copyWith(
+                                  color: p.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ),
                   borderData: FlBorderData(show: false),
                   lineBarsData: <LineChartBarData>[
                     LineChartBarData(
