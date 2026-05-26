@@ -128,6 +128,20 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.2
+
+Budgeting
+- Add support for attaching custom **Tags** to budget items. This allows tracking expenditure by specific tags in addition to categories and contacts.
+- Show **Dual Currency** equivalents (USD) for both "Planned" and "Spent" amounts directly on each budget line.
+
+Investments
+- Update the **Portfolio value over time** graph tooltip to display amounts in the user's chosen foreign currency (USD).
+
+Maintenance
+- Upgrade database schema to version 4 to support budget tags.
+- Update backup and restore service to include budget tag associations.
+- Add unit tests for budget tag database operations and expenditure tracking.
+
 ### v1.1.1
 
 Investments
