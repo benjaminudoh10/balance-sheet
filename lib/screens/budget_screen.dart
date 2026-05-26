@@ -895,6 +895,7 @@ class _BudgetLineTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final ContactController contacts = Get.find<ContactController>();
+    final CurrencyController currency = Get.find<CurrencyController>();
     return Obx(() {
       // Always read [RxList] so Obx subscribes (lines with no contact would otherwise skip the list).
       final List<Contact> contactList = contacts.contacts.toList();
@@ -990,25 +991,68 @@ class _BudgetLineTile extends StatelessWidget {
                     ],
                     const SizedBox(height: 10),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: <Widget>[
-                        Text(
-                          'Plan ${formatBudgetPlannedDisplay(line)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge!
-                              .copyWith(color: p.textSecondary),
-                        ),
-                        const Spacer(),
-                        if (hasTrack)
-                          Text(
-                            'Spent ${formatAmount(spentMinor!)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge!
-                                .copyWith(
-                                  color: overBudget ? p.coral : p.textPrimary,
-                                  fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                'Plan ${formatBudgetPlannedDisplay(line)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge!
+                                    .copyWith(color: p.textSecondary),
+                              ),
+                              if (currency.showDualTotals)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    '≈ ${line.planEntryIsFcy ? formatAmount(line.plannedAmount) : formatMinorUnits(currency.fcyMinorFromLcyMinor(line.plannedAmount), currency.fcyCode.value)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(
+                                          color: p.textSecondary
+                                              .withValues(alpha: 0.7),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
                                 ),
+                            ],
+                          ),
+                        ),
+                        if (hasTrack)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Text(
+                                'Spent ${formatAmount(spentMinor!)}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge!
+                                    .copyWith(
+                                      color:
+                                          overBudget ? p.coral : p.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              if (currency.showDualTotals)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    '≈ ${formatMinorUnits(currency.fcyMinorFromLcyMinor(spentMinor!), currency.fcyCode.value)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(
+                                          color: p.textSecondary
+                                              .withValues(alpha: 0.7),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ),
+                            ],
                           )
                         else
                           Text(
