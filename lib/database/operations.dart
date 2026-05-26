@@ -388,28 +388,37 @@ Future<int> getExpenditureTotalFiltered(
   int endMs, {
   String? categoryKey,
   int? contactId,
+  int? tagId,
 }) async {
   final String catTrim = categoryKey?.trim() ?? '';
   final bool useCat = catTrim.isNotEmpty;
   final bool useContact = contactId != null && contactId > 0;
-  if (!useCat && !useContact) {
+  final bool useTag = tagId != null && tagId > 0;
+  if (!useCat && !useContact && !useTag) {
     return 0;
   }
   final dbClient = await AppDb().db;
   final StringBuffer where =
       StringBuffer("type = 'expenditure' AND date >= ? AND date <= ?");
   final List<Object?> args = <Object?>[startMs, endMs];
-  if (useCat && useContact) {
-    where.write(' AND (category = ? OR contactId = ?)');
+
+  final List<String> orClauses = [];
+  if (useCat) {
+    orClauses.add('category = ?');
     args.add(catTrim);
-    args.add(contactId);
-  } else if (useCat) {
-    where.write(' AND category = ?');
-    args.add(catTrim);
-  } else {
-    where.write(' AND contactId = ?');
+  }
+  if (useContact) {
+    orClauses.add('contactId = ?');
     args.add(contactId);
   }
+  if (useTag) {
+    orClauses.add(
+        'id IN (SELECT transaction_id FROM ${DBConstants.TRANSACTION_TAG} WHERE tag_id = ?)');
+    args.add(tagId);
+  }
+
+  where.write(' AND (${orClauses.join(' OR ')})');
+
   final List<Map<String, dynamic>> rows = await dbClient.rawQuery(
     'SELECT COALESCE(SUM(amount), 0) AS total FROM ${DBConstants.TRANSACTION} WHERE ${where.toString()}',
     args,
@@ -509,6 +518,7 @@ Future<int> insertBudgetLine({
   required String description,
   required int plannedAmount,
   int contactId = 0,
+  int tagId = 0,
   String categoryKey = '',
   bool planEntryIsFcy = false,
   int planEntryAmountMinor = 0,
@@ -522,6 +532,7 @@ Future<int> insertBudgetLine({
     'description': description,
     'planned_amount': plannedAmount,
     'contact_id': contactId <= 0 ? null : contactId,
+    'tag_id': tagId <= 0 ? null : tagId,
     'category': categoryKey,
     'sort_order': sortOrder,
     'entryCurrency': planEntryIsFcy ? 'fcy' : 'lcy',
@@ -537,6 +548,7 @@ Future<void> updateBudgetLine(BudgetLine line) async {
       'description': line.description,
       'planned_amount': line.plannedAmount,
       'contact_id': line.contactId <= 0 ? null : line.contactId,
+      'tag_id': line.tagId <= 0 ? null : line.tagId,
       'category': line.categoryKey,
       'sort_order': line.sortOrder,
       'entryCurrency': line.planEntryIsFcy ? 'fcy' : 'lcy',
@@ -613,6 +625,7 @@ Future<void> copyBudgetLinesToMonth(
         'description': line.description,
         'planned_amount': line.plannedAmount,
         'contact_id': line.contactId <= 0 ? null : line.contactId,
+        'tag_id': line.tagId <= 0 ? null : line.tagId,
         'category': line.categoryKey,
         'sort_order': line.sortOrder,
         'entryCurrency': line.planEntryIsFcy ? 'fcy' : 'lcy',

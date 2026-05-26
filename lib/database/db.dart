@@ -74,6 +74,10 @@ class AppDb {
           await db.execute(_sqlCreateTags);
           await db.execute(_sqlCreateTransactionTags);
         }
+        if (oldVersion < 4) {
+          await db.execute(
+              "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN tag_id INTEGER REFERENCES ${DBConstants.TAG}(id) ON DELETE SET NULL");
+        }
       },
     );
     return taskDb;
@@ -113,12 +117,14 @@ CREATE TABLE IF NOT EXISTS ${DBConstants.BUDGET_LINE}(
   description TEXT NOT NULL,
   planned_amount INTEGER NOT NULL,
   contact_id INTEGER,
+  tag_id INTEGER,
   category TEXT NOT NULL DEFAULT '',
   sort_order INTEGER NOT NULL DEFAULT 0,
   entryCurrency TEXT NOT NULL DEFAULT 'lcy',
   entryAmount INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY(budget_month_id) REFERENCES ${DBConstants.BUDGET_MONTH}(id) ON DELETE CASCADE,
-  FOREIGN KEY(contact_id) REFERENCES ${DBConstants.CONTACT}(id) ON DELETE SET NULL
+  FOREIGN KEY(contact_id) REFERENCES ${DBConstants.CONTACT}(id) ON DELETE SET NULL,
+  FOREIGN KEY(tag_id) REFERENCES ${DBConstants.TAG}(id) ON DELETE SET NULL
 )
 ''';
 

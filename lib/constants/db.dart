@@ -10,5 +10,5 @@ class DBConstants {
   static const INVESTMENT_OTHER_ASSET = "investment_other_assets";
   static const TAG = "tags";
   static const TRANSACTION_TAG = "transaction_tags";
-  static const int DB_VERSION = 3;
+  static const int DB_VERSION = 4;
 }

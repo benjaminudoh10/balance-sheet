@@ -45,6 +45,7 @@ class BudgetController extends GetxController {
           range.endMs,
           categoryKey: line.categoryKey.isEmpty ? null : line.categoryKey,
           contactId: line.contactId > 0 ? line.contactId : null,
+          tagId: line.tagId > 0 ? line.tagId : null,
         );
         byLine[line.id] = total;
       }
@@ -64,6 +65,7 @@ class BudgetController extends GetxController {
     required String description,
     required int plannedAmountMinor,
     int contactId = 0,
+    int tagId = 0,
     String categoryKey = '',
     bool planEntryIsFcy = false,
     int planEntryAmountMinor = 0,
@@ -75,6 +77,7 @@ class BudgetController extends GetxController {
       description: description.trim(),
       plannedAmount: plannedAmountMinor,
       contactId: contactId,
+      tagId: tagId,
       categoryKey: categoryKey,
       planEntryIsFcy: planEntryIsFcy,
       planEntryAmountMinor:

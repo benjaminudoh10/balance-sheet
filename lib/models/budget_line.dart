@@ -10,6 +10,7 @@ class BudgetLine {
     required this.description,
     required this.plannedAmount,
     this.contactId = 0,
+    this.tagId = 0,
     this.categoryKey = '',
     this.sortOrder = 0,
     this.planEntryIsFcy = false,
@@ -27,12 +28,14 @@ class BudgetLine {
   /// Minor units in the currency the user chose when entering the plan.
   final int planEntryAmountMinor;
   final int contactId;
+  final int tagId;
 
   /// Same string keys as transaction `category` in the ledger; empty = no category filter.
   final String categoryKey;
   final int sortOrder;
 
-  bool get hasSpendTracker => categoryKey.isNotEmpty || contactId > 0;
+  bool get hasSpendTracker =>
+      categoryKey.isNotEmpty || contactId > 0 || tagId > 0;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -41,6 +44,7 @@ class BudgetLine {
       'description': description,
       'plannedAmount': plannedAmount,
       'contactId': contactId,
+      'tagId': tagId,
       'categoryKey': categoryKey,
       'sortOrder': sortOrder,
       'entryCurrency': planEntryIsFcy ? 'fcy' : 'lcy',
@@ -59,6 +63,7 @@ class BudgetLine {
       description: data['description'] as String? ?? '',
       plannedAmount: planned,
       contactId: _asInt(data['contact_id'] ?? data['contactId']),
+      tagId: _asInt(data['tag_id'] ?? data['tagId']),
       categoryKey:
           data['category'] as String? ?? data['categoryKey'] as String? ?? '',
       sortOrder: _asInt(data['sort_order'] ?? data['sortOrder']),
@@ -80,6 +85,7 @@ class BudgetLine {
     String? description,
     int? plannedAmount,
     int? contactId,
+    int? tagId,
     String? categoryKey,
     int? sortOrder,
     bool? planEntryIsFcy,
@@ -91,6 +97,7 @@ class BudgetLine {
       description: description ?? this.description,
       plannedAmount: plannedAmount ?? this.plannedAmount,
       contactId: contactId ?? this.contactId,
+      tagId: tagId ?? this.tagId,
       categoryKey: categoryKey ?? this.categoryKey,
       sortOrder: sortOrder ?? this.sortOrder,
       planEntryIsFcy: planEntryIsFcy ?? this.planEntryIsFcy,

@@ -4,8 +4,10 @@ import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/controllers/budget_controller.dart';
 import 'package:balance_sheet/controllers/contact_controller.dart';
+import 'package:balance_sheet/controllers/tag_controller.dart';
 import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/contact.dart';
+import 'package:balance_sheet/models/tag.dart';
 import 'package:balance_sheet/services/pdf_export_service.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/controllers/currency_controller.dart';
@@ -895,15 +897,26 @@ class _BudgetLineTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppPalette p = AppPalette.of(context);
     final ContactController contacts = Get.find<ContactController>();
+    final TagController tags = Get.find<TagController>();
     final CurrencyController currency = Get.find<CurrencyController>();
     return Obx(() {
-      // Always read [RxList] so Obx subscribes (lines with no contact would otherwise skip the list).
+      // Always read [RxList] so Obx subscribes (lines with no contact/tag would otherwise skip the list).
       final List<Contact> contactList = contacts.contacts.toList();
+      final List<Tag> tagList = tags.allTags.toList();
       String resolvedContact = '';
       if (line.contactId > 0) {
         for (final Contact c in contactList) {
           if (c.id == line.contactId) {
             resolvedContact = c.name;
+            break;
+          }
+        }
+      }
+      String resolvedTag = '';
+      if (line.tagId > 0) {
+        for (final Tag t in tagList) {
+          if (t.id == line.tagId) {
+            resolvedTag = t.name;
             break;
           }
         }
@@ -957,10 +970,13 @@ class _BudgetLineTile extends StatelessWidget {
                           ),
                     ),
                     if (line.categoryKey.isNotEmpty ||
-                        resolvedContact.isNotEmpty) ...<Widget>[
+                        resolvedContact.isNotEmpty ||
+                        resolvedTag.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 10,
+                        runSpacing: 4,
                         children: <Widget>[
                           if (line.categoryKey.isNotEmpty)
                             CategoryPillLabel(
@@ -968,24 +984,43 @@ class _BudgetLineTile extends StatelessWidget {
                               label: _categoryLabelForKey(line.categoryKey),
                               compact: true,
                             ),
-                          if (line.categoryKey.isNotEmpty &&
-                              resolvedContact.isNotEmpty)
-                            const SizedBox(width: 10),
-                          if (resolvedContact.isNotEmpty) ...<Widget>[
-                            Icon(Icons.person_outline_rounded,
-                                size: 16, color: p.textSecondary),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                resolvedContact,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium!
-                                    .copyWith(color: p.mint),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          if (resolvedContact.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(Icons.person_outline_rounded,
+                                    size: 16, color: p.textSecondary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  resolvedContact,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(color: p.mint),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                          ],
+                          if (resolvedTag.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(Icons.local_offer_outlined,
+                                    size: 15, color: p.textSecondary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  resolvedTag,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
+                                        color: p.coral.withValues(alpha: 0.9),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ],
@@ -1105,10 +1140,12 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
   late final FocusNode _descFocus;
   late final FocusNode _amountFocus;
   int _contactId = 0;
+  int _tagId = 0;
   String _categoryKey = '';
   bool _planEntryIsFcy = false;
   final BudgetController _budget = Get.find<BudgetController>();
   final ContactController _contacts = Get.find<ContactController>();
+  final TagController _tags = Get.find<TagController>();
   final CurrencyController _currency = Get.find<CurrencyController>();
 
   @override
@@ -1126,6 +1163,7 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
       text: showMinor > 0 ? (showMinor / 100).toStringAsFixed(2) : '',
     );
     _contactId = e?.contactId ?? 0;
+    _tagId = e?.tagId ?? 0;
     _categoryKey = e?.categoryKey ?? '';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1163,6 +1201,7 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
         description: d,
         plannedAmountMinor: plannedLcyMinor,
         contactId: _contactId,
+        tagId: _tagId,
         categoryKey: _categoryKey,
         planEntryIsFcy: _planEntryIsFcy,
         planEntryAmountMinor: _planEntryIsFcy ? entryMinor : plannedLcyMinor,
@@ -1173,6 +1212,7 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
           description: d,
           plannedAmount: plannedLcyMinor,
           contactId: _contactId,
+          tagId: _tagId,
           categoryKey: _categoryKey,
           planEntryIsFcy: _planEntryIsFcy,
           planEntryAmountMinor: _planEntryIsFcy ? entryMinor : plannedLcyMinor,
@@ -1507,8 +1547,61 @@ class _BudgetLineEditorSheetState extends State<_BudgetLineEditorSheet> {
                 );
               }),
               const SizedBox(height: 8),
+              Obx(() {
+                final List<DropdownMenuItem<int>> items =
+                    <DropdownMenuItem<int>>[
+                  DropdownMenuItem<int>(
+                    value: 0,
+                    child:
+                        Text('No tag', style: TextStyle(color: p.textPrimary)),
+                  ),
+                  ..._tags.allTags.map(
+                    (t) => DropdownMenuItem<int>(
+                      value: t.id,
+                      child: Text(t.name, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+                ];
+                final int dropdownTagId =
+                    _tagId > 0 && _tags.allTags.any((t) => t.id == _tagId)
+                        ? _tagId
+                        : 0;
+                return InputDecorator(
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 15),
+                    labelText: 'Tag (optional)',
+                    labelStyle: TextStyle(color: p.textSecondary, fontSize: 15),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: p.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: p.mint.withValues(alpha: 0.8)),
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: dropdownTagId,
+                      isDense: true,
+                      isExpanded: true,
+                      dropdownColor: p.surfaceElevated,
+                      style: TextStyle(color: p.textPrimary, fontSize: 15),
+                      items: items,
+                      onChanged: (int? v) {
+                        AppHaptics.selection();
+                        setState(() => _tagId = v ?? 0);
+                      },
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
               Text(
-                'Spent = category expenses, contact expenses, or — if both are set — their union (either condition).',
+                'Spent = category expenses, contact expenses, tag expenses, or — if multiple are set — their union (any condition).',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall!

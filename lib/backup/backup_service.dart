@@ -462,6 +462,8 @@ class BackupService {
               (bl.contactId <= 0 || !contactIds.contains(bl.contactId))
                   ? null
                   : bl.contactId,
+          'tag_id':
+              (bl.tagId <= 0 || !tagIds.contains(bl.tagId)) ? null : bl.tagId,
           'category': bl.categoryKey,
           'sort_order': bl.sortOrder,
           'entryCurrency': bl.planEntryIsFcy ? 'fcy' : 'lcy',
