@@ -1526,8 +1526,8 @@ class _PortfolioSummary extends StatelessWidget {
           Get.find<SummaryAmountsPrivacyController>();
       final bool showAmt = priv.showInvestmentSummaryAmounts.value;
       final int total = inv.stocksTotalMinor.value;
-      final int d = inv.portfolioDayChangeMinor.value;
-      final double? pct = inv.portfolioDayChangePct.value;
+      final int d = inv.portfolioPerformanceMinor.value;
+      final double? pct = inv.portfolioPerformancePct.value;
       final bool up = d >= 0;
       return Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -1584,7 +1584,7 @@ class _PortfolioSummary extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            Text('Today',
+                            Text('All-time',
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelSmall!
@@ -1617,7 +1617,7 @@ class _PortfolioSummary extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            Text('Today',
+                            Text('All-time',
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelSmall!

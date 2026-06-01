@@ -450,6 +450,45 @@ Future<({int valueMinor, int? deltaMinor, double? deltaPct})> holdingMetrics(
   );
 }
 
+/// Total performance (realized + unrealized gain) vs cost basis across all stock holdings.
+Future<({int deltaMinor, double? pct})>
+    portfolioStocksTotalPerformance() async {
+  final List<InvestmentHolding> holdings = await listInvestmentHoldings();
+  int totalGain = 0;
+  int totalCost = 0;
+
+  final int now = DateTime.now().millisecondsSinceEpoch;
+  final int maxDay = encodeLocalYyyymmddFromMs(now);
+
+  for (final InvestmentHolding h in holdings) {
+    final double q = await totalQuantityForHoldingAtMs(h.id, now);
+    final int? mkt =
+        await latestMarketPriceMinorOnOrBeforeDay(h.id, maxDay, now);
+    final int value = _positionValueMinor(q, mkt);
+
+    final List<InvestmentLotEntry> lots = await listLotsForHolding(h.id);
+    int hCost = 0;
+    int hProceeds = 0;
+    for (final InvestmentLotEntry lot in lots) {
+      final double dq = lot.quantityDelta;
+      final int p = lot.purchasePriceMinorPerShare;
+      if (dq > 0) {
+        hCost += (dq * p).round();
+      } else {
+        hProceeds += (-dq * p).round();
+      }
+    }
+
+    totalGain += (value + hProceeds) - hCost;
+    totalCost += hCost;
+  }
+
+  if (totalCost <= 0) {
+    return (deltaMinor: totalGain, pct: null);
+  }
+  return (deltaMinor: totalGain, pct: 100.0 * totalGain / totalCost);
+}
+
 /// Sorted points (end-of-day ms, total minor) for charting portfolio growth. Downsamples if huge.
 Future<List<({int ms, int valueMinor})>> getPortfolioStocksHistory(
     {int maxPoints = 200}) async {

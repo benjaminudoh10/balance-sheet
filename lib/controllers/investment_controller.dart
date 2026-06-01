@@ -30,6 +30,10 @@ class InvestmentController extends GetxController {
       <({int ms, int valueMinor})>[].obs;
   final Rxn<double> portfolioDayChangePct = Rxn<double>();
   final RxInt portfolioDayChangeMinor = 0.obs;
+
+  final Rxn<double> portfolioPerformancePct = Rxn<double>();
+  final RxInt portfolioPerformanceMinor = 0.obs;
+
   final RxBool loading = false.obs;
 
   int netWorthMinor(int ledgerBalanceMinor) =>
@@ -65,6 +69,11 @@ class InvestmentController extends GetxController {
           await inv.portfolioStocksDayChange();
       portfolioDayChangeMinor.value = day.deltaMinor;
       portfolioDayChangePct.value = day.pct;
+
+      final ({int deltaMinor, double? pct}) perf =
+          await inv.portfolioStocksTotalPerformance();
+      portfolioPerformanceMinor.value = perf.deltaMinor;
+      portfolioPerformancePct.value = perf.pct;
 
       portfolioHistory.assignAll(await inv.getPortfolioStocksHistory());
     } finally {
