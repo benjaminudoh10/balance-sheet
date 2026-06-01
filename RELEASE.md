@@ -128,6 +128,25 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.3
+
+Security
+- Fixed a vulnerability where the app could remain perpetually unlocked if the user canceled an in-app authentication prompt (e.g., when viewing the Trash).
+- Improved biometric authentication robustness by wrapping calls in "sub-flow" protection, preventing accidental auto-locks when the system biometric dialog is displayed.
+- Streamlined authentication UX by removing redundant PIN fallback screens when a biometric prompt is canceled for feature-specific locks.
+
+Investments
+- Added display of remaining share units next to ticker symbols in the holdings detail modal for better clarity.
+- Fixed the "Total portfolio value" summary to correctly calculate and show all-time performance (gain/loss vs cost basis) instead of a static 0% daily change.
+
+Insights
+- Added "vs next period" comparisons to the Insights view, providing bi-directional trend analysis when data for the following period is available.
+- Added "Last week" as a selectable period in the Insights view.
+
+Maintenance
+- Fixed Saved Views in the "All Transactions" screen to correctly persist and restore the tags filter.
+- Verified that tags associated with saved views are correctly included in the application backup and restore process.
+
 ### v1.1.2
 
 Budgeting
