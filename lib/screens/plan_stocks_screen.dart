@@ -2237,6 +2237,8 @@ class _HoldingDetailBody extends StatefulWidget {
 
 class _HoldingDetailBodyState extends State<_HoldingDetailBody>
     with SingleTickerProviderStateMixin {
+  double get _totalQty =>
+      _lots.fold(0.0, (sum, lot) => sum + lot.quantityDelta);
   List<InvestmentLotEntry> _lots = <InvestmentLotEntry>[];
   List<InvestmentPricePoint> _prices = <InvestmentPricePoint>[];
   bool _loading = true;
@@ -2309,14 +2311,31 @@ class _HoldingDetailBodyState extends State<_HoldingDetailBody>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        widget.holding.ticker,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall!
-                            .copyWith(
-                                color: p.textPrimary,
-                                fontWeight: FontWeight.w800),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            widget.holding.ticker,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(
+                                    color: p.textPrimary,
+                                    fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(width: 8),
+                          if (!_loading)
+                            Text(
+                              '(${widget.fmtQty(_totalQty)})',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium!
+                                  .copyWith(
+                                      color: p.textSecondary,
+                                      fontWeight: FontWeight.w600),
+                            ),
+                        ],
                       ),
                       if (widget.holding.displayName.isNotEmpty)
                         Text(widget.holding.displayName,
