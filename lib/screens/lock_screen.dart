@@ -32,7 +32,6 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _securityController.onRequireScreenLock();
     _pinController = TextEditingController();
     _pinFocus = FocusNode();
     WidgetsBinding.instance.addObserver(this);

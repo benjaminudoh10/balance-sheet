@@ -271,11 +271,12 @@ class SecurityController extends GetxController {
       final bool canCheckBiometrics = await localAuth.canCheckBiometrics;
       if (canCheckBiometrics) {
         try {
-          final bool didAuthenticate = await localAuth.authenticate(
-            localizedReason: reason,
-            biometricOnly: true,
-            persistAcrossBackgrounding: true,
-          );
+          final bool didAuthenticate =
+              await runWithSubFlow<bool>(() => localAuth.authenticate(
+                    localizedReason: reason,
+                    biometricOnly: true,
+                    persistAcrossBackgrounding: true,
+                  ));
           if (didAuthenticate) return true;
         } catch (e) {
           debugPrint('Biometric auth failed: $e');
@@ -296,11 +297,12 @@ class SecurityController extends GetxController {
     bool canCheckBiometrics = await localAuth.canCheckBiometrics;
     if (canCheckBiometrics) {
       try {
-        bool didAuthenticate = await localAuth.authenticate(
-          localizedReason: 'Use your fingerprint to unlock app',
-          biometricOnly: true,
-          persistAcrossBackgrounding: true,
-        );
+        bool didAuthenticate =
+            await runWithSubFlow<bool>(() => localAuth.authenticate(
+                  localizedReason: 'Use your fingerprint to unlock app',
+                  biometricOnly: true,
+                  persistAcrossBackgrounding: true,
+                ));
         if (didAuthenticate) {
           if (isSettingsFlow) {
             Get.back(result: true);
