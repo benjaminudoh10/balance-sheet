@@ -278,8 +278,13 @@ class SecurityController extends GetxController {
                     persistAcrossBackgrounding: true,
                   ));
           if (didAuthenticate) return true;
+
+          // If biometrics were attempted but failed/canceled, don't automatically
+          // fallback to PIN screen to avoid redundant UI steps.
+          return false;
         } catch (e) {
           debugPrint('Biometric auth failed: $e');
+          return false;
         }
       }
     }
