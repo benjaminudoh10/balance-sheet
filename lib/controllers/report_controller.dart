@@ -144,6 +144,7 @@ class ReportController extends GetxController {
       'type': type.value.name,
       'categoryKey': category.value,
       'contactId': contact.value.id,
+      'tagIds': filterTagIds.toList(),
     };
     if (type.value == ReportType.singleDay) {
       m['singleDateIso'] = DateFormat('yyyy-MM-dd').format(singleDate);
@@ -227,6 +228,14 @@ class ReportController extends GetxController {
         contact.value = row ?? Contact(id: cid, name: 'Contact');
       } else {
         contact.value = Contact(name: 'Contact');
+      }
+
+      final List<dynamic>? tags = p['tagIds'] as List<dynamic>?;
+      if (tags != null) {
+        filterTagIds
+            .assignAll(tags.whereType<num>().map((e) => e.toInt()).toList());
+      } else {
+        filterTagIds.clear();
       }
     } finally {
       _suppressFilterReload = false;
