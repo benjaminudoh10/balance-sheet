@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 enum InsightsPeriod {
   today,
   thisWeek,
+  lastWeek,
   thisMonth,
   lastMonth,
   thisYear,
@@ -67,6 +68,7 @@ class InsightsController extends GetxController {
   final RxInt incomeTotal = 0.obs;
   final RxInt expenseTotal = 0.obs;
   final RxInt expensePreviousPeriod = 0.obs;
+  final RxInt expenseNextPeriod = 0.obs;
 
   final RxMap<String, int> categoryExpenses = <String, int>{}.obs;
   final RxList<CategoryBarRow> categoryBarRows = <CategoryBarRow>[].obs;
@@ -79,6 +81,7 @@ class InsightsController extends GetxController {
 
   /// Filled during [load] for [_rebuildInsightLines] only.
   int _incomePreviousPeriod = 0;
+  int _incomeNextPeriod = 0;
   int _expenseTransactionCount = 0;
   int _incomeTransactionCount = 0;
   int _expenseFreeDaysInRange = 0;
@@ -93,6 +96,8 @@ class InsightsController extends GetxController {
         return 'Today';
       case InsightsPeriod.thisWeek:
         return 'This week';
+      case InsightsPeriod.lastWeek:
+        return 'Last week';
       case InsightsPeriod.thisMonth:
         return 'This month';
       case InsightsPeriod.lastMonth:
@@ -110,11 +115,27 @@ class InsightsController extends GetxController {
       case InsightsPeriod.today:
         return 'yesterday';
       case InsightsPeriod.thisWeek:
+      case InsightsPeriod.lastWeek:
       case InsightsPeriod.thisMonth:
       case InsightsPeriod.lastMonth:
       case InsightsPeriod.thisYear:
       case InsightsPeriod.lastYear:
         return 'the prior period';
+    }
+  }
+
+  /// Label for comparison against the following window (e.g. comparing "Last Month" to "This Month").
+  String get comparisonVsNextShort {
+    switch (period.value) {
+      case InsightsPeriod.today:
+        return 'tomorrow';
+      case InsightsPeriod.thisWeek:
+      case InsightsPeriod.lastWeek:
+      case InsightsPeriod.thisMonth:
+      case InsightsPeriod.lastMonth:
+      case InsightsPeriod.thisYear:
+      case InsightsPeriod.lastYear:
+        return 'the next period';
     }
   }
 
@@ -124,6 +145,7 @@ class InsightsController extends GetxController {
       case InsightsPeriod.today:
         return 'No expenses yesterday to compare.';
       case InsightsPeriod.thisWeek:
+      case InsightsPeriod.lastWeek:
       case InsightsPeriod.thisMonth:
       case InsightsPeriod.lastMonth:
       case InsightsPeriod.thisYear:
@@ -141,6 +163,7 @@ class InsightsController extends GetxController {
         return true;
       case InsightsPeriod.today:
       case InsightsPeriod.thisWeek:
+      case InsightsPeriod.lastWeek:
       case InsightsPeriod.thisMonth:
       case InsightsPeriod.lastMonth:
         return false;
@@ -176,9 +199,9 @@ class InsightsController extends GetxController {
   String get netTrendPdfSectionTitle =>
       useMonthlyBuckets ? 'Monthly net' : 'Daily net';
 
-  /// Current selection’s [start, end] in ms, then the comparison range immediately before it.
-  /// [InsightsPeriod.thisWeek] matches [ReportController.getTimeFrame] for [ReportType.thisWeek].
-  (int, int, int, int) _rangesFor(InsightsPeriod p, DateTime now) {
+  /// Current selection’s [start, end] in ms, then the comparison range immediately before it,
+  /// and the comparison range immediately after it.
+  (int, int, int, int, int, int) _rangesFor(InsightsPeriod p, DateTime now) {
     switch (p) {
       case InsightsPeriod.today:
         final DateTime start = DateTime(now.year, now.month, now.day);
@@ -187,11 +210,16 @@ class InsightsController extends GetxController {
         final DateTime yStart = start.subtract(const Duration(days: 1));
         final DateTime yEnd =
             DateTime(yStart.year, yStart.month, yStart.day, 23, 59, 59, 999);
+        final DateTime tStart = start.add(const Duration(days: 1));
+        final DateTime tEnd =
+            DateTime(tStart.year, tStart.month, tStart.day, 23, 59, 59, 999);
         return (
           start.millisecondsSinceEpoch,
           end.millisecondsSinceEpoch,
           yStart.millisecondsSinceEpoch,
           yEnd.millisecondsSinceEpoch,
+          tStart.millisecondsSinceEpoch,
+          tEnd.millisecondsSinceEpoch,
         );
       case InsightsPeriod.thisWeek:
         DateTime weekStart = now.subtract(Duration(days: now.weekday % 7));
@@ -202,11 +230,42 @@ class InsightsController extends GetxController {
             DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59, 999);
         final DateTime prevStart = weekStart.subtract(const Duration(days: 7));
         final DateTime prevEnd = weekEnd.subtract(const Duration(days: 7));
+        final DateTime nextStart = weekStart.add(const Duration(days: 7));
+        final DateTime nextEnd = weekEnd.add(const Duration(days: 7));
         return (
           weekStart.millisecondsSinceEpoch,
           weekEnd.millisecondsSinceEpoch,
           prevStart.millisecondsSinceEpoch,
           prevEnd.millisecondsSinceEpoch,
+          nextStart.millisecondsSinceEpoch,
+          nextEnd.millisecondsSinceEpoch,
+        );
+      case InsightsPeriod.lastWeek:
+        DateTime thisWeekStart = now.subtract(Duration(days: now.weekday % 7));
+        thisWeekStart = DateTime(
+            thisWeekStart.year, thisWeekStart.month, thisWeekStart.day);
+        DateTime thisWeekEnd =
+            now.add(Duration(days: DateTime.daysPerWeek - now.weekday % 7 - 1));
+        thisWeekEnd = DateTime(thisWeekEnd.year, thisWeekEnd.month,
+            thisWeekEnd.day, 23, 59, 59, 999);
+
+        final DateTime weekStart =
+            thisWeekStart.subtract(const Duration(days: 7));
+        final DateTime weekEnd = thisWeekEnd.subtract(const Duration(days: 7));
+
+        final DateTime prevStart = weekStart.subtract(const Duration(days: 7));
+        final DateTime prevEnd = weekEnd.subtract(const Duration(days: 7));
+
+        final DateTime nextStart = thisWeekStart;
+        final DateTime nextEnd = thisWeekEnd;
+
+        return (
+          weekStart.millisecondsSinceEpoch,
+          weekEnd.millisecondsSinceEpoch,
+          prevStart.millisecondsSinceEpoch,
+          prevEnd.millisecondsSinceEpoch,
+          nextStart.millisecondsSinceEpoch,
+          nextEnd.millisecondsSinceEpoch,
         );
       case InsightsPeriod.thisMonth:
         final DateTime first = DateTime(now.year, now.month, 1);
@@ -215,11 +274,16 @@ class InsightsController extends GetxController {
         final DateTime prevFirst = DateTime(now.year, now.month - 1, 1);
         final DateTime prevLast =
             DateTime(now.year, now.month, 0, 23, 59, 59, 999);
+        final DateTime nextFirst = DateTime(now.year, now.month + 1, 1);
+        final DateTime nextLast =
+            DateTime(now.year, now.month + 2, 0, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
           prevFirst.millisecondsSinceEpoch,
           prevLast.millisecondsSinceEpoch,
+          nextFirst.millisecondsSinceEpoch,
+          nextLast.millisecondsSinceEpoch,
         );
       case InsightsPeriod.lastMonth:
         final DateTime first = DateTime(now.year, now.month - 1, 1);
@@ -227,11 +291,16 @@ class InsightsController extends GetxController {
         final DateTime prevFirst = DateTime(now.year, now.month - 2, 1);
         final DateTime prevLast =
             DateTime(now.year, now.month - 1, 0, 23, 59, 59, 999);
+        final DateTime nextFirst = DateTime(now.year, now.month, 1);
+        final DateTime nextLast =
+            DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
           prevFirst.millisecondsSinceEpoch,
           prevLast.millisecondsSinceEpoch,
+          nextFirst.millisecondsSinceEpoch,
+          nextLast.millisecondsSinceEpoch,
         );
       case InsightsPeriod.thisYear:
         final DateTime first = DateTime(now.year, 1, 1);
@@ -239,11 +308,16 @@ class InsightsController extends GetxController {
         final DateTime prevFirst = DateTime(now.year - 1, 1, 1);
         final DateTime prevLast =
             DateTime(now.year - 1, 12, 31, 23, 59, 59, 999);
+        final DateTime nextFirst = DateTime(now.year + 1, 1, 1);
+        final DateTime nextLast =
+            DateTime(now.year + 1, 12, 31, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
           prevFirst.millisecondsSinceEpoch,
           prevLast.millisecondsSinceEpoch,
+          nextFirst.millisecondsSinceEpoch,
+          nextLast.millisecondsSinceEpoch,
         );
       case InsightsPeriod.lastYear:
         final DateTime first = DateTime(now.year - 1, 1, 1);
@@ -251,11 +325,15 @@ class InsightsController extends GetxController {
         final DateTime prevFirst = DateTime(now.year - 2, 1, 1);
         final DateTime prevLast =
             DateTime(now.year - 2, 12, 31, 23, 59, 59, 999);
+        final DateTime nextFirst = DateTime(now.year, 1, 1);
+        final DateTime nextLast = DateTime(now.year, 12, 31, 23, 59, 59, 999);
         return (
           first.millisecondsSinceEpoch,
           last.millisecondsSinceEpoch,
           prevFirst.millisecondsSinceEpoch,
           prevLast.millisecondsSinceEpoch,
+          nextFirst.millisecondsSinceEpoch,
+          nextLast.millisecondsSinceEpoch,
         );
     }
   }
@@ -287,7 +365,8 @@ class InsightsController extends GetxController {
     loading.value = true;
     try {
       final now = DateTime.now();
-      final (int s, int e, int ps, int pe) = _rangesFor(period.value, now);
+      final (int s, int e, int ps, int pe, int ns, int ne) =
+          _rangesFor(period.value, now);
       rangeStartMs.value = s;
       rangeEndMs.value = e;
 
@@ -298,6 +377,17 @@ class InsightsController extends GetxController {
       final Map<String, int> prevMap = await db.getExpenseForTimePeriod(ps, pe);
       expensePreviousPeriod.value = prevMap['expenses'] ?? 0;
       _incomePreviousPeriod = prevMap['income'] ?? 0;
+
+      // Only fetch next period if it has already started (at least partially).
+      if (ns <= now.millisecondsSinceEpoch) {
+        final Map<String, int> nextMap =
+            await db.getExpenseForTimePeriod(ns, ne);
+        expenseNextPeriod.value = nextMap['expenses'] ?? 0;
+        _incomeNextPeriod = nextMap['income'] ?? 0;
+      } else {
+        expenseNextPeriod.value = 0;
+        _incomeNextPeriod = 0;
+      }
 
       categoryExpenses.value = await db.getExpenseTotalsByCategory(s, e);
       _rebuildCategoryBarRows();
@@ -537,8 +627,10 @@ class InsightsController extends GetxController {
     final List<String> lines = [];
     final int exp = expenseTotal.value;
     final int prevExp = expensePreviousPeriod.value;
+    final int nextExp = expenseNextPeriod.value;
     final int inc = incomeTotal.value;
     final int prevInc = _incomePreviousPeriod;
+    final int nextInc = _incomeNextPeriod;
 
     final String vs = comparisonVsShort;
     if (prevExp > 0) {
@@ -557,12 +649,30 @@ class InsightsController extends GetxController {
       lines.add('Spending recorded for this period — compare again next time.');
     }
 
+    final String vsNext = comparisonVsNextShort;
+    if (nextExp > 0) {
+      final int delta = exp - nextExp;
+      final int pct = (delta / nextExp * 100).round();
+      if (pct.abs() >= 1) {
+        lines.add(
+          pct > 0
+              ? 'Spending was $pct% higher than $vsNext.'
+              : 'Spending was ${pct.abs()}% lower than $vsNext.',
+        );
+      }
+    }
+
     final int net = inc - exp;
     final int prevNet = prevInc - prevExp;
+    final int nextNet = nextInc - nextExp;
     final bool hasPriorTotals = prevExp > 0 || prevInc > 0;
     if (hasPriorTotals) {
       lines.add(
           'Net ${formatSignedNet(net)} — was ${formatSignedNet(prevNet)} $vs.');
+    }
+    if (nextInc > 0 || nextExp > 0) {
+      lines.add(
+          'Net ${formatSignedNet(net)} — became ${formatSignedNet(nextNet)} $vsNext.');
     }
 
     if (inc > 0) {
@@ -588,6 +698,20 @@ class InsightsController extends GetxController {
             incomeDelta > 0
                 ? 'Income is up about $ipct% vs $vs.'
                 : 'Income is down about ${ipct.abs()}% vs $vs.',
+          );
+        }
+      }
+    }
+
+    if (nextInc > 0) {
+      final int incomeDelta = inc - nextInc;
+      if (incomeDelta != 0) {
+        final int ipct = (incomeDelta / nextInc * 100).round();
+        if (ipct.abs() >= 2) {
+          lines.add(
+            incomeDelta > 0
+                ? 'Income was about $ipct% higher than $vsNext.'
+                : 'Income was about ${ipct.abs()}% lower than $vsNext.',
           );
         }
       }

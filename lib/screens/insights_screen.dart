@@ -128,6 +128,11 @@ class _InsightsViewState extends State<InsightsView> {
                                   InsightsPeriod.thisWeek)),
                             ),
                             PopupMenuItem(
+                              value: InsightsPeriod.lastWeek,
+                              child: Text(InsightsController.periodLabel(
+                                  InsightsPeriod.lastWeek)),
+                            ),
+                            PopupMenuItem(
                               value: InsightsPeriod.thisMonth,
                               child: Text(InsightsController.periodLabel(
                                   InsightsPeriod.thisMonth)),
@@ -268,10 +273,18 @@ class _ExpenseHeroCard extends StatelessWidget {
     return Obx(() {
       final int exp = controller.expenseTotal.value;
       final int prev = controller.expensePreviousPeriod.value;
+      final int next = controller.expenseNextPeriod.value;
       final String vs = controller.comparisonVsShort;
-      int? pct;
+      final String vsNext = controller.comparisonVsNextShort;
+
+      int? pctPrev;
       if (prev > 0) {
-        pct = ((exp - prev) / prev * 100).round();
+        pctPrev = ((exp - prev) / prev * 100).round();
+      }
+
+      int? pctNext;
+      if (next > 0) {
+        pctNext = ((exp - next) / next * 100).round();
       }
 
       return ClipRRect(
@@ -317,23 +330,23 @@ class _ExpenseHeroCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                 ),
-                if (pct != null && prev > 0) ...[
+                if (pctPrev != null && prev > 0) ...[
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Icon(
-                        pct > 0
+                        pctPrev > 0
                             ? Icons.trending_up_rounded
                             : Icons.trending_down_rounded,
                         size: 20,
-                        color: pct > 0 ? p.coral : p.mint,
+                        color: pctPrev > 0 ? p.coral : p.mint,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          pct == 0
+                          pctPrev == 0
                               ? 'Same as $vs'
-                              : '${pct > 0 ? 'Up' : 'Down'} ${pct.abs()}% vs $vs',
+                              : '${pctPrev > 0 ? 'Up' : 'Down'} ${pctPrev.abs()}% vs $vs',
                           style:
                               Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     color: p.textSecondary,
@@ -350,6 +363,32 @@ class _ExpenseHeroCard extends StatelessWidget {
                         .textTheme
                         .bodySmall!
                         .copyWith(color: p.textSecondary),
+                  ),
+                ],
+                if (pctNext != null && next > 0) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(
+                        pctNext > 0
+                            ? Icons.trending_up_rounded
+                            : Icons.trending_down_rounded,
+                        size: 20,
+                        color: pctNext > 0 ? p.coral : p.mint,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          pctNext == 0
+                              ? 'Same as $vsNext'
+                              : '${pctNext > 0 ? 'Higher' : 'Lower'} than $vsNext by ${pctNext.abs()}%',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: p.textSecondary,
+                                  ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
