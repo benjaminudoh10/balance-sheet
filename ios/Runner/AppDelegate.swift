@@ -1,6 +1,6 @@
 import UIKit
 import Flutter
-import Workmanager
+import workmanager_apple
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -9,6 +9,8 @@ import Workmanager
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+
+    WorkmanagerPlugin.registerTask(withIdentifier: "be.tramckas.workmanager.BackgroundTask")
 
     WorkmanagerPlugin.setPluginRegistrantCallback { registry in
         GeneratedPluginRegistrant.register(with: registry)
