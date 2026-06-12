@@ -10,7 +10,7 @@ import workmanager_apple
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
 
-    WorkmanagerPlugin.registerTask(withIdentifier: "be.tramckas.workmanager.BackgroundTask")
+    WorkmanagerPlugin.registerBGProcessingTask(withIdentifier: "be.tramckas.workmanager.BackgroundTask")
 
     WorkmanagerPlugin.setPluginRegistrantCallback { registry in
         GeneratedPluginRegistrant.register(with: registry)
