@@ -128,6 +128,22 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.4
+
+Security
+- Renamed "Fingerprint" to "Biometrics" app-wide for consistent terminology across different authentication methods (Face ID, Touch ID, fingerprint).
+- Updated security controller and settings to reflect the biometric terminology change.
+
+Navigation
+- Added deep-linking from Budget line items to the "All Transactions" report, automatically applying relevant filters (category, contact, tag, and month).
+- Updated the "All transactions" button in the Insights view to preserve and apply the active time period filter when navigating to the report.
+
+Budgets
+- Added swipe-to-edit functionality for budget line items (swipe right).
+
+Maintenance
+- Cleaned up unused code and verified application integrity with `dart analyze`.
+
 ### v1.1.3
 
 Security
