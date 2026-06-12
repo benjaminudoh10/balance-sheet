@@ -224,6 +224,25 @@ installs while release builds keep the mint icon. See
 
 ---
 
+## Release Workflow
+
+When all changes on `dev` are complete and verified, follow these steps to release a new version:
+
+1.  **Prepare Release Notes**: Add a new release note section for the version in [`RELEASE.md`](RELEASE.md).
+2.  **Push `dev`**: Push the `dev` branch to origin.
+3.  **Merge to `main`**: 
+    - Checkout to `main` and pull the latest changes.
+    - Merge `dev` into `main`.
+4.  **Cut Release**: On the `main` branch, run the release script:
+    ```bash
+    ./tool/cut_release.sh <version_number>
+    ```
+    *(Note: Provide the version number without the 'v' prefix, e.g., `1.1.4`)*
+5.  **Tag & Pipeline**: The script will create a git tag and push it to origin, which triggers the automated release pipeline.
+6.  **Sync `dev`**: Go back to the `dev` branch and merge `main` into it to keep them synchronized.
+
+---
+
 ## License / publishing
 
 The package is marked `publish_to: 'none'` in [`pubspec.yaml`](pubspec.yaml) (private app). Adjust if you later open-source or publish tooling around it.
