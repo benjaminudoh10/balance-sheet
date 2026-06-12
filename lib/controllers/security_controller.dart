@@ -20,7 +20,7 @@ class SecurityController extends GetxController {
   RxBool showNewPin = false.obs;
   RxBool showVerifyInput = false.obs;
   RxBool fromSettings = false.obs;
-  RxBool fingerprintInUse = false.obs;
+  RxBool biometricsInUse = false.obs;
 
   /// When [pinIsSet] is true: user has unlocked to main content this session, until
   /// [onRequireScreenLock] or app backgrounding.
@@ -66,7 +66,7 @@ class SecurityController extends GetxController {
     reloadFromStorage();
   }
 
-  /// Reloads PIN state and fingerprint flags from [GetStorage] (e.g. after backup import).
+  /// Reloads PIN state and biometric flags from [GetStorage] (e.g. after backup import).
   ///
   /// Does not change [sessionUnlocked]; clearing it here broke autolock when the user was still
   /// on [Home] after a data-only refresh (lifecycle only navigates to [LockScreen] when the
@@ -74,7 +74,11 @@ class SecurityController extends GetxController {
   void reloadFromStorage() {
     final GetStorage box = GetStorage();
     pinIsSet.value = PinHash.hasPin(box);
-    fingerprintInUse.value = box.read(AppConstants.USE_FINGERPRINT) ?? false;
+    // box.read("fingerprint") - this is there for backward compatibility after
+    // the constant was renamed
+    biometricsInUse.value = box.read(AppConstants.USE_BIOMETRICS) ??
+        box.read("fingerprint") ??
+        false;
   }
 
   void onRequireScreenLock() {
@@ -120,8 +124,8 @@ class SecurityController extends GetxController {
     final GetStorage box = GetStorage();
     await PinHash.persistPin(box, newPin.value);
     pinIsSet.value = true;
-    setValueInStorage(AppConstants.USE_FINGERPRINT, false);
-    fingerprintInUse.value = false;
+    setValueInStorage(AppConstants.USE_BIOMETRICS, false);
+    biometricsInUse.value = false;
     markSessionUnlocked();
 
     reset();
@@ -222,17 +226,16 @@ class SecurityController extends GetxController {
   }
 
   /// Force re-authentication (PIN only) to confirm a security change.
-  Future<void> activateFingerPrint(bool value) async {
+  Future<void> activateBiometrics(bool value) async {
     if (!value) {
-      // Disabling Fingerprint: Requires Biometric auth.
-      final bool confirmed =
-          await authenticateUser('Use fingerprint to disable biometric unlock');
+      // Disabling Biometrics: Requires Biometric auth.
+      final bool confirmed = await authenticateUser('Disable biometric unlock');
       if (!confirmed) return;
     } else {
       if (!pinIsSet.value) {
         AppSnack.show(
           "Error",
-          "Setup PIN to make use of fingerprint lock",
+          "Setup PIN to make use of biometric lock",
           backgroundColor: AppColors.SNACKBAR_RED,
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
@@ -240,15 +243,15 @@ class SecurityController extends GetxController {
         return;
       }
     }
-    setValueInStorage(AppConstants.USE_FINGERPRINT, value);
-    fingerprintInUse.value = value;
+    setValueInStorage(AppConstants.USE_BIOMETRICS, value);
+    biometricsInUse.value = value;
   }
 
   Future<bool> requestPinConfirmation(String reason) async {
-    // If fingerprint is enabled, try that first.
-    if (fingerprintInUse.value) {
+    // If biometrics is enabled, try that first.
+    if (biometricsInUse.value) {
       final bool biometricsConfirmed =
-          await authenticateUser('Use fingerprint to proceed with PIN removal');
+          await authenticateUser('Use biometrics to proceed with PIN removal');
       if (!biometricsConfirmed) return false;
     }
 
@@ -265,8 +268,8 @@ class SecurityController extends GetxController {
   Future<bool> authenticateUser(String reason) async {
     if (!pinIsSet.value) return true;
 
-    // Try fingerprint first if enabled
-    if (fingerprintInUse.value) {
+    // Try biometrics first if enabled
+    if (biometricsInUse.value) {
       final LocalAuthentication localAuth = LocalAuthentication();
       final bool canCheckBiometrics = await localAuth.canCheckBiometrics;
       if (canCheckBiometrics) {
@@ -295,8 +298,8 @@ class SecurityController extends GetxController {
     return result == true;
   }
 
-  unlockWithFingerprint({bool isSettingsFlow = false}) async {
-    if (!fingerprintInUse.value) return;
+  unlockWithBiometrics({bool isSettingsFlow = false}) async {
+    if (!biometricsInUse.value) return;
 
     LocalAuthentication localAuth = LocalAuthentication();
     bool canCheckBiometrics = await localAuth.canCheckBiometrics;
@@ -304,7 +307,7 @@ class SecurityController extends GetxController {
       try {
         bool didAuthenticate =
             await runWithSubFlow<bool>(() => localAuth.authenticate(
-                  localizedReason: 'Use your fingerprint to unlock app',
+                  localizedReason: 'Use biometrics to unlock app',
                   biometricOnly: true,
                   persistAcrossBackgrounding: true,
                 ));
@@ -319,7 +322,7 @@ class SecurityController extends GetxController {
         } else {
           AppSnack.show(
             "Error",
-            "Fingerprint auth failed",
+            "Biometric auth failed",
             backgroundColor: AppColors.SNACKBAR_RED,
             colorText: Colors.white,
             snackPosition: SnackPosition.TOP,
@@ -328,7 +331,7 @@ class SecurityController extends GetxController {
       } catch (error) {
         AppSnack.show(
           "Error",
-          "Fingerprint auth failed",
+          "Biometric auth failed",
           backgroundColor: AppColors.SNACKBAR_RED,
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,

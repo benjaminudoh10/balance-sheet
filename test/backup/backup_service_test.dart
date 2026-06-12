@@ -283,10 +283,10 @@ void main() {
     });
 
     test(
-        'USE_FINGERPRINT in backup is ignored — local biometric flag is preserved',
+        'USE_BIOMETRICS in backup is ignored — local biometric flag is preserved',
         () async {
       final GetStorage box = GetStorage();
-      box.write(AppConstants.USE_FINGERPRINT, true);
+      box.write(AppConstants.USE_BIOMETRICS, true);
 
       final String raw = '''
 {
@@ -296,13 +296,13 @@ void main() {
   "contacts": [],
   "transactions": [],
   "preferences": {
-    "${AppConstants.USE_FINGERPRINT}": false
+    "${AppConstants.USE_BIOMETRICS}": false
   }
 }
 ''';
       await BackupService.importFromJsonString(raw);
 
-      expect(box.read(AppConstants.USE_FINGERPRINT), true);
+      expect(box.read(AppConstants.USE_BIOMETRICS), true);
     });
   });
 
@@ -432,14 +432,14 @@ void main() {
       box.write(AppConstants.USER_PIN_HASH_KEY, 'should-not-leak');
       box.write(AppConstants.USER_PIN_SALT_KEY, 'should-not-leak');
       box.write(AppConstants.USER_PIN_KEY, 'legacy-should-not-leak');
-      box.write(AppConstants.USE_FINGERPRINT, true);
+      box.write(AppConstants.USE_BIOMETRICS, true);
 
       final String json = await BackupService.exportJsonString();
 
       expect(json, isNot(contains(AppConstants.USER_PIN_HASH_KEY)));
       expect(json, isNot(contains(AppConstants.USER_PIN_SALT_KEY)));
       expect(json, isNot(contains(AppConstants.USER_PIN_KEY)));
-      expect(json, isNot(contains(AppConstants.USE_FINGERPRINT)));
+      expect(json, isNot(contains(AppConstants.USE_BIOMETRICS)));
       expect(json, isNot(contains('should-not-leak')));
     });
 

@@ -95,13 +95,8 @@ class ReportController extends GetxController {
   int _loadGeneration = 0;
 
   @override
-  void onReady() {
+  void onReady() async {
     super.onReady();
-
-    timeFrames = getTimeFrame();
-
-    getTransactions();
-    getTransactionTotal();
 
     // TransactionController mutates `transactions` directly on
     // delete/update; this listener keeps the grouped-by-day map in sync
@@ -136,6 +131,50 @@ class ReportController extends GetxController {
         getTransactionTotal();
       }
     });
+
+    if (Get.arguments is Map<String, dynamic>) {
+      final Map<String, dynamic> args = Get.arguments as Map<String, dynamic>;
+      _suppressFilterReload = true;
+      try {
+        if (args.containsKey('filter_report_type')) {
+          final ReportType rt = args['filter_report_type'] as ReportType;
+          type.value = rt;
+          if (rt == ReportType.dateRange &&
+              args.containsKey('filter_start_date') &&
+              args.containsKey('filter_end_date')) {
+            dateTimeRange = DateTimeRange(
+              start: args['filter_start_date'] as DateTime,
+              end: args['filter_end_date'] as DateTime,
+            );
+          }
+          _syncLabelFromPeriodState();
+        }
+
+        if (args.containsKey('filter_category') &&
+            (args['filter_category'] as String).isNotEmpty) {
+          category.value = args['filter_category'] as String;
+        }
+
+        if (args.containsKey('filter_contact_id') &&
+            (args['filter_contact_id'] as int) > 0) {
+          final int cid = args['filter_contact_id'] as int;
+          final Contact? row = await db.getContactById(cid);
+          contact.value = row ?? Contact(id: cid, name: 'Contact');
+        }
+
+        if (args.containsKey('filter_tag_id') &&
+            (args['filter_tag_id'] as int) > 0) {
+          filterTagIds.assignAll(<int>[args['filter_tag_id'] as int]);
+        }
+      } finally {
+        _suppressFilterReload = false;
+      }
+    }
+
+    timeFrames = getTimeFrame();
+
+    await getTransactions();
+    await getTransactionTotal();
   }
 
   /// Serializable snapshot for [SavedViewsStorage] (All transactions).

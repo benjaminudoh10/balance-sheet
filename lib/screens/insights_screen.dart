@@ -3,6 +3,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:balance_sheet/constants/category.dart';
 import 'package:balance_sheet/controllers/insights_controller.dart';
+import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/services/pdf_export_service.dart';
@@ -215,7 +216,28 @@ class _InsightsViewState extends State<InsightsView> {
                               TextButton.icon(
                                 onPressed: () {
                                   AppHaptics.light();
-                                  Get.to(() => const ReportView());
+                                  Get.to(() => const ReportView(), arguments: {
+                                    'filter_start_date':
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            _controller.rangeStartMs.value),
+                                    'filter_end_date':
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            _controller.rangeEndMs.value),
+                                    'filter_report_type': _controller
+                                                .period.value ==
+                                            InsightsPeriod.today
+                                        ? ReportType.today
+                                        : _controller.period.value ==
+                                                InsightsPeriod.thisWeek
+                                            ? ReportType.thisWeek
+                                            : _controller.period.value ==
+                                                    InsightsPeriod.thisMonth
+                                                ? ReportType.month
+                                                : _controller.period.value ==
+                                                        InsightsPeriod.lastMonth
+                                                    ? ReportType.lastMonth
+                                                    : ReportType.dateRange,
+                                  });
                                 },
                                 icon: Icon(Icons.receipt_long_outlined,
                                     color: p.mint, size: 20),

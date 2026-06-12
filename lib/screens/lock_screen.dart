@@ -24,9 +24,9 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
   late final FocusNode _pinFocus;
 
   /// One automatic biometric (or PIN focus when biometrics off) per [LockScreen] instance.
-  /// Without this, each [AppLifecycleState.resumed] after the system fingerprint sheet fires
-  /// again (endless loop). Manual "Use fingerprint" still calls
-  /// [SecurityController.unlockWithFingerprint] directly.
+  /// Without this, each [AppLifecycleState.resumed] after the system biometric sheet fires
+  /// again (endless loop). Manual "Use biometrics" still calls
+  /// [SecurityController.unlockWithBiometrics] directly.
   bool _didRunAutoResumeUnlock = false;
 
   @override
@@ -45,7 +45,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
 
   /// Biometric prompt or PIN focus only after [AppLifecycleState.resumed], not while this route
   /// builds during backgrounding. Runs at most once per lock screen (see [_didRunAutoResumeUnlock]).
-  /// When fingerprint is on, do not auto-focus the PIN field — that briefly opens the keyboard
+  /// When biometrics is on, do not auto-focus the PIN field — that briefly opens the keyboard
   /// and flickers behind the system biometric sheet.
   void _runUnlockPrompt() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,8 +57,8 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
       final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
       final bool pinOnly = args?['pin_only'] ?? false;
 
-      if (!pinOnly && _securityController.fingerprintInUse.value) {
-        _securityController.unlockWithFingerprint(isSettingsFlow: pinOnly);
+      if (!pinOnly && _securityController.biometricsInUse.value) {
+        _securityController.unlockWithBiometrics(isSettingsFlow: pinOnly);
       } else {
         _pinFocus.requestFocus();
       }
@@ -176,7 +176,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                         controller: _pinController,
                       ),
                     ),
-                    if (_securityController.fingerprintInUse.value) ...[
+                    if (_securityController.biometricsInUse.value) ...[
                       const SizedBox(height: 24),
                       Center(
                         child: Column(
@@ -191,7 +191,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                                       Get.arguments as Map<String, dynamic>?;
                                   final bool pinOnly =
                                       args?['pin_only'] ?? false;
-                                  _securityController.unlockWithFingerprint(
+                                  _securityController.unlockWithBiometrics(
                                       isSettingsFlow: pinOnly);
                                 },
                                 borderRadius: BorderRadius.circular(32),
@@ -207,7 +207,7 @@ class _LockScreenState extends State<LockScreen> with WidgetsBindingObserver {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Use fingerprint',
+                              'Use biometrics',
                               textAlign: TextAlign.center,
                               style: Theme.of(context)
                                   .textTheme

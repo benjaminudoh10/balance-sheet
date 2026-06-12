@@ -390,16 +390,16 @@ class SettingsView extends StatelessWidget {
             )),
         const SizedBox(height: 10),
         Obx(() => _SecuritySwitchRow(
-              title: _securityController.fingerprintInUse.value
-                  ? 'Fingerprint unlock'
-                  : 'Use fingerprint',
+              title: _securityController.biometricsInUse.value
+                  ? 'Biometric unlock'
+                  : 'Use biometrics',
               subtitle: !_securityController.pinIsSet.value
-                  ? 'Set a PIN first to use fingerprint'
+                  ? 'Set a PIN first to use biometrics'
                   : 'Unlock with Face ID / fingerprint when available',
               icon: Icons.fingerprint_rounded,
-              switchValue: _securityController.fingerprintInUse.value,
+              switchValue: _securityController.biometricsInUse.value,
               switchDisabled: !_securityController.pinIsSet.value,
-              onSwitch: (bool v) => _securityController.activateFingerPrint(v),
+              onSwitch: (bool v) => _securityController.activateBiometrics(v),
             )),
       ],
     );
@@ -448,7 +448,7 @@ class SettingsView extends StatelessWidget {
               _SecuritySwitchRow(
                 title: 'Lock Trash',
                 subtitle: _securityController.pinIsSet.value
-                    ? 'Require PIN / fingerprint to view the Trash'
+                    ? 'Require PIN / biometrics to view the Trash'
                     : 'Requires App Lock to be enabled',
                 icon: Icons.lock_outline_rounded,
                 switchValue: _appController.lockTrash.value,
@@ -755,7 +755,7 @@ class SettingsView extends StatelessWidget {
               style: tt.titleLarge?.copyWith(color: p.textPrimary),
             ),
             content: Text(
-              'This replaces your transactions, contacts, budgets, and investments on this device. Your PIN and fingerprint settings are kept. This cannot be undone.',
+              'This replaces your transactions, contacts, budgets, and investments on this device. Your PIN and biometric settings are kept. This cannot be undone.',
               style:
                   tt.bodyMedium?.copyWith(color: p.textSecondary, height: 1.35),
             ),

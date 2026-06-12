@@ -1,5 +1,7 @@
 import 'package:balance_sheet/constants/app.dart';
 import 'package:balance_sheet/constants/category.dart';
+import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/screens/report.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
 import 'package:balance_sheet/widgets/saved_views_sheet.dart';
 import 'package:balance_sheet/controllers/budget_controller.dart';
@@ -468,6 +470,21 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     : null,
                 onTap: () {
                   AppHaptics.light();
+                  final DateTime monthDate = _budget.focusMonth.value;
+                  final DateTime start =
+                      DateTime(monthDate.year, monthDate.month, 1);
+                  final DateTime end =
+                      DateTime(monthDate.year, monthDate.month + 1, 0);
+                  Get.to(() => const ReportView(), arguments: {
+                    'filter_report_type': ReportType.dateRange,
+                    'filter_start_date': start,
+                    'filter_end_date': end,
+                    'filter_category': line.categoryKey,
+                    'filter_contact_id': line.contactId,
+                    'filter_tag_id': line.tagId,
+                  });
+                },
+                onEdit: () {
                   _openEditor(line: line);
                 },
                 onDelete: () => _confirmDelete(context, line),
@@ -884,6 +901,7 @@ class _BudgetLineTile extends StatelessWidget {
     required this.applySlidablePeek,
     required this.spentMinor,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -891,6 +909,7 @@ class _BudgetLineTile extends StatelessWidget {
   final bool applySlidablePeek;
   final int? spentMinor;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
@@ -931,6 +950,19 @@ class _BudgetLineTile extends StatelessWidget {
 
       return Slidable(
         key: ValueKey<int>(line.id),
+        startActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: 0.28,
+          children: <Widget>[
+            SlidableAction(
+              onPressed: AppHaptics.wrapSlidable((_) => onEdit()),
+              backgroundColor: p.mint.withValues(alpha: 0.9),
+              foregroundColor: Colors.white,
+              icon: Icons.edit_outlined,
+              label: 'Edit',
+            ),
+          ],
+        ),
         endActionPane: ActionPane(
           motion: const DrawerMotion(),
           extentRatio: 0.28,

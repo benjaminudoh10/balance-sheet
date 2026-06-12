@@ -32,7 +32,7 @@ enum DebugDataClearTarget {
   /// LCY/FCY codes and manual rate in [GetStorage].
   prefCurrency,
 
-  /// PIN hash/salt, legacy PIN key, fingerprint flag in [GetStorage].
+  /// PIN hash/salt, legacy PIN key, biometric flag in [GetStorage].
   prefSecurity,
 
   /// Slidable row peeks + home balance / net worth coach ([clearAllFirstRunUiHints]).
@@ -98,7 +98,8 @@ class DebugDataClearService {
     }
     if (targets.contains(DebugDataClearTarget.prefSecurity)) {
       await PinHash.clearPin(box);
-      await box.remove(AppConstants.USE_FINGERPRINT);
+      await box.remove(AppConstants.USE_BIOMETRICS);
+      await box.remove("fingerprint");
     }
     if (targets.contains(DebugDataClearTarget.prefSlidablePeek)) {
       await clearAllFirstRunUiHints(box);

@@ -177,7 +177,7 @@ class _DebugClearDataScreenState extends State<DebugClearDataScreen> {
                         target: DebugDataClearTarget.prefSecurity,
                         title: 'PIN & biometrics',
                         caption:
-                            'PIN hash/salt and fingerprint flag (GetStorage)',
+                            'PIN hash/salt and biometric flag (GetStorage)',
                       ),
                       _targetTile(
                         context,

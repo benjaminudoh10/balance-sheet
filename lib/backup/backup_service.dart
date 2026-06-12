@@ -92,7 +92,7 @@ class BackupService {
 
     final GetStorage box = GetStorage();
     // Security state (PIN hash/salt, biometric flag, legacy PIN key) is intentionally excluded:
-    // PIN and fingerprint are device-local and can only be configured through the app's
+    // PIN and biometrics are device-local and can only be configured through the app's
     // Settings flow. Backups carry data + display preferences, never auth material.
     final Map<String, dynamic> preferences = <String, dynamic>{
       AppConstants.APP_FONT_KEY: box.read(AppConstants.APP_FONT_KEY),
@@ -639,7 +639,7 @@ class BackupService {
       // preferences block must not wipe an active theme, font, or currency choice.
       //
       // Security keys (PIN hash, PIN salt, legacy PIN, biometric flag) are deliberately NOT
-      // restored from backups. PIN and fingerprint are device-local and can only be set or
+      // restored from backups. PIN and biometrics are device-local and can only be set or
       // changed through the app's Settings flow; importing a backup never alters them.
       void writeIfPresent(String key) {
         if (!prefs.containsKey(key)) return;

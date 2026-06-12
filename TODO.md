@@ -7,7 +7,7 @@
   - Budget — month (and related state) (`BudgetScreen` / `BudgetController`).
 - [x] **PDF export (roll out):** export the current (or saved-view) snapshot to PDF for the same areas as above; shared file/share plumbing, per-feature PDF content (tables vs charts may differ by screen).
 - [ ] Other platforms (web, macos)
-- [x] Security pin or fingerprint
+- [x] Security pin or biometrics
 - [x] Sent a local notification when a budget is completed as a result of a transaction entry
 - [x] Make the calendar show the view with selected end date when switching from date entry mode to date selection mode.
 - [x] Use the same widget for the single calendar date selection
@@ -16,7 +16,8 @@
     - [x] if item in trash when disabling, either remove all trash items or keep it until it expires.
   - [x] Restore items from trash
   - [x] Set trash storage period (30 days)
-  - [x] Ability to lock trash using fingerprint.
+  - [x] Ability to lock trash using biometrics.
 - [x] Mark multiple transactions to delete.
-- [ ] Search transactions in All transactions view by description (fuzzy logic?)
 - [x] Confirm dialog shown if deleting a contact that has transactions linked.
+- [ ] Search transactions in All transactions view by description (fuzzy logic?)
+- [x] Clicking on a budget item should load the all transactions view with filters for the budget item

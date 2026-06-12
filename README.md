@@ -163,7 +163,7 @@ Internal UX notes for the transaction list live under [`design/`](design/) (e.g.
   - Format id / version ([`BackupConstants`](lib/constants/backup_constants.dart))
   - DB schema version
   - Contacts and transactions
-  - Selected **GetStorage** keys (theme, font, fingerprint, PIN hash/salt — so restores preserve lock state if desired)
+  - Selected **GetStorage** keys (theme, font, biometrics, PIN hash/salt — so restores preserve lock state if desired)
 - Import replaces local DB content and preferences; controllers expose **refresh** paths after import (see backup service and `syncFromStorage`-style methods on `AppController` / `SecurityController`).
 
 ---
