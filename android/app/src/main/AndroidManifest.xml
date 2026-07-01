@@ -5,11 +5,31 @@
          Debug builds also receive this via the debug-only manifest used by Flutter tooling. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-feature android:name="android.hardware.type.watch" android:required="false" />
+    <queries>
+        <intent>
+            <action android:name="androidx.wear.tiles.action.BIND_UPDATE_REQUESTER" />
+        </intent>
+    </queries>
     <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> -->
     <application
         android:label="${appLabel}"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/launcher_icon">
+        
+        <service
+            android:name=".BalancedTileService"
+            android:exported="true"
+            android:label="Balanced Summary"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/launch_background" />
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

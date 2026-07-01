@@ -10,6 +10,7 @@ import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:balance_sheet/enums.dart';
 import 'package:balance_sheet/utils/app_snack.dart';
+import 'package:balance_sheet/services/wear_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -71,6 +72,7 @@ class TransactionController extends GetxController {
     if (downstream.isNotEmpty) {
       await Future.wait<void>(downstream);
     }
+    await WearService.sync();
   }
 
   resetContact() {

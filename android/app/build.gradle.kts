@@ -39,7 +39,7 @@ android {
 
     defaultConfig {
         applicationId = "com.benjaminudoh10.balanced"
-        minSdk = flutter.minSdkVersion
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -81,4 +81,8 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("androidx.wear.tiles:tiles:1.4.0")
+    implementation("androidx.wear.tiles:tiles-material:1.4.0")
+    implementation("androidx.wear.watchface:watchface-complications-data-source:1.2.1")
+    implementation("com.google.guava:guava:31.1-android") // Required for ListenableFuture in Tiles
 }
