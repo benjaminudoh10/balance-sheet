@@ -1,6 +1,7 @@
 import 'package:balance_sheet/database/db.dart';
 import 'package:balance_sheet/database/operations.dart' as db_ops;
 import 'package:balance_sheet/enums.dart';
+import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -202,6 +203,61 @@ void main() {
       expect(await db_ops.getBalances(), 1000);
       final Map<String, int> today = await db_ops.getTodayBalances();
       expect(today['income'], 1000);
+    });
+
+    test('filtered query totals exclude trashed items', () async {
+      final int cid = await db_ops.addContact(Contact(name: 'Test Contact'));
+
+      final int activeId = await db_ops.addTransaction(Transaction(
+        description: 'active exp',
+        type: TransactionType.expenditure,
+        amount: 800500,
+        date: DateTime.now(),
+        category: 'gift',
+        contactId: cid,
+      ));
+
+      final int trashedId = await db_ops.addTransaction(Transaction(
+        description: 'trashed exp',
+        type: TransactionType.expenditure,
+        amount: 7000000,
+        date: DateTime.now(),
+        category: 'gift',
+        contactId: cid,
+      ));
+
+      // Move one transaction to trash
+      await db_ops.moveTransactionToTrash(trashedId);
+
+      final int start = DateTime.now()
+          .subtract(const Duration(days: 1))
+          .millisecondsSinceEpoch;
+      final int end =
+          DateTime.now().add(const Duration(days: 1)).millisecondsSinceEpoch;
+
+      // 1. Check getExpenditureTotalFiltered
+      final int filteredTotal = await db_ops.getExpenditureTotalFiltered(
+        start,
+        end,
+        categoryKey: 'gift',
+      );
+      expect(filteredTotal, 800500);
+
+      // 2. Check getExpenseTotalsByCategory
+      final Map<String, int> categoryTotals =
+          await db_ops.getExpenseTotalsByCategory(start, end);
+      expect(categoryTotals['gift'], 800500);
+
+      // 3. Check getExpenditureTotalsByContact
+      final Map<int, int> contactTotals =
+          await db_ops.getExpenditureTotalsByContact(start, end);
+      expect(contactTotals[cid], 800500);
+
+      // 4. Check getTopExpenditures
+      final List<Transaction> topList =
+          await db_ops.getTopExpenditures(start, end, 5);
+      expect(topList.length, 1);
+      expect(topList.first.id, activeId);
     });
   });
 }

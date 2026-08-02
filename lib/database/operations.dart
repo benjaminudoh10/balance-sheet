@@ -364,7 +364,7 @@ Future<Map<String, int>> getExpenseTotalsByCategory(
     '''
     SELECT category, SUM(amount) AS total
     FROM ${DBConstants.TRANSACTION}
-    WHERE type = 'expenditure' AND date >= ? AND date <= ?
+    WHERE type = 'expenditure' AND date >= ? AND date <= ? AND deletedAt IS NULL
     GROUP BY category
     ORDER BY total DESC
     ''',
@@ -398,8 +398,8 @@ Future<int> getExpenditureTotalFiltered(
     return 0;
   }
   final dbClient = await AppDb().db;
-  final StringBuffer where =
-      StringBuffer("type = 'expenditure' AND date >= ? AND date <= ?");
+  final StringBuffer where = StringBuffer(
+      "type = 'expenditure' AND date >= ? AND date <= ? AND deletedAt IS NULL");
   final List<Object?> args = <Object?>[startMs, endMs];
 
   final List<String> orClauses = [];
@@ -436,7 +436,7 @@ Future<List<Transaction>> getTopExpenditures(
   final rows = await dbClient.rawQuery(
     '''
     SELECT * FROM ${DBConstants.TRANSACTION}
-    WHERE type = 'expenditure' AND date >= ? AND date <= ?
+    WHERE type = 'expenditure' AND date >= ? AND date <= ? AND deletedAt IS NULL
     ORDER BY amount DESC, date DESC
     LIMIT ?
     ''',
@@ -579,7 +579,7 @@ Future<Map<int, int>> getExpenditureTotalsByContact(
     SELECT contactId AS cid, SUM(amount) AS total
     FROM ${DBConstants.TRANSACTION}
     WHERE type = 'expenditure' AND date >= ? AND date <= ?
-      AND contactId IS NOT NULL AND contactId > 0
+      AND contactId IS NOT NULL AND contactId > 0 AND deletedAt IS NULL
     GROUP BY contactId
     ''',
     <Object>[startMs, endMs],

@@ -10,6 +10,9 @@ bool expenditureMatchesBudgetLine(
   int startMs,
   int endMs,
 ) {
+  if (t.deletedAt != null) {
+    return false;
+  }
   if (t.type != TransactionType.expenditure) {
     return false;
   }
