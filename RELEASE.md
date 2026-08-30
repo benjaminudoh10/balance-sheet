@@ -128,6 +128,14 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.5
+
+Security
+- Allowed the use of other device authentication methods (e.g. device passcode/pattern fallback) alongside biometrics.
+
+Budgets & Aggregates
+- Fixed budget line items and category expenditure aggregates to exclude soft-deleted (trashed) transactions, ensuring totals match transaction list views.
+
 ### v1.1.4
 
 Security
