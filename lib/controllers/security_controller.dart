@@ -277,7 +277,7 @@ class SecurityController extends GetxController {
           final bool didAuthenticate =
               await runWithSubFlow<bool>(() => localAuth.authenticate(
                     localizedReason: reason,
-                    biometricOnly: true,
+                    biometricOnly: false,
                     persistAcrossBackgrounding: true,
                   ));
           if (didAuthenticate) return true;
@@ -308,7 +308,7 @@ class SecurityController extends GetxController {
         bool didAuthenticate =
             await runWithSubFlow<bool>(() => localAuth.authenticate(
                   localizedReason: 'Use biometrics to unlock app',
-                  biometricOnly: true,
+                  biometricOnly: false,
                   persistAcrossBackgrounding: true,
                 ));
         if (didAuthenticate) {
