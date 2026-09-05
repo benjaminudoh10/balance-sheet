@@ -128,6 +128,28 @@ and install the release APK fresh.
 
 ## RELEASE NOTES
 
+### v1.1.6
+
+Investments
+- Added line-item tracking for **Other Investments** (e.g. cash wallets, gold, savings buckets), where each asset now has inflow/outflow entries and the parent total is derived from the sum of its entries.
+- Added a dedicated detail flow for Other Investments: tap an asset to view entry history, then add/edit/delete line items with amount, currency, type (inflow/outflow), and date.
+- Simplified parent Other Investment editing to metadata (label/display currency), with value editing moved to line items for consistency.
+
+Backup & Restore
+- Extended backup export/import to include Other Investment line items (`otherAssetLineItems`).
+- Added backward-compatible restore behavior for older backups that do not include line items by auto-seeding an **Opening balance** entry from legacy parent values.
+
+Migration & Data Integrity
+- Upgraded database schema to version 5 with a new `other_asset_line_items` table.
+- Added migration logic to seed legacy Other Investment records with an **Opening balance** line item, preserving existing values after upgrade.
+- Enforced authoritative recomputation of parent totals from line items after insert/update/delete operations to keep net worth calculations consistent.
+
+Debug & QA
+- Updated debug sample-data seeding so Other Investments also receive default **Opening balance** line items (not just parent-level amounts).
+
+Maintenance
+- Added and expanded tests for line-item CRUD recomputation, cascade delete behavior, v5 migration seeding, and backup round-trip/legacy import compatibility.
+
 ### v1.1.5
 
 Security
