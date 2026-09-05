@@ -1,0 +1,108 @@
+name: Sync main into dev
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-main-into-dev
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync branches
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into dev
+        id: merge
+        run: |
+          set -euo pipefail
+
+          git fetch origin main dev
+
+          if ! git show-ref --verify --quiet refs/remotes/origin/dev; then
+            echo "dev branch does not exist on origin." >&2
+            exit 1
+          fi
+
+          git checkout -B dev origin/dev
+
+          if git merge --no-ff --no-edit origin/main; then
+            if git diff --quiet origin/dev..HEAD; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "conflict=false" >> "$GITHUB_OUTPUT"
+              echo "dev already up to date with main"
+              exit 0
+            fi
+
+            git push origin HEAD:dev
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create sync PR if merge conflict occurs
+        if: steps.merge.outputs.conflict == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const syncMarker = '<!-- auto-sync-main-into-dev -->';
+
+            const open = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'open',
+              base: 'dev',
+              head: `${owner}:main`,
+              per_page: 100,
+            });
+
+            const existingSyncPr = open.data.find((pr) => {
+              const body = pr.body || '';
+              const isBotAuthor = pr.user?.login === 'github-actions[bot]';
+              const hasMarker = body.includes(syncMarker);
+              const hasExpectedTitle = pr.title === 'chore(sync): merge main into dev';
+              return hasMarker || (isBotAuthor && hasExpectedTitle);
+            });
+
+            if (existingSyncPr) {
+              core.info(`Open sync PR already exists: #${existingSyncPr.number}`);
+              return;
+            }
+
+            const pr = await github.rest.pulls.create({
+              owner,
+              repo,
+              title: 'chore(sync): merge main into dev',
+              head: 'main',
+              base: 'dev',
+              body: [
+                syncMarker,
+                'Automatic sync PR created because direct merge of `main` into `dev` had conflicts.',
+                '',
+                '- Resolve conflicts in this PR and merge to bring `dev` up to date.',
+                '- Workflow: `.github/workflows/sync-main-into-dev.yml`',
+              ].join('\n'),
+            });
+
+            core.info(`Created PR #${pr.data.number}`);
