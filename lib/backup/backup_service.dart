@@ -81,6 +81,8 @@ class BackupService {
         await inv_db.queryAllInvestmentPriceRows();
     final List<Map<String, Object?>> investmentOtherAssetRows =
         await inv_db.queryAllOtherInvestmentRows();
+    final List<Map<String, Object?>> otherAssetLineItemRows =
+        await inv_db.queryAllOtherAssetLineItemRows();
     final List<Map<String, dynamic>> tagRows =
         await dbClient.query(DBConstants.TAG, orderBy: 'id ASC');
     final List<Map<String, dynamic>> transactionTagRows =
@@ -127,6 +129,7 @@ class BackupService {
       'investmentLots': investmentLotRows,
       'investmentPrices': investmentPriceRows,
       'investmentOtherAssets': investmentOtherAssetRows,
+      'otherAssetLineItems': otherAssetLineItemRows,
       'tags': tagRows,
       'transactionTags': transactionTagRows,
       'preferences': preferences,
@@ -237,10 +240,13 @@ class BackupService {
         <Map<String, dynamic>>[];
     final List<Map<String, dynamic>> investmentOtherAssets =
         <Map<String, dynamic>>[];
+    final List<Map<String, dynamic>> otherAssetLineItems =
+        <Map<String, dynamic>>[];
     Map<String, dynamic>? investmentCashLegacy;
     final List<dynamic>? ih = map['investmentHoldings'] as List<dynamic>?;
     final List<dynamic>? il = map['investmentLots'] as List<dynamic>?;
     final List<dynamic>? ip = map['investmentPrices'] as List<dynamic>?;
+    final List<dynamic>? oali = map['otherAssetLineItems'] as List<dynamic>?;
     if (ih != null) {
       for (final dynamic e in ih) {
         investmentHoldings
@@ -263,6 +269,12 @@ class BackupService {
     if (io != null) {
       for (final dynamic e in io) {
         investmentOtherAssets
+            .add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
+      }
+    }
+    if (oali != null) {
+      for (final dynamic e in oali) {
+        otherAssetLineItems
             .add(Map<String, dynamic>.from(e as Map<dynamic, dynamic>));
       }
     }
@@ -352,6 +364,7 @@ class BackupService {
         budgetMonths.length +
         budgetLines.length +
         investmentOtherAssets.length +
+        otherAssetLineItems.length +
         investmentHoldings.length +
         investmentLots.length +
         investmentPrices.length +
@@ -381,6 +394,7 @@ class BackupService {
       await sqlTxn.delete(DBConstants.INVESTMENT_LOT);
       await sqlTxn.delete(DBConstants.INVESTMENT_PRICE);
       await sqlTxn.delete(DBConstants.INVESTMENT_HOLDING);
+      await sqlTxn.delete(DBConstants.OTHER_ASSET_LINE_ITEM);
       await sqlTxn.delete(DBConstants.INVESTMENT_OTHER_ASSET);
       await sqlTxn.delete(DBConstants.TRANSACTION);
       await sqlTxn.delete(DBConstants.BUDGET_LINE);
@@ -478,6 +492,8 @@ class BackupService {
         await tickProgress('Restoring budgets', force: true);
       }
 
+      final Map<int, int> importedOtherAssetIdBySourceId = <int, int>{};
+      final Set<int> importedOtherAssetIds = <int>{};
       for (final Map<String, dynamic> r in investmentOtherAssets) {
         final int lcy = r['value_lcy_minor'] is int
             ? r['value_lcy_minor'] as int
@@ -512,11 +528,120 @@ class BackupService {
               : (rid is num ? rid.toInt() : int.tryParse('$rid') ?? 0);
           if (id > 0) {
             row['id'] = id;
+            importedOtherAssetIdBySourceId[id] = id;
           }
         }
-        await sqlTxn.insert(DBConstants.INVESTMENT_OTHER_ASSET, row);
+        final int insertedId = await sqlTxn.insert(
+          DBConstants.INVESTMENT_OTHER_ASSET,
+          row,
+        );
+        importedOtherAssetIds.add(insertedId);
+        final int sourceId = rid is int
+            ? rid
+            : (rid is num ? rid.toInt() : int.tryParse('$rid') ?? 0);
+        if (sourceId > 0) {
+          importedOtherAssetIdBySourceId[sourceId] = insertedId;
+        }
         inserted++;
         await tickProgress('Restoring investments');
+      }
+
+      if (otherAssetLineItems.isEmpty) {
+        for (final Map<String, dynamic> asset in investmentOtherAssets) {
+          final Object? rawSourceAssetId = asset['id'];
+          final int sourceAssetId = rawSourceAssetId is int
+              ? rawSourceAssetId
+              : (rawSourceAssetId is num
+                  ? rawSourceAssetId.toInt()
+                  : int.tryParse('$rawSourceAssetId') ?? 0);
+          final int assetId =
+              importedOtherAssetIdBySourceId[sourceAssetId] ?? sourceAssetId;
+          if (assetId <= 0 || !importedOtherAssetIds.contains(assetId)) {
+            continue;
+          }
+          final int lcy = asset['value_lcy_minor'] is int
+              ? asset['value_lcy_minor'] as int
+              : int.tryParse('${asset['value_lcy_minor']}') ?? 0;
+          final String ec = '${asset['entry_currency'] ?? 'lcy'}'.toLowerCase();
+          final Object? rawEntry = asset['entry_minor'];
+          int entry = rawEntry is int
+              ? rawEntry
+              : (rawEntry is num
+                  ? rawEntry.toInt()
+                  : int.tryParse('$rawEntry') ?? 0);
+          if (entry == 0 && lcy != 0) {
+            entry = lcy;
+          }
+          if (entry == 0 && lcy == 0) {
+            continue;
+          }
+          final int occurredAtMs = asset['updated_at_ms'] is int
+              ? asset['updated_at_ms'] as int
+              : int.tryParse('${asset['updated_at_ms']}') ??
+                  DateTime.now().millisecondsSinceEpoch;
+          await sqlTxn
+              .insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+            'asset_id': assetId,
+            'description': 'Opening balance',
+            'amount_minor': lcy,
+            'entry_currency': ec == 'fcy' ? 'fcy' : 'lcy',
+            'entry_amount_minor': entry,
+            'occurred_at_ms': occurredAtMs,
+            'created_at_ms': DateTime.now().millisecondsSinceEpoch,
+          });
+          inserted++;
+          await tickProgress('Restoring investments');
+        }
+      } else {
+        for (final Map<String, dynamic> r in otherAssetLineItems) {
+          final Object? rawAssetId = r['asset_id'];
+          final int sourceAssetId = rawAssetId is int
+              ? rawAssetId
+              : (rawAssetId is num
+                  ? rawAssetId.toInt()
+                  : int.tryParse('$rawAssetId') ?? 0);
+          final int assetId =
+              importedOtherAssetIdBySourceId[sourceAssetId] ?? sourceAssetId;
+          if (assetId <= 0 || !importedOtherAssetIds.contains(assetId)) {
+            continue;
+          }
+
+          final int amountMinor = r['amount_minor'] is int
+              ? r['amount_minor'] as int
+              : int.tryParse('${r['amount_minor']}') ?? 0;
+          final String entryCurrency =
+              '${r['entry_currency'] ?? 'lcy'}'.toLowerCase();
+          final Object? rawEntry = r['entry_amount_minor'];
+          int entryAmountMinor = rawEntry is int
+              ? rawEntry
+              : (rawEntry is num
+                  ? rawEntry.toInt()
+                  : int.tryParse('$rawEntry') ?? 0);
+          if (entryAmountMinor == 0 && amountMinor != 0) {
+            entryAmountMinor = amountMinor;
+          }
+
+          await sqlTxn
+              .insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+            'asset_id': assetId,
+            'description': '${r['description'] ?? ''}'.trim().isEmpty
+                ? 'Entry'
+                : '${r['description']}'.trim(),
+            'amount_minor': amountMinor,
+            'entry_currency': entryCurrency == 'fcy' ? 'fcy' : 'lcy',
+            'entry_amount_minor': entryAmountMinor,
+            'occurred_at_ms': r['occurred_at_ms'] is int
+                ? r['occurred_at_ms'] as int
+                : int.tryParse('${r['occurred_at_ms']}') ??
+                    DateTime.now().millisecondsSinceEpoch,
+            'created_at_ms': r['created_at_ms'] is int
+                ? r['created_at_ms'] as int
+                : int.tryParse('${r['created_at_ms']}') ??
+                    DateTime.now().millisecondsSinceEpoch,
+          });
+          inserted++;
+          await tickProgress('Restoring investments');
+        }
       }
 
       for (final Map<String, dynamic> r in investmentHoldings) {
@@ -619,12 +744,15 @@ class BackupService {
         await tickProgress('Restoring investments');
       }
       if (investmentOtherAssets.isNotEmpty ||
+          otherAssetLineItems.isNotEmpty ||
           investmentHoldings.isNotEmpty ||
           investmentLots.isNotEmpty ||
           investmentPrices.isNotEmpty) {
         await tickProgress('Restoring investments', force: true);
       }
     });
+
+    await inv_db.recomputeAllOtherAssetValues();
 
     emit('Restoring preferences…');
 

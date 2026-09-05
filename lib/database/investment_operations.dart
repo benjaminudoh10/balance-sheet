@@ -6,6 +6,7 @@ import 'package:balance_sheet/investment/investment_days.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
 import 'package:balance_sheet/models/investment_lot_entry.dart';
 import 'package:balance_sheet/models/investment_price_point.dart';
+import 'package:balance_sheet/models/other_asset_line_item.dart';
 import 'package:balance_sheet/models/other_investment.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -320,18 +321,16 @@ Future<int> getOtherInvestmentsTotalLcyMinor() async {
 
 Future<int> insertOtherInvestment({
   required String label,
-  required int valueLcyMinor,
   required String entryCurrency,
-  required int entryMinor,
 }) async {
   final Database dbClient = await AppDb().db;
   final int now = DateTime.now().millisecondsSinceEpoch;
   final String ec = entryCurrency.toLowerCase() == 'fcy' ? 'fcy' : 'lcy';
   return dbClient.insert(DBConstants.INVESTMENT_OTHER_ASSET, <String, Object?>{
     'label': label.trim(),
-    'value_lcy_minor': valueLcyMinor,
+    'value_lcy_minor': 0,
     'entry_currency': ec,
-    'entry_minor': entryMinor,
+    'entry_minor': 0,
     'sort_order': await nextOtherInvestmentSortOrder(),
     'updated_at_ms': now,
   });
@@ -345,14 +344,13 @@ Future<void> updateOtherInvestment(OtherInvestment o) async {
     DBConstants.INVESTMENT_OTHER_ASSET,
     <String, Object?>{
       'label': o.label.trim(),
-      'value_lcy_minor': o.valueLcyMinor,
       'entry_currency': ec,
-      'entry_minor': o.entryMinor,
       'updated_at_ms': now,
     },
     where: 'id = ?',
     whereArgs: <Object>[o.id],
   );
+  await recomputeOtherAssetValue(o.id);
 }
 
 Future<void> deleteOtherInvestment(int id) async {
@@ -362,6 +360,140 @@ Future<void> deleteOtherInvestment(int id) async {
     where: 'id = ?',
     whereArgs: <Object>[id],
   );
+}
+
+Future<List<OtherAssetLineItem>> listOtherAssetLineItems(int assetId) async {
+  final Database dbClient = await AppDb().db;
+  final List<Map<String, Object?>> rows = await dbClient.query(
+    DBConstants.OTHER_ASSET_LINE_ITEM,
+    where: 'asset_id = ?',
+    whereArgs: <Object>[assetId],
+    orderBy: 'occurred_at_ms DESC, id DESC',
+  );
+  return rows.map(OtherAssetLineItem.fromMap).toList();
+}
+
+Future<void> _recomputeOtherAssetValueWithDb(
+  DatabaseExecutor dbClient,
+  int assetId,
+) async {
+  final List<Map<String, Object?>> rows = await dbClient.rawQuery(
+    '''
+    SELECT
+      COALESCE(SUM(amount_minor), 0) AS total_lcy,
+      COALESCE(SUM(entry_amount_minor), 0) AS total_entry
+    FROM ${DBConstants.OTHER_ASSET_LINE_ITEM}
+    WHERE asset_id = ?
+  ''',
+    <Object>[assetId],
+  );
+  final int totalLcy = _asInt(rows.first['total_lcy']);
+  final int totalEntry = _asInt(rows.first['total_entry']);
+  await dbClient.update(
+    DBConstants.INVESTMENT_OTHER_ASSET,
+    <String, Object?>{
+      'value_lcy_minor': totalLcy,
+      'entry_minor': totalEntry,
+      'updated_at_ms': DateTime.now().millisecondsSinceEpoch,
+    },
+    where: 'id = ?',
+    whereArgs: <Object>[assetId],
+  );
+}
+
+Future<void> recomputeOtherAssetValue(int assetId) async {
+  final Database dbClient = await AppDb().db;
+  await _recomputeOtherAssetValueWithDb(dbClient, assetId);
+}
+
+Future<void> recomputeAllOtherAssetValues() async {
+  final Database dbClient = await AppDb().db;
+  final List<Map<String, Object?>> assets = await dbClient.query(
+    DBConstants.INVESTMENT_OTHER_ASSET,
+    columns: <String>['id'],
+  );
+  for (final Map<String, Object?> row in assets) {
+    await _recomputeOtherAssetValueWithDb(dbClient, _asInt(row['id']));
+  }
+}
+
+Future<int> insertOtherAssetLineItem({
+  required int assetId,
+  required String description,
+  required int amountMinor,
+  required String entryCurrency,
+  required int entryAmountMinor,
+  required int occurredAtMs,
+}) async {
+  final Database dbClient = await AppDb().db;
+  final String ec = entryCurrency.toLowerCase() == 'fcy' ? 'fcy' : 'lcy';
+  return dbClient.transaction((Transaction txn) async {
+    final int id =
+        await txn.insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+      'asset_id': assetId,
+      'description': description.trim(),
+      'amount_minor': amountMinor,
+      'entry_currency': ec,
+      'entry_amount_minor': entryAmountMinor,
+      'occurred_at_ms': occurredAtMs,
+      'created_at_ms': DateTime.now().millisecondsSinceEpoch,
+    });
+    await _recomputeOtherAssetValueWithDb(txn, assetId);
+    return id;
+  });
+}
+
+Future<void> updateOtherAssetLineItem(OtherAssetLineItem item) async {
+  final Database dbClient = await AppDb().db;
+  final String ec = item.entryCurrency.toLowerCase() == 'fcy' ? 'fcy' : 'lcy';
+  await dbClient.transaction((Transaction txn) async {
+    await txn.update(
+      DBConstants.OTHER_ASSET_LINE_ITEM,
+      <String, Object?>{
+        'description': item.description.trim(),
+        'amount_minor': item.amountMinor,
+        'entry_currency': ec,
+        'entry_amount_minor': item.entryAmountMinor,
+        'occurred_at_ms': item.occurredAtMs,
+      },
+      where: 'id = ? AND asset_id = ?',
+      whereArgs: <Object>[item.id, item.assetId],
+    );
+    await _recomputeOtherAssetValueWithDb(txn, item.assetId);
+  });
+}
+
+Future<void> deleteOtherAssetLineItem(int id, int assetId) async {
+  final Database dbClient = await AppDb().db;
+  await dbClient.transaction((Transaction txn) async {
+    await txn.delete(
+      DBConstants.OTHER_ASSET_LINE_ITEM,
+      where: 'id = ? AND asset_id = ?',
+      whereArgs: <Object>[id, assetId],
+    );
+    await _recomputeOtherAssetValueWithDb(txn, assetId);
+  });
+}
+
+Future<int> seedOtherAssetOpeningLineItem({
+  required int assetId,
+  required int amountMinor,
+  required String entryCurrency,
+  required int entryAmountMinor,
+  required int occurredAtMs,
+}) async {
+  if (amountMinor == 0 && entryAmountMinor == 0) return 0;
+  final Database dbClient = await AppDb().db;
+  final String ec = entryCurrency.toLowerCase() == 'fcy' ? 'fcy' : 'lcy';
+  return dbClient.insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+    'asset_id': assetId,
+    'description': 'Opening balance',
+    'amount_minor': amountMinor,
+    'entry_currency': ec,
+    'entry_amount_minor': entryAmountMinor,
+    'occurred_at_ms': occurredAtMs,
+    'created_at_ms': DateTime.now().millisecondsSinceEpoch,
+  });
 }
 
 // --- Valuation ---
@@ -573,4 +705,9 @@ Future<List<Map<String, Object?>>> queryAllInvestmentPriceRows() async {
 Future<List<Map<String, Object?>>> queryAllOtherInvestmentRows() async {
   final Database dbClient = await AppDb().db;
   return dbClient.query(DBConstants.INVESTMENT_OTHER_ASSET, orderBy: 'id ASC');
+}
+
+Future<List<Map<String, Object?>>> queryAllOtherAssetLineItemRows() async {
+  final Database dbClient = await AppDb().db;
+  return dbClient.query(DBConstants.OTHER_ASSET_LINE_ITEM, orderBy: 'id ASC');
 }

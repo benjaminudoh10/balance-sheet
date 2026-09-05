@@ -42,6 +42,7 @@ class DebugDataSeedService {
     await sqlTxn.delete(DBConstants.INVESTMENT_PRICE);
     await sqlTxn.delete(DBConstants.INVESTMENT_LOT);
     await sqlTxn.delete(DBConstants.INVESTMENT_HOLDING);
+    await sqlTxn.delete(DBConstants.OTHER_ASSET_LINE_ITEM);
     await sqlTxn.delete(DBConstants.INVESTMENT_OTHER_ASSET);
     await sqlTxn.delete(DBConstants.BUDGET_LINE);
     await sqlTxn.delete(DBConstants.BUDGET_MONTH);
@@ -506,14 +507,34 @@ Future<void> _insertOtherAssets(Transaction sqlTxn, math.Random r) async {
   Future<void> row(String label, int lcyMinor, int sort,
       {bool fcy = false, int entryMinor = 0}) async {
     final int em = fcy ? entryMinor : lcyMinor;
-    await sqlTxn.insert(DBConstants.INVESTMENT_OTHER_ASSET, <String, Object?>{
+    final int assetId = await sqlTxn
+        .insert(DBConstants.INVESTMENT_OTHER_ASSET, <String, Object?>{
       'label': label,
-      'value_lcy_minor': lcyMinor,
+      'value_lcy_minor': 0,
       'entry_currency': fcy ? 'fcy' : 'lcy',
-      'entry_minor': em,
+      'entry_minor': 0,
       'sort_order': sort,
       'updated_at_ms': t,
     });
+    await sqlTxn.insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+      'asset_id': assetId,
+      'description': 'Opening balance',
+      'amount_minor': lcyMinor,
+      'entry_currency': fcy ? 'fcy' : 'lcy',
+      'entry_amount_minor': em,
+      'occurred_at_ms': t,
+      'created_at_ms': t,
+    });
+    await sqlTxn.update(
+      DBConstants.INVESTMENT_OTHER_ASSET,
+      <String, Object?>{
+        'value_lcy_minor': lcyMinor,
+        'entry_minor': em,
+        'updated_at_ms': t,
+      },
+      where: 'id = ?',
+      whereArgs: <Object>[assetId],
+    );
   }
 
   await row('High-yield savings', _rnd(r, 18000000, 32000000), 0);

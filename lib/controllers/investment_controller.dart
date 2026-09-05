@@ -1,5 +1,6 @@
 import 'package:balance_sheet/database/investment_operations.dart' as inv;
 import 'package:balance_sheet/models/investment_holding.dart';
+import 'package:balance_sheet/models/other_asset_line_item.dart';
 import 'package:balance_sheet/models/other_investment.dart';
 import 'package:get/get.dart';
 
@@ -83,15 +84,11 @@ class InvestmentController extends GetxController {
 
   Future<void> addOtherInvestment({
     required String label,
-    required int valueLcyMinor,
     required bool entryIsFcy,
-    required int entryMinor,
   }) async {
     await inv.insertOtherInvestment(
       label: label,
-      valueLcyMinor: valueLcyMinor,
       entryCurrency: entryIsFcy ? 'fcy' : 'lcy',
-      entryMinor: entryMinor,
     );
     await reload();
   }
@@ -103,6 +100,39 @@ class InvestmentController extends GetxController {
 
   Future<void> deleteOtherInvestment(int id) async {
     await inv.deleteOtherInvestment(id);
+    await reload();
+  }
+
+  Future<List<OtherAssetLineItem>> getLineItemsForAsset(int assetId) {
+    return inv.listOtherAssetLineItems(assetId);
+  }
+
+  Future<void> addOtherAssetLineItem({
+    required int assetId,
+    required String description,
+    required int amountMinor,
+    required bool entryIsFcy,
+    required int entryAmountMinor,
+    required int occurredAtMs,
+  }) async {
+    await inv.insertOtherAssetLineItem(
+      assetId: assetId,
+      description: description,
+      amountMinor: amountMinor,
+      entryCurrency: entryIsFcy ? 'fcy' : 'lcy',
+      entryAmountMinor: entryAmountMinor,
+      occurredAtMs: occurredAtMs,
+    );
+    await reload();
+  }
+
+  Future<void> updateOtherAssetLineItem(OtherAssetLineItem item) async {
+    await inv.updateOtherAssetLineItem(item);
+    await reload();
+  }
+
+  Future<void> deleteOtherAssetLineItem(int id, int assetId) async {
+    await inv.deleteOtherAssetLineItem(id, assetId);
     await reload();
   }
 

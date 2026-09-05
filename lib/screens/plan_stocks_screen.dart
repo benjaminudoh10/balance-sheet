@@ -9,6 +9,7 @@ import 'package:balance_sheet/investment/investment_days.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
 import 'package:balance_sheet/models/investment_lot_entry.dart';
 import 'package:balance_sheet/models/investment_price_point.dart';
+import 'package:balance_sheet/models/other_asset_line_item.dart';
 import 'package:balance_sheet/models/other_investment.dart';
 import 'package:balance_sheet/theme/app_palette.dart';
 import 'package:balance_sheet/utils.dart';
@@ -90,9 +91,7 @@ class _OtherInvestmentEditorContent extends StatefulWidget {
 class _OtherInvestmentEditorContentState
     extends State<_OtherInvestmentEditorContent> {
   late final TextEditingController _labelCtrl;
-  late final TextEditingController _amountCtrl;
   late final FocusNode _labelFocus;
-  late final FocusNode _amountFocus;
   bool _entryIsFcy = true;
   final CurrencyController _cur = Get.find<CurrencyController>();
 
@@ -100,17 +99,8 @@ class _OtherInvestmentEditorContentState
   void initState() {
     super.initState();
     _labelFocus = FocusNode();
-    _amountFocus = FocusNode();
     final OtherInvestment? e = widget.existing;
     _labelCtrl = TextEditingController(text: e?.label ?? '');
-    _amountCtrl = TextEditingController(
-      text: e != null
-          ? (e.entryIsFcy ? e.entryMinor : e.valueLcyMinor) != 0
-              ? ((e.entryIsFcy ? e.entryMinor : e.valueLcyMinor) / 100)
-                  .toStringAsFixed(2)
-              : ''
-          : '',
-    );
     _entryIsFcy = e?.entryIsFcy ?? false;
     if (e == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -124,9 +114,7 @@ class _OtherInvestmentEditorContentState
   @override
   void dispose() {
     _labelFocus.dispose();
-    _amountFocus.dispose();
     _labelCtrl.dispose();
-    _amountCtrl.dispose();
     super.dispose();
   }
 
@@ -136,29 +124,20 @@ class _OtherInvestmentEditorContentState
       AppSnack.show('Label', 'Enter a short name for this investment.');
       return;
     }
-    final int? entryMinor = parseMoneyStringToMinor(_amountCtrl.text);
-    if (entryMinor == null || entryMinor <= 0) {
-      AppSnack.show('Amount', 'Enter a value greater than zero.');
-      return;
-    }
-    final int lcy =
-        _entryIsFcy ? _cur.lcyMinorFromFcyMinor(entryMinor) : entryMinor;
     final OtherInvestment? existing = widget.existing;
     if (existing == null) {
       await widget.inv.addOtherInvestment(
         label: lab,
-        valueLcyMinor: lcy,
         entryIsFcy: _entryIsFcy,
-        entryMinor: entryMinor,
       );
     } else {
       await widget.inv.updateOtherInvestment(
         OtherInvestment(
           id: existing.id,
           label: lab,
-          valueLcyMinor: lcy,
+          valueLcyMinor: existing.valueLcyMinor,
           entryCurrency: _entryIsFcy ? 'fcy' : 'lcy',
-          entryMinor: entryMinor,
+          entryMinor: existing.entryMinor,
           sortOrder: existing.sortOrder,
           updatedAtMs: existing.updatedAtMs,
         ),
@@ -190,7 +169,7 @@ class _OtherInvestmentEditorContentState
           ),
           const SizedBox(height: 8),
           Text(
-            'Name it (e.g. Cash, Land, Gold) and enter the value in local or foreign currency.',
+            'Name this investment and choose its display currency. Add inflow and outflow entries inside the detail view.',
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
@@ -211,8 +190,9 @@ class _OtherInvestmentEditorContentState
               focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: _kInvestAccent)),
             ),
-            onSubmitted: (_) {
-              _amountFocus.requestFocus();
+            onSubmitted: (_) async {
+              AppHaptics.light();
+              await _save();
             },
           ),
           const SizedBox(height: 12),
@@ -228,7 +208,7 @@ class _OtherInvestmentEditorContentState
                     children: <Widget>[
                       Expanded(
                         child: Text(
-                          'Value ($code)',
+                          'Display currency ($code)',
                           style:
                               Theme.of(context).textTheme.labelSmall!.copyWith(
                                     color: p.textSecondary,
@@ -249,27 +229,10 @@ class _OtherInvestmentEditorContentState
                         selected: <bool>{_entryIsFcy},
                         onSelectionChanged: (Set<bool> next) {
                           if (next.isEmpty) return;
-                          final bool toFcy = next.single;
-                          if (toFcy == _entryIsFcy) return;
+                          if (next.single == _entryIsFcy) return;
                           AppHaptics.selection();
                           setState(() {
-                            final int m =
-                                parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
-                            if (m <= 0) {
-                              _entryIsFcy = toFcy;
-                              return;
-                            }
-                            if (toFcy) {
-                              _amountCtrl.text =
-                                  (_cur.fcyMinorFromLcyMinor(m) / 100)
-                                      .toStringAsFixed(2);
-                              _entryIsFcy = true;
-                            } else {
-                              _amountCtrl.text =
-                                  (_cur.lcyMinorFromFcyMinor(m) / 100)
-                                      .toStringAsFixed(2);
-                              _entryIsFcy = false;
-                            }
+                            _entryIsFcy = next.single;
                           });
                         },
                         style: SegmentedButton.styleFrom(
@@ -281,33 +244,513 @@ class _OtherInvestmentEditorContentState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _amountCtrl,
-                    focusNode: _amountFocus,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    textInputAction: TextInputAction.done,
-                    inputFormatters: <TextInputFormatter>[
-                      DecimalTextInputFormatter()
-                    ],
-                    style: TextStyle(color: p.textPrimary),
-                    decoration: InputDecoration(
-                      hintText: '0.00',
-                      hintStyle: TextStyle(color: p.textSecondary),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: p.border)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: _kInvestAccent)),
-                    ),
-                    onSubmitted: (_) async {
-                      AppHaptics.light();
-                      await _save();
-                    },
-                  ),
                 ],
               );
             },
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () async {
+              AppHaptics.light();
+              await _save();
+            },
+            style: FilledButton.styleFrom(
+                backgroundColor: _kInvestAccent, foregroundColor: Colors.white),
+            child: Text(widget.existing == null ? 'Add' : 'Save'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OtherInvestmentDetailContent extends StatefulWidget {
+  const _OtherInvestmentDetailContent({
+    required this.palette,
+    required this.inv,
+    required this.assetId,
+    required this.onEditAsset,
+  });
+
+  final AppPalette palette;
+  final InvestmentController inv;
+  final int assetId;
+  final Future<void> Function(OtherInvestment asset) onEditAsset;
+
+  @override
+  State<_OtherInvestmentDetailContent> createState() =>
+      _OtherInvestmentDetailContentState();
+}
+
+class _OtherInvestmentDetailContentState
+    extends State<_OtherInvestmentDetailContent> {
+  List<OtherAssetLineItem> _items = <OtherAssetLineItem>[];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _reloadItems();
+  }
+
+  OtherInvestment? _asset() {
+    for (final OtherInvestment asset in widget.inv.otherInvestments) {
+      if (asset.id == widget.assetId) {
+        return asset;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _reloadItems() async {
+    final List<OtherAssetLineItem> rows =
+        await widget.inv.getLineItemsForAsset(widget.assetId);
+    if (!mounted) return;
+    setState(() {
+      _items = rows;
+      _loading = false;
+    });
+  }
+
+  Future<void> _openLineItemEditor({OtherAssetLineItem? existing}) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: widget.palette.overlay,
+      builder: (BuildContext ctx) {
+        return _floatingModalCard(
+          context: ctx,
+          palette: widget.palette,
+          child: _OtherAssetLineItemEditorContent(
+            palette: widget.palette,
+            inv: widget.inv,
+            assetId: widget.assetId,
+            existing: existing,
+          ),
+        );
+      },
+    );
+    await _reloadItems();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = widget.palette;
+    return Obx(() {
+      final OtherInvestment? asset = _asset();
+      if (asset == null) {
+        return SizedBox(
+          height: math.min(MediaQuery.sizeOf(context).height * 0.6, 460),
+          child: Center(
+            child: Text(
+              'This investment no longer exists.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(color: p.textSecondary),
+            ),
+          ),
+        );
+      }
+
+      return SizedBox(
+        height: math.min(MediaQuery.sizeOf(context).height * 0.88, 760),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: p.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    asset.label.isEmpty ? '—' : asset.label,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: p.textPrimary, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  DualCurrencyTotal(
+                    lcyMinor: asset.valueLcyMinor,
+                    textAlign: TextAlign.start,
+                    compactSecondary: true,
+                    useFcyAsPrimary: asset.entryIsFcy,
+                    primaryStyle: Theme.of(context)
+                        .textTheme
+                        .titleSmall!
+                        .copyWith(
+                            color: p.textPrimary, fontWeight: FontWeight.w700),
+                    secondaryStyle: Theme.of(context)
+                        .textTheme
+                        .labelSmall!
+                        .copyWith(color: p.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: <Widget>[
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          AppHaptics.light();
+                          await widget.onEditAsset(asset);
+                          await _reloadItems();
+                        },
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('Edit'),
+                      ),
+                      const SizedBox(width: 10),
+                      FilledButton.icon(
+                        onPressed: () async {
+                          AppHaptics.light();
+                          await _openLineItemEditor();
+                        },
+                        style: FilledButton.styleFrom(
+                            backgroundColor: _kInvestAccent,
+                            foregroundColor: Colors.white),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add entry'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Divider(color: p.border, height: 1),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _items.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text(
+                              'No entries yet — add inflows and outflows to build this history.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .copyWith(
+                                      color: p.textSecondary, height: 1.4),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                          itemCount: _items.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (BuildContext context, int index) {
+                            final OtherAssetLineItem item = _items[index];
+                            return _OtherAssetLineItemRow(
+                              index: index,
+                              item: item,
+                              onEdit: () async {
+                                AppHaptics.light();
+                                await _openLineItemEditor(existing: item);
+                              },
+                              onDelete: () async {
+                                AppHaptics.light();
+                                await widget.inv.deleteOtherAssetLineItem(
+                                    item.id, item.assetId);
+                                await _reloadItems();
+                              },
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _OtherAssetLineItemEditorContent extends StatefulWidget {
+  const _OtherAssetLineItemEditorContent({
+    required this.palette,
+    required this.inv,
+    required this.assetId,
+    required this.existing,
+  });
+
+  final AppPalette palette;
+  final InvestmentController inv;
+  final int assetId;
+  final OtherAssetLineItem? existing;
+
+  @override
+  State<_OtherAssetLineItemEditorContent> createState() =>
+      _OtherAssetLineItemEditorContentState();
+}
+
+class _OtherAssetLineItemEditorContentState
+    extends State<_OtherAssetLineItemEditorContent> {
+  late final TextEditingController _descriptionCtrl;
+  late final TextEditingController _amountCtrl;
+  late final FocusNode _descriptionFocus;
+  late final FocusNode _amountFocus;
+  final CurrencyController _cur = Get.find<CurrencyController>();
+  late bool _entryIsFcy;
+  late bool _isInflow;
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionFocus = FocusNode();
+    _amountFocus = FocusNode();
+    final OtherAssetLineItem? existing = widget.existing;
+    final int signedEntryAmount = existing?.entryAmountMinor ?? 0;
+    _entryIsFcy = existing?.entryIsFcy ?? false;
+    _isInflow = signedEntryAmount >= 0;
+    _selectedDate = existing == null
+        ? DateTime.now()
+        : DateTime.fromMillisecondsSinceEpoch(existing.occurredAtMs);
+    _descriptionCtrl = TextEditingController(text: existing?.description ?? '');
+    _amountCtrl = TextEditingController(
+      text: signedEntryAmount == 0
+          ? ''
+          : (signedEntryAmount.abs() / 100).toStringAsFixed(2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _descriptionFocus.dispose();
+    _amountFocus.dispose();
+    _descriptionCtrl.dispose();
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = DateTime(now.year - 40, 1, 1);
+    final DateTime lastDate = DateTime(now.year + 5, 12, 31);
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+    if (picked == null) return;
+    setState(() {
+      _selectedDate = picked;
+    });
+  }
+
+  Future<void> _save() async {
+    final String description = _descriptionCtrl.text.trim();
+    if (description.isEmpty) {
+      AppSnack.show('Description', 'Add a short description for this entry.');
+      return;
+    }
+    final int? parsedAmount = parseMoneyStringToMinor(_amountCtrl.text);
+    if (parsedAmount == null || parsedAmount <= 0) {
+      AppSnack.show('Amount', 'Enter an amount greater than zero.');
+      return;
+    }
+
+    final int signedEntryAmount = _isInflow ? parsedAmount : -parsedAmount;
+    final int signedLcyAmount = _entryIsFcy
+        ? (_isInflow
+            ? _cur.lcyMinorFromFcyMinor(parsedAmount)
+            : -_cur.lcyMinorFromFcyMinor(parsedAmount))
+        : signedEntryAmount;
+    final DateTime d = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
+
+    final OtherAssetLineItem? existing = widget.existing;
+    if (existing == null) {
+      await widget.inv.addOtherAssetLineItem(
+        assetId: widget.assetId,
+        description: description,
+        amountMinor: signedLcyAmount,
+        entryIsFcy: _entryIsFcy,
+        entryAmountMinor: signedEntryAmount,
+        occurredAtMs: d.millisecondsSinceEpoch,
+      );
+    } else {
+      await widget.inv.updateOtherAssetLineItem(
+        OtherAssetLineItem(
+          id: existing.id,
+          assetId: existing.assetId,
+          description: description,
+          amountMinor: signedLcyAmount,
+          entryCurrency: _entryIsFcy ? 'fcy' : 'lcy',
+          entryAmountMinor: signedEntryAmount,
+          occurredAtMs: d.millisecondsSinceEpoch,
+          createdAtMs: existing.createdAtMs,
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    _snackbarAfterRouteSettled(
+      'Saved',
+      existing == null ? 'Entry added' : 'Entry updated',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = widget.palette;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SizedBox(height: 14),
+          Text(
+            widget.existing == null ? 'Add entry' : 'Edit entry',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: p.textPrimary, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _descriptionCtrl,
+            focusNode: _descriptionFocus,
+            textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.next,
+            style: TextStyle(color: p.textPrimary),
+            decoration: InputDecoration(
+              labelText: 'Description',
+              labelStyle: TextStyle(color: p.textSecondary),
+              enabledBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: p.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _kInvestAccent)),
+            ),
+            onSubmitted: (_) {
+              _amountFocus.requestFocus();
+            },
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: SegmentedButton<bool>(
+                  segments: const <ButtonSegment<bool>>[
+                    ButtonSegment<bool>(value: true, label: Text('Inflow +')),
+                    ButtonSegment<bool>(value: false, label: Text('Outflow -')),
+                  ],
+                  selected: <bool>{_isInflow},
+                  onSelectionChanged: (Set<bool> next) {
+                    if (next.isEmpty) return;
+                    AppHaptics.selection();
+                    setState(() {
+                      _isInflow = next.single;
+                    });
+                  },
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: _kInvestAccent,
+                    selectedForegroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            final String code =
+                _entryIsFcy ? _cur.fcyCode.value : _cur.lcyCode.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Amount ($code)',
+                        style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                              color: p.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                    SegmentedButton<bool>(
+                      segments: <ButtonSegment<bool>>[
+                        ButtonSegment<bool>(
+                            value: false, label: Text(_cur.lcyCode.value)),
+                        ButtonSegment<bool>(
+                            value: true, label: Text(_cur.fcyCode.value)),
+                      ],
+                      selected: <bool>{_entryIsFcy},
+                      onSelectionChanged: (Set<bool> next) {
+                        if (next.isEmpty || next.single == _entryIsFcy) return;
+                        AppHaptics.selection();
+                        setState(() {
+                          final int amount =
+                              parseMoneyStringToMinor(_amountCtrl.text) ?? 0;
+                          if (amount > 0) {
+                            _amountCtrl.text = next.single
+                                ? (_cur.fcyMinorFromLcyMinor(amount) / 100)
+                                    .toStringAsFixed(2)
+                                : (_cur.lcyMinorFromFcyMinor(amount) / 100)
+                                    .toStringAsFixed(2);
+                          }
+                          _entryIsFcy = next.single;
+                        });
+                      },
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        selectedBackgroundColor: _kInvestAccent,
+                        selectedForegroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _amountCtrl,
+                  focusNode: _amountFocus,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: <TextInputFormatter>[
+                    DecimalTextInputFormatter()
+                  ],
+                  textInputAction: TextInputAction.done,
+                  style: TextStyle(color: p.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: '0.00',
+                    hintStyle: TextStyle(color: p.textSecondary),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: p.border)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: _kInvestAccent)),
+                  ),
+                  onSubmitted: (_) async {
+                    AppHaptics.light();
+                    await _save();
+                  },
+                ),
+              ],
+            );
+          }),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.event_outlined),
+            label: Text(DateFormat('d MMM yyyy').format(_selectedDate)),
           ),
           const SizedBox(height: 16),
           FilledButton(
@@ -1366,7 +1809,7 @@ class _PlanStocksScreenState extends State<PlanStocksScreen>
                         investment: o,
                         onTap: () {
                           AppHaptics.light();
-                          _showOtherInvestmentSheet(context, p, o);
+                          _showOtherInvestmentDetailSheet(context, p, o.id);
                         },
                         onDelete: () async {
                           AppHaptics.light();
@@ -1442,6 +1885,30 @@ class _PlanStocksScreenState extends State<PlanStocksScreen>
                 existing: existing,
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showOtherInvestmentDetailSheet(
+      BuildContext context, AppPalette p, int assetId) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: p.overlay,
+      builder: (BuildContext ctx) {
+        return _floatingModalCard(
+          context: ctx,
+          palette: p,
+          child: _OtherInvestmentDetailContent(
+            palette: p,
+            inv: _inv,
+            assetId: assetId,
+            onEditAsset: (OtherInvestment asset) async {
+              await _showOtherInvestmentSheet(ctx, p, asset);
+            },
           ),
         );
       },
@@ -1947,6 +2414,105 @@ class _OtherInvestmentRow extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OtherAssetLineItemRow extends StatelessWidget {
+  const _OtherAssetLineItemRow({
+    required this.index,
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final int index;
+  final OtherAssetLineItem item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppPalette p = AppPalette.of(context);
+    final bool isInflow = item.amountMinor >= 0;
+    return Slidable(
+      key: ValueKey<String>('other_asset_line_item_${item.id}'),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: <Widget>[
+          SlidableAction(
+            onPressed: (_) => onEdit(),
+            backgroundColor: _kInvestAccent.withValues(alpha: 0.2),
+            foregroundColor: _kInvestAccent,
+            icon: Icons.edit_outlined,
+            label: 'Edit',
+          ),
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            backgroundColor: p.coral.withValues(alpha: 0.25),
+            foregroundColor: p.coral,
+            icon: Icons.delete_outline_rounded,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: SlidablePeekHint(
+        storageKey: AppConstants.SLIDABLE_PEEK_INVESTMENTS_OTHER,
+        enabled: index == 0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            color: p.surface.withValues(alpha: 0.9),
+            border: Border.all(color: p.border.withValues(alpha: 0.65)),
+          ),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      item.description.isEmpty ? 'Entry' : item.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                            color: p.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat('d MMM yyyy').format(
+                        DateTime.fromMillisecondsSinceEpoch(item.occurredAtMs),
+                      ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: p.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Obx(() {
+                final CurrencyController c = Get.find<CurrencyController>();
+                final String code =
+                    item.entryIsFcy ? c.fcyCode.value : c.lcyCode.value;
+                final int absMinor = item.entryAmountMinor.abs();
+                final String sign = isInflow ? '+' : '-';
+                return Text(
+                  '$sign${formatMinorUnits(absMinor, code)}',
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                        color: isInflow ? p.mint : p.coral,
+                        fontWeight: FontWeight.w800,
+                      ),
+                );
+              }),
+            ],
           ),
         ),
       ),

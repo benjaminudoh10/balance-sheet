@@ -62,6 +62,7 @@ class AppDb {
         await db.execute(_sqlCreateInvestmentLots);
         await db.execute(_sqlCreateInvestmentPrices);
         await db.execute(_sqlCreateInvestmentOtherAssets);
+        await db.execute(_sqlCreateOtherAssetLineItems);
         await db.execute(_sqlCreateTags);
         await db.execute(_sqlCreateTransactionTags);
       },
@@ -77,6 +78,30 @@ class AppDb {
         if (oldVersion < 4) {
           await db.execute(
               "ALTER TABLE ${DBConstants.BUDGET_LINE} ADD COLUMN tag_id INTEGER REFERENCES ${DBConstants.TAG}(id) ON DELETE SET NULL");
+        }
+        if (oldVersion < 5) {
+          await db.execute(_sqlCreateOtherAssetLineItems);
+          final List<Map<String, Object?>> existing = await db.query(
+            DBConstants.INVESTMENT_OTHER_ASSET,
+          );
+          final int now = DateTime.now().millisecondsSinceEpoch;
+          for (final Map<String, Object?> row in existing) {
+            final int id = row['id'] as int;
+            final int lcy = row['value_lcy_minor'] as int? ?? 0;
+            final String ec = '${row['entry_currency'] ?? 'lcy'}'.toLowerCase();
+            final int entry = row['entry_minor'] as int? ?? lcy;
+            if (lcy == 0 && entry == 0) continue;
+            await db
+                .insert(DBConstants.OTHER_ASSET_LINE_ITEM, <String, Object?>{
+              'asset_id': id,
+              'description': 'Opening balance',
+              'amount_minor': lcy,
+              'entry_currency': ec == 'fcy' ? 'fcy' : 'lcy',
+              'entry_amount_minor': entry,
+              'occurred_at_ms': row['updated_at_ms'] as int? ?? now,
+              'created_at_ms': now,
+            });
+          }
         }
       },
     );
@@ -174,5 +199,19 @@ CREATE TABLE IF NOT EXISTS ${DBConstants.INVESTMENT_OTHER_ASSET}(
   entry_minor INTEGER NOT NULL DEFAULT 0,
   sort_order INTEGER NOT NULL DEFAULT 0,
   updated_at_ms INTEGER NOT NULL
+)
+''';
+
+const String _sqlCreateOtherAssetLineItems = '''
+CREATE TABLE IF NOT EXISTS ${DBConstants.OTHER_ASSET_LINE_ITEM}(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  asset_id INTEGER NOT NULL,
+  description TEXT NOT NULL,
+  amount_minor INTEGER NOT NULL,
+  entry_currency TEXT NOT NULL DEFAULT 'lcy',
+  entry_amount_minor INTEGER NOT NULL DEFAULT 0,
+  occurred_at_ms INTEGER NOT NULL,
+  created_at_ms INTEGER NOT NULL,
+  FOREIGN KEY(asset_id) REFERENCES ${DBConstants.INVESTMENT_OTHER_ASSET}(id) ON DELETE CASCADE
 )
 ''';

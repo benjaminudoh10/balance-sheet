@@ -8,7 +8,8 @@ class DBConstants {
   static const INVESTMENT_LOT = "investment_lot_entries";
   static const INVESTMENT_PRICE = "investment_price_points";
   static const INVESTMENT_OTHER_ASSET = "investment_other_assets";
+  static const OTHER_ASSET_LINE_ITEM = "other_asset_line_items";
   static const TAG = "tags";
   static const TRANSACTION_TAG = "transaction_tags";
-  static const int DB_VERSION = 4;
+  static const int DB_VERSION = 5;
 }

@@ -577,17 +577,29 @@ void main() {
     });
 
     test('other investments list and sum LCY for net worth', () async {
-      await inv_ops.insertOtherInvestment(
+      final int cashId = await inv_ops.insertOtherInvestment(
         label: 'Cash',
-        valueLcyMinor: 2000000,
         entryCurrency: 'lcy',
-        entryMinor: 2000000,
       );
-      await inv_ops.insertOtherInvestment(
+      await inv_ops.insertOtherAssetLineItem(
+        assetId: cashId,
+        description: 'Opening balance',
+        amountMinor: 2000000,
+        entryCurrency: 'lcy',
+        entryAmountMinor: 2000000,
+        occurredAtMs: DateTime(2026, 1, 10).millisecondsSinceEpoch,
+      );
+      final int goldId = await inv_ops.insertOtherInvestment(
         label: 'Gold',
-        valueLcyMinor: 1800000,
         entryCurrency: 'fcy',
-        entryMinor: 120000,
+      );
+      await inv_ops.insertOtherAssetLineItem(
+        assetId: goldId,
+        description: 'Opening balance',
+        amountMinor: 1800000,
+        entryCurrency: 'fcy',
+        entryAmountMinor: 120000,
+        occurredAtMs: DateTime(2026, 1, 11).millisecondsSinceEpoch,
       );
       expect(
           await inv_ops.getOtherInvestmentsTotalLcyMinor(), 2000000 + 1800000);

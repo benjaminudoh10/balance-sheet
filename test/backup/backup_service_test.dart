@@ -10,6 +10,7 @@ import 'package:balance_sheet/models/budget_line.dart';
 import 'package:balance_sheet/models/budget_month.dart';
 import 'package:balance_sheet/models/contact.dart';
 import 'package:balance_sheet/models/investment_holding.dart';
+import 'package:balance_sheet/models/other_asset_line_item.dart';
 import 'package:balance_sheet/models/other_investment.dart';
 import 'package:balance_sheet/models/tag.dart';
 import 'package:balance_sheet/saved_views/saved_views_storage.dart';
@@ -422,6 +423,7 @@ void main() {
       expect(json, contains('"budgetLines"'));
       expect(json, contains('"investmentHoldings"'));
       expect(json, contains('"investmentOtherAssets"'));
+      expect(json, contains('"otherAssetLineItems"'));
       expect(json, contains('"savedViews"'));
     });
 
@@ -477,11 +479,17 @@ void main() {
       );
       await inv_ops.insertInvestmentPricePoint(
           holdingId: hid, asOfDayYyyymmdd: 19700101, priceMinorPerShare: 500);
-      await inv_ops.insertOtherInvestment(
+      final int otherId = await inv_ops.insertOtherInvestment(
         label: 'Cash',
-        valueLcyMinor: 9900,
         entryCurrency: 'lcy',
-        entryMinor: 9900,
+      );
+      await inv_ops.insertOtherAssetLineItem(
+        assetId: otherId,
+        description: 'Opening balance',
+        amountMinor: 9900,
+        entryCurrency: 'lcy',
+        entryAmountMinor: 9900,
+        occurredAtMs: DateTime(2026, 1, 1).millisecondsSinceEpoch,
       );
 
       final String exported = await BackupService.exportJsonString();
@@ -498,6 +506,45 @@ void main() {
       expect(rows.length, 1);
       expect(rows.first.label, 'Cash');
       expect(rows.first.valueLcyMinor, 9900);
+    });
+
+    test('roundtrip preserves other asset line items', () async {
+      final int assetId = await inv_ops.insertOtherInvestment(
+        label: 'USD wallet',
+        entryCurrency: 'fcy',
+      );
+      await inv_ops.insertOtherAssetLineItem(
+        assetId: assetId,
+        description: 'Deposit',
+        amountMinor: 20000,
+        entryCurrency: 'fcy',
+        entryAmountMinor: 1000,
+        occurredAtMs: DateTime(2026, 2, 1).millisecondsSinceEpoch,
+      );
+      await inv_ops.insertOtherAssetLineItem(
+        assetId: assetId,
+        description: 'Withdrawal',
+        amountMinor: -5000,
+        entryCurrency: 'fcy',
+        entryAmountMinor: -250,
+        occurredAtMs: DateTime(2026, 2, 2).millisecondsSinceEpoch,
+      );
+
+      final String exported = await BackupService.exportJsonString();
+      expect(exported, contains('"otherAssetLineItems"'));
+
+      await resetAppDatabaseFile();
+      await BackupService.importFromJsonString(exported);
+
+      final List<OtherInvestment> assets = await inv_ops.listOtherInvestments();
+      expect(assets.length, 1);
+      expect(assets.single.valueLcyMinor, 15000);
+
+      final List<OtherAssetLineItem> lineItems =
+          await inv_ops.listOtherAssetLineItems(assets.single.id);
+      expect(lineItems.length, 2);
+      expect(lineItems.any((e) => e.description == 'Deposit'), isTrue);
+      expect(lineItems.any((e) => e.description == 'Withdrawal'), isTrue);
     });
 
     test('roundtrip preserves budget months and lines', () async {
@@ -671,6 +718,42 @@ void main() {
       await BackupService.importFromJsonString(oldBackup);
       final List<Tag> tags = await db_ops.getTags();
       expect(tags, isEmpty);
+    });
+
+    test(
+        'importing older backup without otherAssetLineItems seeds opening balance entry',
+        () async {
+      const String oldBackup = '''
+{
+  "format": "balanced_backup",
+  "version": 1,
+  "dbSchemaVersion": 4,
+  "contacts": [],
+  "transactions": [],
+  "investmentOtherAssets": [
+    {
+      "id": 7,
+      "label": "Legacy cash",
+      "value_lcy_minor": 12000,
+      "entry_currency": "lcy",
+      "entry_minor": 12000,
+      "sort_order": 0,
+      "updated_at_ms": 1700000000000
+    }
+  ],
+  "preferences": {}
+}
+''';
+      await BackupService.importFromJsonString(oldBackup);
+      final List<OtherInvestment> assets = await inv_ops.listOtherInvestments();
+      expect(assets.length, 1);
+      expect(assets.single.valueLcyMinor, 12000);
+
+      final List<OtherAssetLineItem> lineItems =
+          await inv_ops.listOtherAssetLineItems(assets.single.id);
+      expect(lineItems.length, 1);
+      expect(lineItems.single.description, 'Opening balance');
+      expect(lineItems.single.amountMinor, 12000);
     });
 
     test(
